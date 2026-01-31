@@ -174,6 +174,11 @@ else
         echo -e "${YELLOW}📦 資料庫不存在，正在建立並安裝模組...${NC}"
         echo -e "${YELLOW}   （首次啟動需要 1-3 分鐘，請耐心等候）${NC}"
 
+        # 預先安裝 Python 依賴到系統級（避免 post_load_hook 安裝後無法 import 的問題）
+        echo -e "${BLUE}📦 安裝 Python 依賴...${NC}"
+        docker compose exec -T web pip install --break-system-packages websockets>=10.0 2>/dev/null || \
+            docker compose exec -T web pip install websockets>=10.0 2>/dev/null || true
+
         # 使用 Odoo CLI 初始化資料庫並安裝 base + odoo_ha_addon
         if docker compose exec -T web odoo \
             -d "$DB_NAME" \
