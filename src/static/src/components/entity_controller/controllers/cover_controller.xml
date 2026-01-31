@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Cover Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Cover">
+        <div class="cover-controller">
+            <div class="btn-group mb-3" role="group">
+                <button class="btn btn-outline-success" t-on-click.stop="() => this.onOpenCover()" t-att-disabled="state.isLoading" title="Open">
+                    <i class="fa fa-arrow-up"/>
+                </button>
+                <button class="btn btn-outline-warning" t-on-click.stop="() => this.onStopCover()" t-att-disabled="state.isLoading" title="Stop">
+                    <i class="fa fa-stop"/>
+                </button>
+                <button class="btn btn-outline-danger" t-on-click.stop="() => this.onCloseCover()" t-att-disabled="state.isLoading" title="Close">
+                    <i class="fa fa-arrow-down"/>
+                </button>
+            </div>
+
+            <!-- Position slider -->
+            <t t-if="state.attributes?.current_position !== undefined">
+                <div class="position-control entity-value-slider">
+                    <div class="slider-track-container d-flex align-items-center gap-2">
+                        <i class="fa fa-arrows-v text-muted"/>
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="1"
+                            t-att-value="currentCoverPosition"
+                            t-att-style="'--slider-progress: ' + currentCoverPosition + '%'"
+                            t-on-input.stop="(ev) => this.onCoverPositionInput(ev.target.value)"
+                            t-on-change.stop="(ev) => this.onSetCoverPosition(ev.target.value)"
+                            t-att-disabled="state.isLoading"
+                        />
+                        <span class="slider-value-badge">
+                            <t t-esc="currentCoverPosition"/>%
+                        </span>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

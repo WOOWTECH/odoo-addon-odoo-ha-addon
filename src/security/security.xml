@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- ========================================
+             Home Assistant 權限組
+             ========================================
+             採用兩層權限設計（參考 Point of Sale 模組）：
+             1. HA User: 可以查看授權的 HA 數據
+             2. HA Manager: 可以管理實例和配置（包含 HA User 權限）
+        -->
+
+        <!-- HA User 群組：基礎訪問權限 -->
+        <record id="group_ha_user" model="res.groups">
+            <field name="name">Home Assistant User</field>
+            <field name="category_id" ref="base.module_category_administration"/>
+            <field name="comment">可以查看授權的 Home Assistant 實體和數據。需明確授權才能訪問 HA 功能。</field>
+        </record>
+
+        <!-- HA Manager 群組：完整管理權限 -->
+        <record id="group_ha_manager" model="res.groups">
+            <field name="name">Home Assistant Manager</field>
+            <field name="category_id" ref="base.module_category_administration"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_ha_user'))]"/>
+            <field name="comment">可以管理 Home Assistant 實例、配置和高級設定。自動包含 HA User 權限。</field>
+        </record>
+
+        <!-- ========================================
+             記錄規則: HA 實例訪問控制
+             ========================================
+             新架構：普通用戶通過 entity groups 間接訪問實例
+        -->
+
+        <!-- 規則 1: HA User 可以看到有權限 groups 的實例 (只讀) -->
+        <record id="ha_instance_user_rule" model="ir.rule">
+            <field name="name">HA Instance: User Access (via Groups)</field>
+            <field name="model_id" ref="model_ha_instance"/>
+            <field name="domain_force">[
+                ('id', 'in', user.ha_entity_group_ids.mapped('ha_instance_id').ids)
+            ]</field>
+            <field name="groups" eval="[(4, ref('group_ha_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- 規則 2: Manager 可以看到所有實例 -->
+        <record id="ha_instance_manager_rule" model="ir.rule">
+            <field name="name">HA Instance: Manager Full Access</field>
+            <field name="model_id" ref="model_ha_instance"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_ha_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ========================================
+             記錄規則: 實體數據訪問控制
+             ========================================
+             實體數據從 Home Assistant 同步而來，所有用戶只能讀取，
+             只有 WebSocket 服務（admin user）可以執行 CUD 操作
+
+             新架構：普通用戶只能訪問授權 groups 中的 entities
+        -->
+
+        <!-- 規則 3: HA User 只能看到授權 groups 中的實體 -->
+        <record id="ha_entity_user_rule" model="ir.rule">
+            <field name="name">HA Entity: User Access (via Groups)</field>
+            <field name="model_id" ref="model_ha_entity"/>
+            <field name="domain_force">[
+                ('id', 'in', user.ha_entity_group_ids.mapped('entity_ids').ids)
+            ]</field>
+            <field name="groups" eval="[(4, ref('group_ha_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- 規則 4: Manager 可以看到所有實體（但只能讀取） -->
+        <record id="ha_entity_manager_rule" model="ir.rule">
+            <field name="name">HA Entity: Manager Access (Read-Only)</field>
+            <field name="model_id" ref="model_ha_entity"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_ha_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- ========================================
+             記錄規則: 實體歷史數據訪問控制
+             ========================================
+             新架構：通過 entity groups 間接控制歷史數據訪問
+        -->
+
+        <!-- 規則 5: HA User 只能看到授權 groups 中實體的歷史數據 -->
+        <record id="ha_entity_history_user_rule" model="ir.rule">
+            <field name="name">HA Entity History: User Access (via Groups)</field>
+            <field name="model_id" ref="model_ha_entity_history"/>
+            <field name="domain_force">[
+                ('entity_id', 'in', user.ha_entity_group_ids.mapped('entity_ids').ids)
+            ]</field>
+            <field name="groups" eval="[(4, ref('group_ha_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- 規則 6: Manager 可以看到所有歷史數據 -->
+        <record id="ha_entity_history_manager_rule" model="ir.rule">
+            <field name="name">HA Entity History: Manager Full Access</field>
+            <field name="model_id" ref="model_ha_entity_history"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_ha_manager'))]"/>
+        </record>
+
+        <!-- ========================================
+             記錄規則: 區域數據訪問控制
+             ========================================
+             新架構：用戶可以看到授權 groups 所屬實例的區域
+        -->
+
+        <!-- 規則 7: HA User 只能看到有權限實例的區域 -->
+        <record id="ha_area_user_rule" model="ir.rule">
+            <field name="name">HA Area: User Access (via Groups)</field>
+            <field name="model_id" ref="model_ha_area"/>
+            <field name="domain_force">[
+                ('ha_instance_id', 'in', user.ha_entity_group_ids.mapped('ha_instance_id').ids)
+            ]</field>
+            <field name="groups" eval="[(4, ref('group_ha_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- 規則 8: Manager 可以看到所有區域 -->
+        <record id="ha_area_manager_rule" model="ir.rule">
+            <field name="name">HA Area: Manager Full Access</field>
+            <field name="model_id" ref="model_ha_area"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_ha_manager'))]"/>
+        </record>
+
+        <!-- ========================================
+             記錄規則: 實體分組訪問控制
+             ========================================
+             核心權限控制點！用戶只能訪問授權的 entity groups
+        -->
+
+        <!-- 規則 9: HA User 只能看到授權的分組（或公開的分組） -->
+        <record id="ha_entity_group_user_rule" model="ir.rule">
+            <field name="name">HA Entity Group: User Access</field>
+            <field name="model_id" ref="model_ha_entity_group"/>
+            <field name="domain_force">[
+                '|',
+                    ('user_ids', '=', False),  # 公開的 group
+                    ('user_ids', 'in', [user.id])  # 授權給此用戶的 group
+            ]</field>
+            <field name="groups" eval="[(4, ref('group_ha_user'))]"/>
+        </record>
+
+        <!-- 規則 10: Manager 可以看到所有分組 -->
+        <record id="ha_entity_group_manager_rule" model="ir.rule">
+            <field name="name">HA Entity Group: Manager Full Access</field>
+            <field name="model_id" ref="model_ha_entity_group"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_ha_manager'))]"/>
+        </record>
+
+        <!-- 規則 11: HA User 只能看到授權 groups 的標籤 -->
+        <record id="ha_entity_group_tag_user_rule" model="ir.rule">
+            <field name="name">HA Entity Group Tag: User Access (via Groups)</field>
+            <field name="model_id" ref="model_ha_entity_group_tag"/>
+            <field name="domain_force">[
+                ('id', 'in', user.ha_entity_group_ids.mapped('tag_ids').ids)
+            ]</field>
+            <field name="groups" eval="[(4, ref('group_ha_user'))]"/>
+        </record>
+
+        <!-- 規則 12: Manager 可以看到所有標籤 -->
+        <record id="ha_entity_group_tag_manager_rule" model="ir.rule">
+            <field name="name">HA Entity Group Tag: Manager Full Access</field>
+            <field name="model_id" ref="model_ha_entity_group_tag"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_ha_manager'))]"/>
+        </record>
+
+        <!-- ========================================
+             記錄規則: Entity Tag 訪問控制
+             ========================================
+             用戶只能看到授權 groups 中的 entities 所使用的 tags
+        -->
+
+        <!-- 規則 13: HA User 只能看到授權 entities 的標籤 -->
+        <record id="ha_entity_tag_user_rule" model="ir.rule">
+            <field name="name">HA Entity Tag: User Access (via Entities)</field>
+            <field name="model_id" ref="model_ha_entity_tag"/>
+            <field name="domain_force">[
+                ('id', 'in', user.ha_entity_group_ids.mapped('entity_ids').mapped('tag_ids').ids)
+            ]</field>
+            <field name="groups" eval="[(4, ref('group_ha_user'))]"/>
+        </record>
+
+        <!-- 規則 14: Manager 可以看到所有 Entity Tag -->
+        <record id="ha_entity_tag_manager_rule" model="ir.rule">
+            <field name="name">HA Entity Tag: Manager Full Access</field>
+            <field name="model_id" ref="model_ha_entity_tag"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_ha_manager'))]"/>
+        </record>
+
+    </data>
+</odoo>

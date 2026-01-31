@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ha_addon.DeviceCard">
+        <div class="device-card card mb-3 shadow-sm">
+            <!-- Device Header (clickable to toggle) -->
+            <div class="card-header d-flex align-items-center justify-content-between py-2"
+                 t-on-click="toggleExpand" style="cursor: pointer;">
+                <div class="d-flex align-items-center flex-grow-1 min-width-0">
+                    <i class="fa fa-cube me-2 text-primary"/>
+                    <div class="min-width-0">
+                        <h6 class="mb-0 text-truncate" t-esc="displayName"/>
+                        <small t-if="manufacturerInfo" class="text-muted d-block text-truncate">
+                            <t t-esc="manufacturerInfo"/>
+                        </small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center ms-2 flex-shrink-0">
+                    <span class="badge bg-secondary me-2" t-esc="entityCount"/>
+                    <t t-if="hasOverriddenEntities">
+                        <span class="badge bg-warning text-dark me-2" t-att-title="overriddenTooltip">
+                            <i class="fa fa-external-link"/>
+                        </span>
+                    </t>
+                    <i t-att-class="state.expanded ? 'fa fa-chevron-up text-muted' : 'fa fa-chevron-down text-muted'"/>
+                </div>
+            </div>
+
+            <!-- Entity Grid (collapsible) -->
+            <div t-if="state.expanded" class="card-body py-3">
+                <t t-if="props.device.entities and props.device.entities.length > 0">
+                    <!-- Normal Entities (staying in this area) - Card Grid -->
+                    <t t-if="normalEntities.length > 0">
+                        <div class="entity-grid row g-3">
+                            <t t-foreach="normalEntities" t-as="entity" t-key="entity.id">
+                                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                                    <div class="entity-card card h-100 shadow-sm">
+                                        <div class="card-body position-relative">
+                                            <!-- Related Info Icon (top-right) -->
+                                            <button
+                                                class="btn btn-sm btn-link text-muted p-0 position-absolute"
+                                                style="top: 0.5rem; right: 0.5rem;"
+                                                t-on-click.stop="() => this.onShowRelatedFor(entity)"
+                                                title="View related items"
+                                            >
+                                                <i class="fa fa-info-circle"/>
+                                            </button>
+
+                                            <!-- Card Header -->
+                                            <div class="d-flex align-items-center mb-2 pe-4">
+                                                <span class="badge bg-secondary me-2" t-esc="entity.domain"/>
+                                                <h6 class="card-title mb-0 text-truncate flex-grow-1">
+                                                    <t t-esc="entity.name or entity.entity_id"/>
+                                                </h6>
+                                            </div>
+
+                                            <!-- Entity ID -->
+                                            <div class="mb-2">
+                                                <small class="text-muted">
+                                                    <code class="small"><t t-esc="entity.entity_id"/></code>
+                                                </small>
+                                            </div>
+
+                                            <hr class="my-2"/>
+
+                                            <!-- Entity Controller -->
+                                            <EntityController entity="entity"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+
+                    <!-- Overridden Entities (moved to other areas) -->
+                    <t t-if="hasOverriddenEntities">
+                        <div t-if="normalEntities.length > 0" class="border-top mt-3 pt-3">
+                            <small class="text-muted d-block mb-2">
+                                <i class="fa fa-external-link me-1"/>
+                                <t t-esc="movedToOtherAreasLabel"/>
+                            </small>
+                        </div>
+                        <div class="entity-grid row g-2">
+                            <t t-foreach="overriddenEntities" t-as="entity" t-key="entity.id">
+                                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                                    <div class="entity-card card h-100 opacity-75 border-warning">
+                                        <div class="card-body py-2 px-3">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center min-width-0">
+                                                    <span class="badge bg-secondary me-2" t-esc="entity.domain"/>
+                                                    <small class="text-truncate" t-esc="entity.name or entity.entity_id"/>
+                                                </div>
+                                                <span class="badge bg-warning text-dark ms-2 flex-shrink-0">
+                                                    <i class="fa fa-arrow-right me-1"/>
+                                                    <t t-esc="entity.area_override.area_name"/>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+                </t>
+                <t t-else="">
+                    <p class="text-muted mb-0 py-2">
+                        <i class="fa fa-info-circle me-1"/>
+                        <t t-esc="noEntitiesLabel"/>
+                    </p>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

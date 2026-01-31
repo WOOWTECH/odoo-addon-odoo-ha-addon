@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Portal Entity Info Main Template -->
+    <t t-name="odoo_ha_addon.PortalEntityInfo">
+        <div class="portal-entity-info">
+            <!-- Entity Information Card -->
+            <t t-call="odoo_ha_addon.PortalEntityInfo.InfoCard"/>
+
+            <!-- Attributes Card -->
+            <t t-if="hasAttributes">
+                <t t-call="odoo_ha_addon.PortalEntityInfo.AttributesCard"/>
+            </t>
+        </div>
+    </t>
+
+    <!-- Entity Information Card -->
+    <t t-name="odoo_ha_addon.PortalEntityInfo.InfoCard">
+        <div class="card shadow-sm mb-4 portal-entity-card portal-fade-in">
+            <div class="card-header card-header-section bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="entity-name mb-0">
+                    <i class="fa fa-info-circle entity-icon"/>
+                    <t t-esc="entityName"/>
+                </h4>
+                <span
+                    class="toggle-state-badge"
+                    t-att-class="{'portal-state-changed portal-state-pulse': state.stateChanged, 'is-on': state.entityState === 'on', 'is-off': state.entityState !== 'on'}"
+                >
+                    <t t-esc="state.entityState"/>
+                </span>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <!-- Entity ID -->
+                    <dt class="col-sm-4 col-md-3">實體 ID</dt>
+                    <dd class="col-sm-8 col-md-9 entity-id">
+                        <code><t t-esc="entityId"/></code>
+                    </dd>
+
+                    <!-- State -->
+                    <dt class="col-sm-4 col-md-3">狀態</dt>
+                    <dd
+                        class="col-sm-8 col-md-9 entity-state"
+                        t-att-class="{'portal-state-changed portal-state-pulse': state.stateChanged}"
+                    >
+                        <span class="font-weight-bold portal-transition-colors">
+                            <t t-esc="state.entityState"/>
+                        </span>
+                    </dd>
+
+                    <!-- Last Changed -->
+                    <dt class="col-sm-4 col-md-3">上次更新</dt>
+                    <dd class="col-sm-8 col-md-9 entity-updated">
+                        <t t-if="state.lastChanged">
+                            <i class="fa fa-clock-o me-1"/>
+                            <t t-esc="state.lastChanged"/>
+                        </t>
+                        <t t-else="">
+                            <span class="text-muted">無</span>
+                        </t>
+                    </dd>
+
+                    <!-- Domain -->
+                    <dt class="col-sm-4 col-md-3">網域</dt>
+                    <dd class="col-sm-8 col-md-9">
+                        <span class="badge badge-secondary">
+                            <t t-esc="domain"/>
+                        </span>
+                    </dd>
+
+                    <!-- Area -->
+                    <dt class="col-sm-4 col-md-3">區域</dt>
+                    <dd class="col-sm-8 col-md-9">
+                        <t t-if="area">
+                            <i class="fa fa-map-marker mr-1"/>
+                            <t t-esc="area"/>
+                        </t>
+                        <t t-else="">
+                            <span class="text-muted">未指派</span>
+                        </t>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </t>
+
+    <!-- Attributes Card -->
+    <t t-name="odoo_ha_addon.PortalEntityInfo.AttributesCard">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fa fa-cogs mr-2"/>屬性
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th style="width: 40%;">屬性</th>
+                                <th>值</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="attributeEntries" t-as="attr" t-key="attr[0]">
+                                <tr>
+                                    <td class="font-weight-bold">
+                                        <t t-esc="attr[0]"/>
+                                    </td>
+                                    <td>
+                                        <t t-esc="attr[1]"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

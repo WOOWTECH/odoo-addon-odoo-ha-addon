@@ -1,0 +1,17 @@
+.related-section {
+  .related-item {
+    transition: background-color 0.15s ease-in-out;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-bg-100:hover {
+  background-color: var(--bs-gray-100) !important;
+}

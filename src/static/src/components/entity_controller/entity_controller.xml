@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Main EntityController Template -->
+    <t t-name="odoo_ha_addon.EntityController">
+        <div class="entity-controller">
+            <!-- Error State -->
+            <t t-if="state.error">
+                <div class="alert alert-danger alert-sm mb-2" role="alert">
+                    <i class="fa fa-exclamation-triangle me-1"/>
+                    <t t-esc="state.error"/>
+                </div>
+            </t>
+
+            <!-- Domain-specific controllers -->
+            <t t-if="domain === 'switch'">
+                <t t-call="odoo_ha_addon.EntityController.Switch"/>
+            </t>
+            <t t-elif="domain === 'light'">
+                <t t-call="odoo_ha_addon.EntityController.Light"/>
+            </t>
+            <t t-elif="domain === 'sensor'">
+                <t t-call="odoo_ha_addon.EntityController.Sensor"/>
+            </t>
+            <t t-elif="domain === 'climate'">
+                <t t-call="odoo_ha_addon.EntityController.Climate"/>
+            </t>
+            <t t-elif="domain === 'cover'">
+                <t t-call="odoo_ha_addon.EntityController.Cover"/>
+            </t>
+            <t t-elif="domain === 'fan'">
+                <t t-call="odoo_ha_addon.EntityController.Fan"/>
+            </t>
+            <t t-elif="domain === 'automation'">
+                <t t-call="odoo_ha_addon.EntityController.Automation"/>
+            </t>
+            <t t-elif="domain === 'scene'">
+                <t t-call="odoo_ha_addon.EntityController.Scene"/>
+            </t>
+            <t t-elif="domain === 'script'">
+                <t t-call="odoo_ha_addon.EntityController.Script"/>
+            </t>
+            <t t-else="">
+                <t t-call="odoo_ha_addon.EntityController.Generic"/>
+            </t>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="odoo_ha_addon_settings_view" model="ir.ui.view">
+        <field name="name">WOOW HA Configuration</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="WOOW HA" name="odoo_ha_addon">
+
+                    <!-- ==================== Header: Instance 選擇器 ==================== -->
+                    <setting type="header" string="Home Assistant Instance">
+                        <field name="ha_instance_id"
+                               options="{'no_open': True, 'no_create': True}"
+                               title="Settings on this page will apply to this HA instance."/>
+                        <button name="action_ha_instance_create_new"
+                                type="object"
+                                string="+ New Instance"
+                                class="btn btn-link"/>
+                    </setting>
+
+                    <!-- ==================== 未選擇時顯示提示 ==================== -->
+                    <div class="o_view_nocontent" invisible="ha_instance_id">
+                        <div class="o_nocontent_help">
+                            <p class="o_view_nocontent_empty_folder">No Home Assistant Instance selected</p>
+                            <p>Please create/select a Home Assistant instance above to show the configuration options.</p>
+                        </div>
+                    </div>
+
+                    <!-- ==================== 選擇後顯示設定區塊 ==================== -->
+                    <div invisible="not ha_instance_id">
+
+                        <!-- 狀態資訊顯示 -->
+                        <div class="alert alert-info" role="alert" style="margin: 16px 0;">
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>WebSocket Status:</strong>
+                                    <field name="ha_websocket_status"
+                                           widget="badge"
+                                           decoration-success="ha_websocket_status == 'connected'"
+                                           decoration-danger="ha_websocket_status == 'error'"
+                                           decoration-warning="ha_websocket_status == 'connecting'"
+                                           decoration-muted="ha_websocket_status == 'disconnected'"/>
+                                    <button name="action_restart_websocket"
+                                            type="object"
+                                            string="Restart WebSocket"
+                                            class="btn btn-primary btn-sm ms-2"
+                                            icon="fa-refresh"/>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Entities:</strong> <field name="ha_entity_count" readonly="1"/>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    <strong>Last Sync:</strong> <field name="ha_last_sync_date" readonly="1"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Block 1: 基本資訊 -->
+                        <block title="Basic Information" id="ha_basic_info">
+                            <setting string="Instance Name" help="A friendly name to identify this instance">
+                                <field name="ha_name" placeholder="e.g., Home HA, Office HA" required="ha_instance_id"/>
+                            </setting>
+
+                            <setting string="Display Order" help="Lower numbers appear first in the instance list">
+                                <field name="ha_sequence"/>
+                            </setting>
+
+                            <setting string="Active" help="Inactive instances are hidden from users">
+                                <field name="ha_active"/>
+                            </setting>
+                        </block>
+
+                        <!-- Block 2: 連接設定 -->
+                        <block title="Connection Settings" id="ha_connection_settings">
+                            <setting string="API URL" help="Home Assistant API URL (e.g., http://homeassistant.local:8123)">
+                                <div class="content-group">
+                                    <field name="ha_api_url"
+                                           placeholder="http://homeassistant.local:8123"
+                                           required="ha_instance_id"/>
+                                    <div class="text-muted mt-1">
+                                        <i class="fa fa-info-circle" title="Info"/>
+                                        WebSocket URL: <field name="ha_ws_url" readonly="1" class="text-monospace"/>
+                                    </div>
+                                </div>
+                            </setting>
+
+                            <setting string="Access Token" help="Long-lived access token from Home Assistant">
+                                <field name="ha_api_token"
+                                       password="True"
+                                       placeholder="Enter your access token"
+                                       required="ha_instance_id"/>
+                            </setting>
+
+                            <setting string="Test Connection" help="Verify the connection to Home Assistant">
+                                <button name="action_test_connection"
+                                        type="object"
+                                        string="Test Connection"
+                                        class="btn btn-primary"
+                                        icon="fa-plug"/>
+                            </setting>
+                        </block>
+
+                        <!-- Block 3: 備註 -->
+                        <block title="Description" id="ha_description">
+                            <setting string="Notes" help="Additional notes or description for this instance">
+                                <field name="ha_description"
+                                       placeholder="Add notes or description for this instance..."/>
+                            </setting>
+                        </block>
+
+                        <!-- Block 4: 同步操作 -->
+                        <block title="Synchronization" id="ha_sync_operations">
+                            <setting string="Sync Operations" help="Synchronize data from Home Assistant">
+                                <div class="content-group">
+                                    <div class="row">
+                                        <div class="col-12 mb-2">
+                                            <button name="action_sync_entities"
+                                                    type="object"
+                                                    string="Sync Entities"
+                                                    class="btn btn-secondary"
+                                                    icon="fa-refresh"/>
+                                            <span class="text-muted ms-2">Synchronize entities and areas from Home Assistant</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </setting>
+                        </block>
+                    </div>
+
+                    <!-- ==================== 全域設定區域 ==================== -->
+                    <!-- 視覺分隔線 -->
+                    <hr style="margin: 32px 0; border-top: 2px solid #dee2e6;"/>
+
+                    <!-- 全域設定說明 -->
+                    <div class="alert alert-warning" role="status" style="margin: 16px 0;">
+                        <h5 class="alert-heading">
+                            <i class="fa fa-globe" title="Global"/> Global Settings
+                        </h5>
+                        <p class="mb-0">
+                            The following settings apply to <strong>all Home Assistant instances</strong> in this system.
+                            Changes here will affect every instance's behavior.
+                        </p>
+                    </div>
+
+                    <!-- 全域設定區塊 -->
+                    <block title="WebSocket Configuration" name="ha_global_websocket_settings">
+                        <setting string="Heartbeat Interval"
+                                 help="WebSocket service heartbeat update interval. Applies to all instances. Recommended: below 15 seconds.">
+                            <div class="content-group">
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <field name="ha_ws_heartbeat_interval"
+                                               placeholder="10"
+                                               class="oe_inline"/>
+                                        <span class="text-muted ms-2">seconds</span>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="text-muted small">
+                                            <i class="fa fa-info-circle" title="Info"/>
+                                            Lower values provide faster status updates but increase system load.
+                                            Default: 10 seconds.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+
+                    <block title="History Sync Configuration" name="ha_global_history_settings">
+                        <setting string="Max Parallel Workers"
+                                 help="Maximum number of parallel workers for entity history sync.">
+                            <div class="content-group">
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <field name="ha_history_sync_max_workers"
+                                               placeholder="5"
+                                               class="oe_inline"/>
+                                        <span class="text-muted ms-2">workers</span>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="text-muted small">
+                                            <i class="fa fa-info-circle" title="Info"/>
+                                            Higher values may improve sync speed but increase system load.
+                                            Default: 5 workers.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

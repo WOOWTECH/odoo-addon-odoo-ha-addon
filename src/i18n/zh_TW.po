@@ -1,0 +1,1082 @@
+# Translation of odoo_ha_addon module to Traditional Chinese (Taiwan).
+# Copyright (C) 2024 WOOW
+# This file is distributed under the same license as the odoo_ha_addon package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: odoo_ha_addon 18.0.4.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-20 00:00+0000\n"
+"PO-Revision-Date: 2026-01-17 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Traditional Chinese (Taiwan)\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: odoo_ha_addon
+#: model:ir.actions.client,name:odoo_ha_addon.ha_instance_dashboard_action
+msgid "Home Assistant Instances"
+msgstr "Home Assistant 實例"
+
+#. module: odoo_ha_addon
+#: model:ir.actions.client,name:odoo_ha_addon.area_dashboard_action
+msgid "Area Dashboard"
+msgstr "分區儀表板"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_group_view_form
+msgid "Permission Notes:"
+msgstr "權限說明："
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_group_view_form
+msgid "Authorized users can view all entities and data in this group"
+msgstr "已授權的用戶可以查看此群組中的所有實體和數據"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_group_view_form
+msgid "If no users are specified, all users with instance access can view this group"
+msgstr "如果未指定任何用戶，則所有有權訪問該實例的用戶都可以查看此群組"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_group_view_form
+msgid "HA Managers can always view and manage all groups"
+msgstr "HA Manager 始終可以查看和管理所有群組"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.odoo_ha_addon_settings_view
+msgid "Restart WebSocket"
+msgstr "重啟 WebSocket"
+
+#. module: odoo_ha_addon
+#: model:ir.actions.server,name:odoo_ha_addon.action_server_restart_websocket
+msgid "Restart WebSocket Service"
+msgstr "重啟 WebSocket 服務"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_instance_view_form
+msgid "Description:"
+msgstr "說明："
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_instance_view_form
+msgid "The fingerprint is a unique identifier calculated based on the API URL. When the URL changes, a detection is triggered to remind you whether old data needs to be cleared."
+msgstr "Fingerprint 是基於 API URL 計算的唯一識別碼。當 URL 改變時會觸發檢測，提醒是否需要清除舊資料。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "Confirm Clear Instance Data"
+msgstr "確認清除實例資料"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "⚠️ Warning: This operation is irreversible!"
+msgstr "⚠️ 警告：此操作不可逆！"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "The following data will be cleared:"
+msgstr "將清除以下資料："
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "Note:"
+msgstr "注意："
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "All Entity, History, Area, Group, Tag data will be permanently deleted"
+msgstr "所有 Entity、History、Area、Group、Tag 資料將被永久刪除"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "This operation cannot be undone"
+msgstr "此操作無法復原"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "It is recommended to backup the database before clearing"
+msgstr "建議在清除前先備份資料庫"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "Data needs to be re-synced after clearing"
+msgstr "清除後需要重新同步資料"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "Confirm Clear"
+msgstr "確認清除"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "Cancel"
+msgstr "取消"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/wizard/ha_instance_clear_wizard.py:0
+msgid "An error occurred while clearing instance data: %s"
+msgstr "清除實例資料時發生錯誤：%s"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields.selection,name:odoo_ha_addon.selection__ha_instance__websocket_status__error
+msgid "Error"
+msgstr "錯誤"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/wizard/ha_instance_clear_wizard.py:0
+msgid "Invalid instance ID"
+msgstr "無效的實例 ID"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/wizard/ha_instance_clear_wizard.py:0
+msgid ""
+"Successfully cleared all data for instance '%s'\n"
+"\n"
+"Deletion Statistics:\n"
+"• Entities: %d\n"
+"• History: %d\n"
+"• Areas: %d\n"
+"• Groups: %d\n"
+"• Tags: %d\n"
+"• Queue: %d\n"
+"Total: %d records"
+msgstr ""
+"已成功清除實例 '%s' 的所有資料\n"
+"\n"
+"刪除統計：\n"
+"• Entities: %d\n"
+"• History: %d\n"
+"• Areas: %d\n"
+"• Groups: %d\n"
+"• Tags: %d\n"
+"• Queue: %d\n"
+"總計: %d 筆記錄"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/wizard/ha_instance_clear_wizard.py:0
+msgid "✓ Data Cleared"
+msgstr "✓ 資料已清除"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/wizard/ha_instance_clear_wizard.py:0
+msgid "✗ Clear Failed"
+msgstr "✗ 清除失敗"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid "⚠️ API URL Changed"
+msgstr "⚠️ API URL 已變更"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid ""
+"Connection successful!\n"
+"\n"
+"⚠️ URL change detected:\n"
+"Old: %s\n"
+"New: %s\n"
+"\n"
+"If this is a different Home Assistant instance, it is recommended to clear old data to avoid data confusion.\n"
+"Please use the 'Clear Instance Data' button.\n"
+"\n"
+"If this is just a URL change (e.g., from HTTP to HTTPS), no need to clear data.\n"
+"\n"
+"⚠️ Please click SAVE to confirm the URL change.\n"
+"Fingerprint will be updated automatically on save."
+msgstr ""
+"連線成功！\n"
+"\n"
+"⚠️ 偵測到 URL 變更：\n"
+"舊 URL: %s\n"
+"新 URL: %s\n"
+"\n"
+"如果這是不同的 Home Assistant 實例，建議清除舊資料以避免資料混淆。\n"
+"請使用「清除實例資料」按鈕。\n"
+"\n"
+"如果只是 URL 變更（例如從 HTTP 改為 HTTPS），則無需清除資料。\n"
+"\n"
+"⚠️ 請點擊「儲存」以確認 URL 變更。\n"
+"Fingerprint 將在儲存時自動更新。"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid "✓ Connection Successful"
+msgstr "✓ 連線成功"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid "Connected to Home Assistant %s"
+msgstr "已連線至 Home Assistant %s"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid "✗ Connection Failed"
+msgstr "✗ 連線失敗"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid ""
+"Invalid API URL format: %s\n"
+"URL must start with http:// or https://"
+msgstr ""
+"無效的 API URL 格式：%s\n"
+"URL 必須以 http:// 或 https:// 開頭"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid ""
+"Cannot delete instance '%s' because it has %d associated entities.\n"
+"Please delete all associated entities first."
+msgstr ""
+"無法刪除實例 '%s'，因為它有 %d 個關聯的實體。\n"
+"請先刪除所有關聯的實體。"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_group.py:0
+msgid "Group name \"%s\" already exists, please use a different name"
+msgstr "群組名稱 \"%s\" 已存在，請使用不同的名稱"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_group.py:0
+#: code:addons/odoo_ha_addon/models/ha_entity_group_tag.py:0
+msgid " (and %d more)"
+msgstr "（還有 %d 個）"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_group.py:0
+msgid ""
+"Group \"%s\" belongs to instance \"%s\",\n"
+"but the following entities belong to different instances: %s\n"
+"All entities in a group must belong to the same instance."
+msgstr ""
+"群組 \"%s\" 屬於實例 \"%s\"，\n"
+"但以下實體屬於不同的實例：%s\n"
+"一個群組中的所有實體必須屬於同一個實例。"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_group.py:0
+msgid ""
+"Group \"%s\" belongs to instance \"%s\",\n"
+"but the following tags belong to different instances: %s\n"
+"All tags in a group must belong to the same instance."
+msgstr ""
+"群組 \"%s\" 屬於實例 \"%s\"，\n"
+"但以下標籤屬於不同的實例：%s\n"
+"一個群組中的所有標籤必須屬於同一個實例。"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity.py:0
+msgid ""
+"Entity \"%s\" belongs to instance \"%s\",\n"
+"but the following groups belong to different instances: %s\n"
+"An entity can only join groups from the same instance."
+msgstr ""
+"實體 \"%s\" 屬於實例 \"%s\"，\n"
+"但以下群組屬於不同的實例：%s\n"
+"一個實體只能加入同一個實例的群組。"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity.py:0
+msgid "WebSocket Service"
+msgstr "WebSocket 服務"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity.py:0
+msgid "WebSocket service started"
+msgstr "WebSocket 服務已啟動"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity.py:0
+#: code:addons/odoo_ha_addon/models/common/websocket_thread_manager.py:0
+msgid "Start failed: %s"
+msgstr "啟動失敗：%s"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity.py:0
+msgid "Stop failed: %s"
+msgstr "停止失敗：%s"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_group_tag.py:0
+msgid "Tag name \"%s\" already exists, please use a different name"
+msgstr "標籤名稱 \"%s\" 已存在，請使用不同的名稱"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_group_tag.py:0
+msgid ""
+"Tag \"%s\" belongs to instance \"%s\",\n"
+"but the following groups belong to different instances: %s\n"
+"A tag can only be associated with groups from the same instance."
+msgstr ""
+"標籤 \"%s\" 屬於實例 \"%s\"，\n"
+"但以下群組屬於不同的實例：%s\n"
+"一個標籤只能與同一個實例的群組關聯。"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/common/websocket_thread_manager.py:0
+msgid "Restart too frequent, please wait %d seconds"
+msgstr "重啟過於頻繁，請等待 %d 秒"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/common/websocket_thread_manager.py:0
+msgid "WebSocket service restarted (instance %d)"
+msgstr "WebSocket 服務已重啟（實例 %d）"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/common/websocket_thread_manager.py:0
+msgid "Restart failed: %s"
+msgstr "重啟失敗：%s"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/common/websocket_thread_manager.py:0
+msgid "All WebSocket services restarted (%d instances)"
+msgstr "所有 WebSocket 服務已重啟（%d 個實例）"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Switched to %s"
+msgstr "已切換到 %s"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Instance ID not specified"
+msgstr "未指定實例 ID"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Instance not found (ID: %s)"
+msgstr "找不到實例 (ID: %s)"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Instance \"%s\" is inactive"
+msgstr "實例 \"%s\" 未啟用"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Instance \"%s\" is not fully configured (missing: %s)"
+msgstr "實例 \"%s\" 未配置完整（缺少: %s）"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "No HA instance available"
+msgstr "沒有可用的 HA 實例"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Unable to get Odoo environment"
+msgstr "無法取得 Odoo 環境"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Connected"
+msgstr "已連線"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Disconnected"
+msgstr "未連線"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "instance_id is required"
+msgstr "instance_id 為必填"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Failed to load HA instance list: "
+msgstr "無法載入 HA 實例列表："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Error loading instance list: "
+msgstr "載入實例列表時發生錯誤："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Switched to instance: "
+msgstr "已切換到實例："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Failed to switch instance: "
+msgstr "切換實例失敗："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Error switching instance: "
+msgstr "切換實例時發生錯誤："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Failed to load Area list: "
+msgstr "無法載入 Area 列表："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Error loading Area list: "
+msgstr "載入 Area 列表時發生錯誤："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Failed to load Area Entity list: "
+msgstr "無法載入 Area 的 Entity 列表："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Error loading Entity list: "
+msgstr "載入 Entity 列表時發生錯誤："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "succeeded"
+msgstr "成功"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Failed to execute %s.%s: "
+msgstr "執行 %s.%s 失敗："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Error executing service: "
+msgstr "執行服務時發生錯誤："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Turn on"
+msgstr "開啟"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Turn off"
+msgstr "關閉"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Toggle"
+msgstr "切換"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Set temperature"
+msgstr "設定溫度"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Set HVAC mode"
+msgstr "設定模式"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Open"
+msgstr "開啟"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Close"
+msgstr "關閉"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Stop"
+msgstr "停止"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Lock"
+msgstr "鎖定"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Unlock"
+msgstr "解鎖"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Execute"
+msgstr "執行"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Instance invalidated: "
+msgstr "實例失效："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "default instance"
+msgstr "預設實例"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "first active instance"
+msgstr "第一個活躍實例"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "fallback instance"
+msgstr "備用實例"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Auto-switched to %s: "
+msgstr "已自動切換到%s："
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Unassigned"
+msgstr "未分區"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "No Area"
+msgstr "無區域"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "No active HA instance available"
+msgstr "沒有可用的活躍 HA 實例"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Area not found (ID: %s)"
+msgstr "找不到區域 (ID: %s)"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "device_id is required"
+msgstr "device_id 為必填"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Failed to load Area Dashboard data: "
+msgstr "載入區域儀表板資料失敗："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Error loading Area Dashboard: "
+msgstr "載入區域儀表板錯誤："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/components/device_card/device_card.js:0
+msgid "Some entities moved to other areas"
+msgstr "部分實體已移至其他區域"
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/components/device_card/device_card.js:0
+msgid "Moved to other areas:"
+msgstr "已移至其他區域："
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/components/device_card/device_card.js:0
+msgid "No entities in this device"
+msgstr "此裝置沒有實體"
+
+#. module: odoo_ha_addon
+#: model:ir.model,name:odoo_ha_addon.model_ha_entity_tag
+msgid "Home Assistant Entity Tag"
+msgstr "Home Assistant 實體標籤"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity_tag__entity_count
+msgid "Entity Count"
+msgstr "實體數量"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__tag_count
+msgid "Tag Count"
+msgstr "標籤數量"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_tag.py:0
+#: code:addons/odoo_ha_addon/models/ha_entity_group_tag.py:0
+msgid "Tag name \"%s\" already exists in this instance, please use a different name"
+msgstr "此實例中標籤名稱「%s」已存在，請使用不同的名稱"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_tag.py:0
+msgid ""
+"Tag \"%s\" belongs to instance \"%s\",\n"
+"but the following entities belong to different instances: %s\n"
+"A tag can only be associated with entities from the same instance."
+msgstr ""
+"標籤「%s」屬於實例「%s」，\n"
+"但以下實體屬於不同的實例：%s\n"
+"一個標籤只能與同一個實例的實體關聯。"
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity.py:0
+msgid ""
+"Entity \"%s\" belongs to instance \"%s\",\n"
+"but the following tags belong to different instances: %s\n"
+"An entity can only use tags from the same instance."
+msgstr ""
+"實體「%s」屬於實例「%s」，\n"
+"但以下標籤屬於不同的實例：%s\n"
+"一個實體只能使用同一個實例的標籤。"
+
+#. module: odoo_ha_addon
+#: model:ir.actions.act_window,name:odoo_ha_addon.ha_entity_tag_action
+msgid "Entity Tags"
+msgstr "實體標籤"
+
+#. module: odoo_ha_addon
+#: model:ir.ui.menu,name:odoo_ha_addon.menu_ha_entity_tag
+msgid "Entity Tag"
+msgstr "實體標籤"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_tag_view_form
+msgid "View Entities"
+msgstr "查看實體"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_tag_view_form
+msgid "Create your first Entity Tag"
+msgstr "建立您的第一個實體標籤"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_tag_view_form
+msgid "Tags help you categorize and organize your entities for better management."
+msgstr "標籤可幫助您分類和組織實體，以便更好地管理。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_view_form
+msgid "Groups, Tags & Labels"
+msgstr "群組、標籤與 Labels"
+
+#. module: odoo_ha_addon
+#. Portal Templates - Error Pages
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_error_403
+msgid "Access Denied"
+msgstr "存取被拒"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_error_403
+msgid "The access link is invalid or has expired. Please request a new sharing link from the owner."
+msgstr "存取連結無效或已過期。請向擁有者索取新的分享連結。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_error_403
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_error_404
+msgid "Return to Home"
+msgstr "返回首頁"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_error_404
+msgid "Not Found"
+msgstr "找不到"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_error_404
+msgid "The requested resource does not exist or has been removed. Please check the link and try again."
+msgstr "請求的資源不存在或已被移除。請檢查連結後再試一次。"
+
+#. module: odoo_ha_addon
+#. Portal Templates - Entity Portal Page
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Entity"
+msgstr "實體"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "Entity ID"
+msgstr "實體 ID"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "State"
+msgstr "狀態"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "Last Changed"
+msgstr "上次更新"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "N/A"
+msgstr "無"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "Domain"
+msgstr "網域"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Area"
+msgstr "區域"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Not assigned"
+msgstr "未指派"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Attributes"
+msgstr "屬性"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Attribute"
+msgstr "屬性"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Value"
+msgstr "值"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "Discussion"
+msgstr "討論"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Live Status"
+msgstr "即時狀態"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Auto-updates every 5 seconds"
+msgstr "每 5 秒自動更新"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Control"
+msgstr "控制"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Quick Info"
+msgstr "快速資訊"
+
+#. module: odoo_ha_addon
+#. Portal Templates - Entity Group Portal Page
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "Entity Group"
+msgstr "實體群組"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "entities"
+msgstr "個實體"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "Entities"
+msgstr "實體"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "total"
+msgstr "總計"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "Name"
+msgstr "名稱"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "Unnamed"
+msgstr "未命名"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "No entities in this group"
+msgstr "此群組中沒有實體"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "Total Entities"
+msgstr "總實體數"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "Available"
+msgstr "可用"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "Unavailable"
+msgstr "不可用"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "Entity states auto-update every 5 seconds"
+msgstr "實體狀態每 5 秒自動更新"
+
+#. module: odoo_ha_addon
+#. Portal Templates - Control States (JavaScript hardcoded - for reference)
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "ON"
+msgstr "開啟"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "OFF"
+msgstr "關閉"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "UNKNOWN"
+msgstr "未知"
+
+#. module: odoo_ha_addon
+#. Portal Templates - Control Actions (JavaScript hardcoded - for reference)
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Sending..."
+msgstr "傳送中..."
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Success!"
+msgstr "成功！"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Error: "
+msgstr "錯誤："
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Unknown error"
+msgstr "未知錯誤"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "Network error"
+msgstr "網路錯誤"
+
+#. module: odoo_ha_addon
+#. Portal Templates - /my Home Page
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_home_ha
+msgid "shared device"
+msgstr "個共享設備"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_home_ha
+msgid "s"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. Portal Templates - /my/ha Instance List
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha
+msgid "My Account"
+msgstr "我的帳戶"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha
+msgid "View Devices"
+msgstr "查看設備"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha
+msgid "No Shared Devices"
+msgstr "沒有共享設備"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha
+msgid "You don't have any Home Assistant devices shared with you yet."
+msgstr "您尚未有任何 Home Assistant 設備與您共享。"
+
+#. module: odoo_ha_addon
+#. Portal Templates - /my/ha/<instance_id> Instance Detail
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha_instance
+msgid "Groups"
+msgstr "群組"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha_instance
+msgid "Permission"
+msgstr "權限"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha_instance
+msgid "Expiry"
+msgstr "過期日期"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha_instance
+msgid "Action"
+msgstr "操作"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha_instance
+msgid "No expiry"
+msgstr "無過期時間"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha_instance
+msgid "View"
+msgstr "查看"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha_instance
+msgid "No Entities"
+msgstr "沒有實體"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha_instance
+msgid "No individual entities shared from this instance."
+msgstr "此實例中沒有單獨的實體共享。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha_instance
+msgid "No Groups"
+msgstr "沒有群組"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha_instance
+msgid "No entity groups shared from this instance."
+msgstr "此實例中沒有實體群組共享。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha_instance
+msgid "Entity"
+msgstr "實體"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_my_ha_instance
+msgid "Group"
+msgstr "群組"
+
+#. module: odoo_ha_addon
+#. Portal Templates - Error Pages
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_error_403
+msgid "You do not have permission to access this resource. Please contact the owner to request access."
+msgstr "您沒有存取此資源的權限。請向擁有者索取存取權。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_error_403
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_error_404
+msgid "Back to Home"
+msgstr "返回首頁"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_error_404
+msgid "The requested resource does not exist or has been removed. Please check the link and try again."
+msgstr "請求的資源不存在或已被移除。請檢查連結後再試一次。"
+
+#. module: odoo_ha_addon
+#. Portal Templates - Entity Portal Page
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "View Only"
+msgstr "唯讀"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity
+msgid "You have view-only access to this entity. Contact the owner to request control permission."
+msgstr "您對此實體具有唯讀存取權。聯絡擁有者以要求控制權限。"
+
+#. module: odoo_ha_addon
+#. Portal Templates - Entity Group Portal Page
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "control"
+msgstr "控制"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "view-only"
+msgstr "唯讀"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "You have control permission. You can view and control entities in this group."
+msgstr "您擁有控制權限。您可以查看和控制此群組中的實體。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
+msgid "You have view-only permission. Contact the owner to request control access."
+msgstr "您擁有唯讀權限。聯絡擁有者以要求控制存取權。"

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Automation Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Automation">
+        <div class="automation-controller d-flex align-items-center gap-3">
+            <div class="form-check form-switch entity-large-switch">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    t-att-checked="isOn"
+                    t-att-disabled="state.isLoading"
+                    t-att-class="{'entity-loading': state.isLoading}"
+                    t-on-click.stop.prevent="() => this.onToggle()"
+                />
+            </div>
+            <button class="btn btn-warning btn-sm" t-on-click.stop="() => this.onTrigger()" t-att-disabled="state.isLoading" title="Trigger">
+                <i class="fa fa-play"/>
+            </button>
+            <i class="fa fa-magic fa-lg" t-att-class="{'text-success': isOn, 'text-muted': isOff}"/>
+        </div>
+    </t>
+</templates>

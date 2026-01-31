@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--
+        注意：從版本 2.0 開始，Home Assistant 配置已遷移到 ha.instance 模型
+        舊的 ir.config_parameter 配置（ha_api_url 和 ha_api_token）已被棄用
+        請使用 Settings → Technical → Home Assistant 管理多實例配置
+    -->
+
+    <!-- Cron job -->
+    <data noupdate="1">
+        <record id="ir_cron_fetch_states_action" model="ir.cron">
+            <field name="name">Fetch states</field>
+            <field name="model_id" ref="model_ha_entity"/>
+            <field name="state">code</field>
+            <field name="code">model.fetch_states()</field>
+            <field name="interval_type">minutes</field>
+            <field name="interval_number">1</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+    <data noupdate="1">
+        <record id="ir_cron_fetch_enable_entity_history_action" model="ir.cron">
+            <field name="name">Fetch history for enable entities</field>
+            <field name="model_id" ref="model_ha_entity_history"/>
+            <field name="state">code</field>
+            <field name="code">model.fetch_and_store_history()</field>
+            <field name="interval_type">minutes</field>
+            <field name="interval_number">1</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

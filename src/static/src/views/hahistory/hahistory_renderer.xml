@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ha_addon.HaHistoryRenderer">
+        <div class="hahistory-container">
+            <!-- 工具列：切換按鈕 -->
+            <div class="hahistory-toolbar">
+                <button t-on-click="toggleDisplayMode" class="btn btn-secondary btn-sm">
+                    <i t-attf-class="fa {{ (props.displayMode || 'separate') === 'combined' ? 'fa-th-large' : 'fa-line-chart' }}"/>
+                    <span t-esc="(props.displayMode || 'separate') === 'combined' ? '分開顯示' : '合併顯示'"/>
+                </button>
+            </div>
+
+            <!-- 合併模式：按 domain 分組的多個圖表（網格佈局） -->
+            <t t-if="(props.displayMode || 'separate') === 'combined'">
+                <div class="hahistory-grid hahistory-grid--combined">
+                    <t t-foreach="Object.entries(state.combinedCharts)" t-as="entry" t-key="entry[0]">
+                        <div t-attf-class="hahistory-chart-card {{ entry[1].data.type === 'bar' ? 'hahistory-chart-card--timeline' : '' }}">
+                            <h5 class="hahistory-chart-title" t-esc="entry[1].title"/>
+                            <UnifiedChart type="entry[1].data.type" data="entry[1].data.data" options="entry[1].data.options" />
+                        </div>
+                    </t>
+                </div>
+            </t>
+
+            <!-- 分開模式：Grid 多個圖表 -->
+            <t t-else="">
+                <div class="hahistory-grid">
+                    <t t-foreach="Object.entries(state.lineCharts)" t-as="entry" t-key="entry[0]">
+                        <div t-attf-class="hahistory-chart-card {{ entry[1].type === 'bar' ? 'hahistory-chart-card--timeline' : '' }}">
+                            <h5 class="hahistory-chart-title" t-esc="entry[0]"/>
+                            <UnifiedChart type="entry[1].type" data="entry[1].data" options="entry[1].options" />
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

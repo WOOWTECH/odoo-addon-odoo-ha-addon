@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Device Action -->
+    <record id="ha_device_action" model="ir.actions.act_window">
+        <field name="name">HA Devices</field>
+        <field name="res_model">ha.device</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Device List View -->
+    <record id="ha_device_view_list" model="ir.ui.view">
+        <field name="name">ha.device.list</field>
+        <field name="model">ha.device</field>
+        <field name="arch" type="xml">
+            <list string="Devices">
+                <field name="name"/>
+                <field name="name_by_user"/>
+                <field name="manufacturer"/>
+                <field name="model"/>
+                <field name="area_id"/>
+                <field name="ha_instance_id"/>
+                <field name="disabled_by"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Device Form View -->
+    <record id="ha_device_view_form" model="ir.ui.view">
+        <field name="name">ha.device.form</field>
+        <field name="model">ha.device</field>
+        <field name="arch" type="xml">
+            <form string="Device">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Device Name"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Editable Fields">
+                            <field name="name_by_user" placeholder="Custom name..."/>
+                            <field name="area_id" options="{'no_create': True}"/>
+                            <field name="label_ids" widget="many2many_tags" options="{'color_field': 'color'}" context="{'default_ha_instance_id': ha_instance_id}"/>
+                        </group>
+                        <group string="Device Info">
+                            <field name="device_id" readonly="1"/>
+                            <field name="ha_instance_id" readonly="1"/>
+                            <field name="manufacturer" readonly="1"/>
+                            <field name="model" readonly="1"/>
+                            <field name="model_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Hardware/Software">
+                            <field name="hw_version" readonly="1"/>
+                            <field name="sw_version" readonly="1"/>
+                            <field name="serial_number" readonly="1"/>
+                            <field name="configuration_url" widget="url" readonly="1"/>
+                        </group>
+                        <group string="Status">
+                            <field name="entry_type" readonly="1"/>
+                            <field name="disabled_by" readonly="1"/>
+                            <field name="via_device_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Entities" name="entities">
+                            <field name="entity_ids" readonly="1">
+                                <list>
+                                    <field name="entity_id"/>
+                                    <field name="name"/>
+                                    <field name="domain"/>
+                                    <field name="entity_state" string="State"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Technical" name="technical">
+                            <group>
+                                <group string="Identifiers">
+                                    <field name="identifiers" widget="json" readonly="1"/>
+                                    <field name="connections" widget="json" readonly="1"/>
+                                </group>
+                                <group string="Configuration">
+                                    <field name="config_entries" widget="json" readonly="1"/>
+                                    <field name="primary_config_entry" readonly="1"/>
+                                </group>
+                            </group>
+                            <group string="Timestamps">
+                                <field name="created_at" readonly="1"/>
+                                <field name="modified_at" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Device Search View -->
+    <record id="ha_device_view_search" model="ir.ui.view">
+        <field name="name">ha.device.search</field>
+        <field name="model">ha.device</field>
+        <field name="arch" type="xml">
+            <search string="Device Search">
+                <field name="name"/>
+                <field name="name_by_user"/>
+                <field name="device_id"/>
+                <field name="manufacturer"/>
+                <field name="model"/>
+                <field name="area_id"/>
+                <field name="ha_instance_id"/>
+                <filter name="filter_disabled" string="Disabled" domain="[('disabled_by', '!=', False)]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
+                    <filter name="group_by_area" string="Area" context="{'group_by': 'area_id'}"/>
+                    <filter name="group_by_manufacturer" string="Manufacturer" context="{'group_by': 'manufacturer'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Action to open Settings with WOOW HA tab pre-selected -->
+    <record id="ha_settings_action" model="ir.actions.act_window">
+        <field name="name">WOOW HA Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'odoo_ha_addon', 'search_default_module': 'odoo_ha_addon'}</field>
+    </record>
+</odoo>

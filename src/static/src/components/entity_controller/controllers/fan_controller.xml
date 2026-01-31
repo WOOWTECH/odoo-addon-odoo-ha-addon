@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Fan Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Fan">
+        <div class="fan-controller">
+            <div class="d-flex align-items-center gap-3">
+                <div class="form-check form-switch entity-large-switch">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        role="switch"
+                        t-att-checked="isOn"
+                        t-att-disabled="state.isLoading"
+                        t-att-class="{'entity-loading': state.isLoading}"
+                        t-on-click.stop.prevent="() => this.onToggle()"
+                    />
+                </div>
+                <i class="fa fa-refresh fa-lg" t-att-class="{'entity-spin-slow text-info': isOn, 'text-muted': isOff}"/>
+            </div>
+
+            <!-- Speed slider (only when fan is on and has percentage) -->
+            <t t-if="isOn and state.attributes?.percentage !== undefined">
+                <div class="speed-control entity-value-slider entity-speed-slider mt-3">
+                    <div class="slider-track-container d-flex align-items-center gap-2">
+                        <i class="fa fa-tachometer text-muted"/>
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="1"
+                            t-att-value="currentFanPercentage"
+                            t-att-style="'--slider-progress: ' + currentFanPercentage + '%'"
+                            t-on-input.stop="(ev) => this.onPercentageInput(ev.target.value)"
+                            t-on-change.stop="(ev) => this.onSetPercentage(ev.target.value)"
+                            t-att-disabled="state.isLoading"
+                        />
+                        <span class="slider-value-badge">
+                            <t t-esc="currentFanPercentage"/>%
+                        </span>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Advanced Controls (collapsed) -->
+            <t t-if="isOn and (state.attributes?.direction !== undefined or state.attributes?.oscillating !== undefined or state.attributes?.preset_modes?.length > 0)">
+                <details class="fan-advanced-controls mt-3">
+                    <summary class="text-muted small"><i class="fa fa-sliders me-1"/>Advanced</summary>
+                    <div class="mt-2">
+                        <!-- Direction Control -->
+                        <t t-if="state.attributes?.direction !== undefined">
+                            <div class="direction-control mb-2">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn"
+                                        t-att-class="{'btn-info': state.attributes.direction === 'forward', 'btn-outline-secondary': state.attributes.direction !== 'forward'}"
+                                        t-on-click.stop="() => this.onSetDirection('forward')"
+                                        t-att-disabled="state.isLoading" title="Forward">
+                                        <i class="fa fa-undo"/>
+                                    </button>
+                                    <button type="button" class="btn"
+                                        t-att-class="{'btn-info': state.attributes.direction === 'reverse', 'btn-outline-secondary': state.attributes.direction !== 'reverse'}"
+                                        t-on-click.stop="() => this.onSetDirection('reverse')"
+                                        t-att-disabled="state.isLoading" title="Reverse">
+                                        <i class="fa fa-repeat"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Oscillate Toggle -->
+                        <t t-if="state.attributes?.oscillating !== undefined">
+                            <div class="oscillate-control mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch"
+                                        t-att-checked="state.attributes.oscillating"
+                                        t-att-disabled="state.isLoading"
+                                        t-on-change.stop="() => this.onOscillate(!state.attributes.oscillating)"/>
+                                    <label class="form-check-label small">
+                                        <i class="fa fa-exchange me-1"/>Oscillate
+                                    </label>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Preset Mode -->
+                        <t t-if="state.attributes?.preset_modes?.length > 0">
+                            <div class="preset-mode-control">
+                                <select class="form-select form-select-sm"
+                                    t-att-value="state.attributes?.preset_mode || ''"
+                                    t-on-change.stop="(ev) => this.onSetPresetMode(ev.target.value)"
+                                    t-att-disabled="state.isLoading">
+                                    <option value="" disabled="">Select Mode</option>
+                                    <t t-foreach="state.attributes.preset_modes" t-as="mode" t-key="mode">
+                                        <option t-att-value="mode" t-att-selected="state.attributes?.preset_mode === mode">
+                                            <t t-esc="mode"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                        </t>
+                    </div>
+                </details>
+            </t>
+        </div>
+    </t>
+</templates>

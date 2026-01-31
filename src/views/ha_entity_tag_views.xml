@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Entity Tag List View -->
+    <record id="ha_entity_tag_view_list" model="ir.ui.view">
+        <field name="name">ha.entity.tag.list</field>
+        <field name="model">ha.entity.tag</field>
+        <field name="arch" type="xml">
+            <list string="Entity Tags" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="ha_instance_id"/>
+                <field name="color" widget="color_picker"/>
+                <field name="description"/>
+                <field name="entity_count"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Entity Tag Form View -->
+    <record id="ha_entity_tag_view_form" model="ir.ui.view">
+        <field name="name">ha.entity.tag.form</field>
+        <field name="model">ha.entity.tag</field>
+        <field name="arch" type="xml">
+            <form string="Entity Tag">
+                <header>
+                    <button name="action_view_entities"
+                            type="object"
+                            string="View Entities"
+                            class="btn-primary"
+                            invisible="entity_count == 0"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_entities"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-tags"
+                                invisible="entity_count == 0">
+                            <field name="entity_count" widget="statinfo" string="Entities"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name" string="Tag Name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., Important, Monitoring"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="ha_instance_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="sequence"/>
+                            <field name="color" widget="color_picker"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="description" placeholder="Optional description for this tag"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Entities" name="entities">
+                            <field name="entity_ids" widget="many2many"
+                                   domain="[('ha_instance_id', '=', ha_instance_id)]">
+                                <list string="Entities">
+                                    <field name="entity_id"/>
+                                    <field name="name"/>
+                                    <field name="domain"/>
+                                    <field name="entity_state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Entity Tag Kanban View -->
+    <record id="ha_entity_tag_view_kanban" model="ir.ui.view">
+        <field name="name">ha.entity.tag.kanban</field>
+        <field name="model">ha.entity.tag</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="color"/>
+                <field name="entity_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <span t-att-style="'color: ' + kanban_color(record.color.raw_value)">●</span>
+                                        <field name="name"/>
+                                    </strong>
+                                </div>
+                                <span class="badge text-bg-secondary">
+                                    <field name="entity_count"/> Entities
+                                </span>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <div class="oe_kanban_bottom_left">
+                                    <field name="description"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Entity Tag Search View -->
+    <record id="ha_entity_tag_view_search" model="ir.ui.view">
+        <field name="name">ha.entity.tag.search</field>
+        <field name="model">ha.entity.tag</field>
+        <field name="arch" type="xml">
+            <search string="Entity Tag Search">
+                <field name="name"/>
+                <field name="description"/>
+                <field name="ha_instance_id"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <separator/>
+                <filter name="current_instance" string="Current Instance"
+                        domain="[('is_current_user_instance', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Entity Tag Action -->
+    <record id="ha_entity_tag_action" model="ir.actions.act_window">
+        <field name="name">Entity Tags</field>
+        <field name="res_model">ha.entity.tag</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Entity Tag
+            </p>
+            <p>
+                Tags help you categorize and organize your entities for better management.
+            </p>
+        </field>
+    </record>
+
+    <!-- Entity Tag - View Entities Action -->
+    <record id="ha_entity_tag_view_entities_action" model="ir.actions.act_window">
+        <field name="name">Tag Entities</field>
+        <field name="res_model">ha.entity</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+</odoo>

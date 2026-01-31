@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Climate Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Climate">
+        <div class="climate-controller">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <span class="fs-4">
+                    <i class="fa fa-thermometer-half me-2"/>
+                    <t t-esc="state.attributes?.current_temperature || '--'"/>°C
+                </span>
+                <span class="badge fs-6 bg-primary">
+                    <t t-esc="state.entityState"/>
+                </span>
+            </div>
+
+            <!-- Target Temperature -->
+            <t t-if="state.attributes?.temperature !== undefined">
+                <div class="temperature-control mt-3">
+                    <label class="form-label d-flex justify-content-between">
+                        <span>Target</span>
+                        <span class="badge bg-secondary">
+                            <t t-esc="state.attributes.temperature"/>°C
+                        </span>
+                    </label>
+                    <div class="d-flex align-items-center gap-2">
+                        <button
+                            class="btn btn-outline-secondary"
+                            t-on-click.stop="() => this.onSetTemperature(state.attributes.temperature - 0.5)"
+                            t-att-disabled="state.isLoading"
+                        >
+                            <i class="fa fa-minus"/>
+                        </button>
+                        <input
+                            type="number"
+                            class="form-control text-center"
+                            style="width: 80px;"
+                            step="0.5"
+                            min="16"
+                            max="30"
+                            t-att-value="state.attributes.temperature"
+                            t-on-change.stop="(ev) => this.onSetTemperature(parseFloat(ev.target.value))"
+                            t-att-disabled="state.isLoading"
+                        />
+                        <button
+                            class="btn btn-outline-secondary"
+                            t-on-click.stop="() => this.onSetTemperature(state.attributes.temperature + 0.5)"
+                            t-att-disabled="state.isLoading"
+                        >
+                            <i class="fa fa-plus"/>
+                        </button>
+                    </div>
+                </div>
+            </t>
+
+            <!-- HVAC Mode -->
+            <t t-if="state.attributes?.hvac_modes">
+                <div class="hvac-mode-control mt-3">
+                    <label class="form-label">Mode</label>
+                    <div class="btn-group" role="group">
+                        <t t-foreach="state.attributes.hvac_modes" t-as="mode" t-key="mode">
+                            <button
+                                type="button"
+                                class="btn btn-sm"
+                                t-att-class="{
+                                    'btn-primary': state.attributes?.hvac_mode === mode,
+                                    'btn-outline-secondary': state.attributes?.hvac_mode !== mode
+                                }"
+                                t-on-click.stop="() => this.onSetHvacMode(mode)"
+                                t-att-disabled="state.isLoading"
+                            >
+                                <t t-esc="mode"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Fan Mode -->
+            <t t-if="state.attributes?.fan_modes?.length > 0">
+                <div class="fan-mode-control mt-3">
+                    <label class="form-label">Fan</label>
+                    <div class="btn-group" role="group">
+                        <t t-foreach="state.attributes.fan_modes" t-as="mode" t-key="mode">
+                            <button
+                                type="button"
+                                class="btn btn-sm"
+                                t-att-class="{
+                                    'btn-info': state.attributes?.fan_mode === mode,
+                                    'btn-outline-secondary': state.attributes?.fan_mode !== mode
+                                }"
+                                t-on-click.stop="() => this.onSetFanMode(mode)"
+                                t-att-disabled="state.isLoading"
+                            >
+                                <t t-esc="mode"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

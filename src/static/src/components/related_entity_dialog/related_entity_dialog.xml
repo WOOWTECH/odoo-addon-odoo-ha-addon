@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ha_addon.RelatedEntityDialog">
+        <Dialog title="dialogTitle" size="'md'">
+            <!-- Loading State -->
+            <t t-if="state.isLoading">
+                <div class="text-center py-4">
+                    <i class="fa fa-spinner fa-spin fa-2x text-primary"/>
+                    <p class="mt-2 text-muted">Loading related items...</p>
+                </div>
+            </t>
+
+            <!-- Error State -->
+            <t t-elif="state.error">
+                <div class="alert alert-danger" role="alert">
+                    <i class="fa fa-exclamation-triangle me-2"/>
+                    <t t-esc="state.error"/>
+                </div>
+            </t>
+
+            <!-- Content -->
+            <t t-else="">
+                <!-- No Related Items -->
+                <t t-if="hasNoRelatedItems">
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-info-circle me-2"/>
+                        No related items found for this entity.
+                    </div>
+                </t>
+
+                <t t-else="">
+                    <!-- Area Section -->
+                    <t t-if="state.area">
+                        <div class="related-section mb-3">
+                            <h6 class="text-muted mb-2">
+                                <i class="fa fa-map-marker me-1"/>
+                                Area
+                            </h6>
+                            <div
+                                class="related-item p-2 border rounded cursor-pointer hover-bg-100"
+                                t-on-click="onAreaClick"
+                                role="button"
+                            >
+                                <i t-if="state.area.icon" t-att-class="'me-2 ' + state.area.icon"/>
+                                <i t-else="" class="fa fa-home me-2"/>
+                                <span t-esc="state.area.name"/>
+                                <i class="fa fa-chevron-right float-end text-muted mt-1"/>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- Device Section -->
+                    <t t-if="state.device">
+                        <div class="related-section mb-3">
+                            <h6 class="text-muted mb-2">
+                                <i class="fa fa-cube me-1"/>
+                                Device
+                            </h6>
+                            <div
+                                class="related-item p-2 border rounded cursor-pointer hover-bg-100"
+                                t-on-click="onDeviceClick"
+                                role="button"
+                            >
+                                <i class="fa fa-microchip me-2"/>
+                                <span t-esc="state.device.name"/>
+                                <t t-if="state.device.manufacturer or state.device.model">
+                                    <small class="text-muted ms-2">
+                                        (<t t-if="state.device.manufacturer" t-esc="state.device.manufacturer"/>
+                                        <t t-if="state.device.manufacturer and state.device.model"> - </t>
+                                        <t t-if="state.device.model" t-esc="state.device.model"/>)
+                                    </small>
+                                </t>
+                                <i class="fa fa-chevron-right float-end text-muted mt-1"/>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- Labels Section -->
+                    <t t-if="state.labels.length > 0">
+                        <div class="related-section mb-3">
+                            <h6 class="text-muted mb-2">
+                                <i class="fa fa-tags me-1"/>
+                                Labels (<t t-esc="state.labels.length"/>)
+                            </h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <t t-foreach="state.labels" t-as="label" t-key="label.id">
+                                    <span
+                                        class="badge bg-secondary cursor-pointer"
+                                        t-att-style="label.color ? 'background-color: ' + label.color + ' !important' : ''"
+                                        t-on-click="() => this.onLabelClick(label)"
+                                        role="button"
+                                    >
+                                        <i t-if="label.icon" t-att-class="label.icon + ' me-1'"/>
+                                        <i t-else="" class="fa fa-tag me-1"/>
+                                        <t t-esc="label.name"/>
+                                    </span>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- Automations Section -->
+                    <t t-if="state.automations.length > 0">
+                        <div class="related-section mb-3">
+                            <h6 class="text-muted mb-2">
+                                <i class="fa fa-magic me-1"/>
+                                Automations (<t t-esc="state.automations.length"/>)
+                            </h6>
+                            <div class="list-group">
+                                <t t-foreach="state.automations" t-as="automation" t-key="automation.id">
+                                    <div
+                                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                        t-on-click="() => this.onAutomationClick(automation)"
+                                        role="button"
+                                    >
+                                        <span>
+                                            <i class="fa fa-cogs me-2"/>
+                                            <t t-esc="automation.name"/>
+                                        </span>
+                                        <span>
+                                            <span
+                                                class="badge me-2"
+                                                t-att-class="automation.state === 'on' ? 'bg-success' : 'bg-secondary'"
+                                            >
+                                                <t t-esc="automation.state"/>
+                                            </span>
+                                            <i class="fa fa-chevron-right text-muted"/>
+                                        </span>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- Scenes Section -->
+                    <t t-if="state.scenes.length > 0">
+                        <div class="related-section mb-3">
+                            <h6 class="text-muted mb-2">
+                                <i class="fa fa-picture-o me-1"/>
+                                Scenes (<t t-esc="state.scenes.length"/>)
+                            </h6>
+                            <div class="list-group">
+                                <t t-foreach="state.scenes" t-as="scene" t-key="scene.id">
+                                    <div
+                                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                        t-on-click="() => this.onSceneClick(scene)"
+                                        role="button"
+                                    >
+                                        <span>
+                                            <i class="fa fa-picture-o me-2"/>
+                                            <t t-esc="scene.name"/>
+                                        </span>
+                                        <i class="fa fa-chevron-right text-muted"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- Scripts Section -->
+                    <t t-if="state.scripts.length > 0">
+                        <div class="related-section mb-3">
+                            <h6 class="text-muted mb-2">
+                                <i class="fa fa-file-code-o me-1"/>
+                                Scripts (<t t-esc="state.scripts.length"/>)
+                            </h6>
+                            <div class="list-group">
+                                <t t-foreach="state.scripts" t-as="script" t-key="script.id">
+                                    <div
+                                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                        t-on-click="() => this.onScriptClick(script)"
+                                        role="button"
+                                    >
+                                        <span>
+                                            <i class="fa fa-file-code-o me-2"/>
+                                            <t t-esc="script.name"/>
+                                        </span>
+                                        <span>
+                                            <span
+                                                class="badge me-2"
+                                                t-att-class="script.state === 'on' ? 'bg-success' : 'bg-secondary'"
+                                            >
+                                                <t t-esc="script.state"/>
+                                            </span>
+                                            <i class="fa fa-chevron-right text-muted"/>
+                                        </span>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </t>
+
+            <!-- Footer -->
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="onClose">
+                    Close
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

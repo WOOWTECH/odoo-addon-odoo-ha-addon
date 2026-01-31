@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ha_addon.HaInstanceSystray">
+        <div class="o_ha_instance_systray dropdown">
+            <!-- Dropdown 按鈕 -->
+            <button
+                class="btn btn-sm dropdown-toggle d-flex align-items-center"
+                type="button"
+                t-att-disabled="state.loading"
+                data-bs-toggle="dropdown"
+                aria-expanded="false">
+
+                <!-- 載入狀態 -->
+                <t t-if="state.loading">
+                    <i class="fa fa-spinner fa-spin me-1"/>
+                    <span class="d-none d-lg-inline-block">Loading...</span>
+                </t>
+
+                <!-- 錯誤狀態 -->
+                <t t-elif="state.error">
+                    <i class="fa fa-exclamation-triangle text-danger me-1"/>
+                    <span class="d-none d-lg-inline-block text-danger">Error</span>
+                </t>
+
+                <!-- 正常狀態 - 顯示當前實例 -->
+                <t t-elif="currentInstance">
+                    <i class="fa fa-server me-1 d-lg-none" t-att-title="currentInstance.name"/>
+                    <span class="oe_topbar_name d-none d-lg-inline-block text-truncate" t-esc="currentInstance.name"/>
+                    <i t-att-class="'fa fa-circle ms-1 ' + getStatusClass(currentInstance.websocket_status)"
+                       t-att-title="currentInstance.websocket_status"/>
+                </t>
+
+                <!-- 無實例狀態 -->
+                <t t-else="">
+                    <i class="fa fa-server me-1"/>
+                    <span class="d-none d-lg-inline-block">No Instance</span>
+                </t>
+            </button>
+
+            <!-- Dropdown 選單 -->
+            <ul class="dropdown-menu o_ha_instance_menu">
+                <!-- 載入中 -->
+                <t t-if="state.loading">
+                    <li class="dropdown-item text-muted">
+                        <i class="fa fa-spinner fa-spin me-2"/>
+                        Loading instances...
+                    </li>
+                </t>
+
+                <!-- 錯誤狀態 -->
+                <t t-elif="state.error">
+                    <li class="dropdown-item text-danger">
+                        <i class="fa fa-exclamation-triangle me-2"/>
+                        <span t-esc="state.error"/>
+                    </li>
+                    <li><hr class="dropdown-divider"/></li>
+                    <li>
+                        <a href="#" class="dropdown-item" t-on-click.prevent="loadInstances">
+                            <i class="fa fa-refresh me-2"/>
+                            Retry
+                        </a>
+                    </li>
+                </t>
+
+                <!-- 無實例 -->
+                <t t-elif="!state.instances.length">
+                    <li class="dropdown-item text-muted">
+                        <i class="fa fa-info-circle me-2"/>
+                        No HA instances available
+                    </li>
+                </t>
+
+                <!-- 實例列表 -->
+                <t t-else="">
+                    <t t-foreach="state.instances" t-as="instance" t-key="instance.id">
+                        <li>
+                            <a href="#"
+                               class="dropdown-item d-flex align-items-center"
+                               t-att-class="{ 'active': isCurrentInstance(instance.id) }"
+                               t-on-click.prevent="() => this.selectInstance(instance.id)">
+
+                                <!-- 當前實例勾選標記 -->
+                                <i t-if="isCurrentInstance(instance.id)"
+                                   class="fa fa-check text-success me-2"/>
+                                <span t-else="" style="width: 20px;"/>
+
+                                <!-- WebSocket 狀態圖示 -->
+                                <i t-att-class="'fa fa-circle me-2 ' + getStatusClass(instance.websocket_status)"
+                                   t-att-title="instance.websocket_status"/>
+
+                                <!-- 實例資訊 -->
+                                <div class="d-flex flex-column flex-grow-1">
+                                    <span class="fw-semibold" t-esc="instance.name"/>
+                                    <small class="text-muted" t-esc="instance.entity_count + ' entities'"/>
+                                </div>
+                            </a>
+                        </li>
+                    </t>
+                </t>
+            </ul>
+        </div>
+    </t>
+</templates>

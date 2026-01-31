@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Share Wizard Form View -->
+    <record id="view_ha_entity_share_wizard_form" model="ir.ui.view">
+        <field name="name">ha.entity.share.wizard.form</field>
+        <field name="model">ha.entity.share.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Share Entity/Group">
+                <group>
+                    <!-- Hidden fields for entity/group reference -->
+                    <field name="entity_id" invisible="1"/>
+                    <field name="group_id" invisible="1"/>
+
+                    <group>
+                        <field name="target_name" readonly="1" string="Sharing"/>
+                    </group>
+                </group>
+
+                <!-- Existing shares info -->
+                <div class="alert alert-info" role="status" invisible="existing_share_count == 0">
+                    <i class="fa fa-info-circle me-2" title="Info"/>
+                    <strong>Already shared with:</strong>
+                    <span><field name="existing_share_users" nolabel="1"/></span>
+                    (<field name="existing_share_count" nolabel="1"/> users)
+                </div>
+
+                <separator string="Share Settings"/>
+                <group>
+                    <group>
+                        <field name="user_ids"
+                               widget="many2many_tags"
+                               placeholder="Select users to share with..."
+                               options="{'no_create': True, 'no_open': True}"/>
+                    </group>
+                    <group>
+                        <field name="permission"/>
+                        <field name="expiry_date"/>
+                    </group>
+                </group>
+
+                <div class="alert alert-secondary mt-3" role="status">
+                    <i class="fa fa-lightbulb-o me-2" title="Tip"/>
+                    <strong>Permission Levels:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li><strong>View Only:</strong> Users can see the entity/group state but cannot control it</li>
+                        <li><strong>Can Control:</strong> Users can view and control the entity/group (turn on/off, adjust settings)</li>
+                    </ul>
+                </div>
+
+                <footer>
+                    <button name="action_share"
+                            type="object"
+                            string="Share"
+                            class="btn-primary"/>
+                    <button name="action_cancel"
+                            type="object"
+                            string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Window Action for Share Wizard (for Entity) -->
+    <record id="action_ha_entity_share_wizard" model="ir.actions.act_window">
+        <field name="name">Share Entity</field>
+        <field name="res_model">ha.entity.share.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_entity_id': active_id}</field>
+    </record>
+
+    <!-- Window Action for Share Wizard (for Entity Group) -->
+    <record id="action_ha_entity_group_share_wizard" model="ir.actions.act_window">
+        <field name="name">Share Entity Group</field>
+        <field name="res_model">ha.entity.share.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_group_id': active_id}</field>
+    </record>
+</odoo>

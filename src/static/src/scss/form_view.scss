@@ -1,0 +1,79 @@
+// Entity Form View - Responsive Three-Block Layout
+// Layout: Sheet (left) | Controller + Chatter (right)
+// Note: .o_ha_entity_form is on the view container, .o_form_renderer is the child
+
+.o_ha_entity_form .o_form_renderer {
+    // Wide screen (>=992px): Two-column layout
+    // Works with Chatter Aside mode
+    // Note: !important needed to override Bootstrap's d-flex class
+    @media (min-width: 992px) {
+        display: grid !important;
+        grid-template-columns: 1fr 350px;
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+            "sheet controller"
+            "sheet chatter";
+        gap: 1rem;
+        align-items: start;
+
+        // Form sheet background (contains the main form content)
+        .o_form_sheet_bg {
+            grid-area: sheet;
+        }
+
+        // Entity Controller panel - fixed position in grid
+        // Add top margin to align with sheet content (below header buttons)
+        .o_ha_entity_controller {
+            grid-area: controller;
+            align-self: start;
+            margin-top: 52px; // Offset for header button area
+        }
+
+        // Chatter - below controller on right side
+        .o-mail-Form-chatter {
+            grid-area: chatter;
+            width: 100% !important; // Override Odoo's default aside width
+            max-width: none !important;
+        }
+    }
+
+    // Narrow screen (<992px): Single column stack
+    @media (max-width: 991.98px) {
+        display: flex !important;
+        flex-direction: column;
+
+        .o_form_sheet_bg {
+            order: 1;
+        }
+
+        .o_ha_entity_controller {
+            order: 2;
+            margin: 1rem 0;
+        }
+
+        .o-mail-Form-chatter {
+            order: 3;
+            width: 100% !important;
+        }
+    }
+
+    // Entity Controller card styling
+    .o_ha_entity_controller {
+        border-radius: 8px;
+        background: var(--o-view-background-color, #fff);
+
+        .card-header {
+            background: var(--o-gray-100, #f8f9fa);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+
+            h6 {
+                color: var(--o-gray-700, #495057);
+                font-weight: 600;
+            }
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+    }
+}

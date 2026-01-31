@@ -1,0 +1,512 @@
+// ====================================
+// Dashboard SCSS Variables
+// ====================================
+
+// Colors
+$dashboard-bg: #f1f1f1;
+$card-bg: white;
+$card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+// Scrollbar
+$scrollbar-width: 6px;
+$scrollbar-track-bg: $dashboard-bg;
+$scrollbar-thumb-bg: #c1c1c1;
+$scrollbar-thumb-hover: #a1a1a1;
+$scrollbar-radius: 3px;
+
+// Layout
+$card-border-radius: 8px;
+$card-padding: 16px;
+$card-margin-bottom: 16px;
+$card-max-height: 60vh;
+
+// Spacing
+$dashboard-padding: 1rem;
+$dashboard-padding-bottom: 2rem;
+
+// ====================================
+// Dashboard Styles
+// ====================================
+
+/* Dashboard 容器 - 確保有足夠高度 */
+.o_dashboard {
+  background-color: $dashboard-bg;
+  padding: $dashboard-padding;
+  padding-bottom: $dashboard-padding-bottom;
+  min-height: calc(100vh - 100px); /* 扣除 header 高度 */
+}
+
+/* 確保 o_view_controller 不限制高度 */
+.o_action_delegate_scroll .o_view_controller {
+  position: relative !important;
+  height: auto !important;
+  min-height: 100%;
+}
+
+/* 自定義滾動條 Mixin */
+@mixin custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: $scrollbar-width;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $scrollbar-track-bg;
+    border-radius: $scrollbar-radius;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $scrollbar-thumb-bg;
+    border-radius: $scrollbar-radius;
+
+    &:hover {
+      background: $scrollbar-thumb-hover;
+    }
+  }
+}
+
+/* Area Dashboard - 確保可滾動 */
+.area-dashboard {
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: $dashboard-padding-bottom;
+
+  /* 可摺疊區塊通用樣式 */
+  .collapse-icon {
+    transition: transform 0.2s ease;
+  }
+
+  [data-bs-toggle="collapse"][aria-expanded="false"] .collapse-icon {
+    transform: rotate(-90deg);
+  }
+
+  /* DeviceCard 內的 Entity Grid - 限制高度並支援滾動 */
+  .device-card {
+    .card-body {
+      max-height: $card-max-height;
+      overflow-y: auto;
+      @include custom-scrollbar;
+    }
+  }
+
+  /* Standalone Entities Section - 限制高度並支援滾動 */
+  .standalone-entities-section {
+    .card-body {
+      max-height: $card-max-height;
+      overflow-y: auto;
+      @include custom-scrollbar;
+    }
+  }
+}
+
+.o_dashboard_item {
+  background-color: $card-bg;
+  border-radius: $card-border-radius;
+  box-shadow: $card-shadow;
+  padding: $card-padding;
+  margin-bottom: $card-margin-bottom;
+}
+
+/* HA Instance Systray - 頂部導覽列樣式 */
+.o_ha_instance_systray {
+  /* 按鈕樣式 */
+  .oe_topbar_name {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* WebSocket 狀態圓點 */
+  .fa-circle {
+    font-size: 0.6rem;
+  }
+}
+
+/* HA Instance Systray 下拉選單 */
+.o_ha_instance_menu {
+  min-width: 280px;
+
+  .dropdown-item {
+    padding: 0.5rem 1rem;
+
+    /* Default 標記 */
+    .badge {
+      font-size: 0.65rem;
+      padding: 0.25em 0.5em;
+    }
+
+    /* 當前選中項目 */
+    &.active {
+      background-color: var(--bs-dropdown-link-active-bg, #0d6efd);
+      color: var(--bs-dropdown-link-active-color, #fff);
+    }
+
+    /* Hover 效果 */
+    &:hover {
+      background-color: var(--bs-dropdown-link-hover-bg, #f8f9fa);
+    }
+  }
+
+  /* WebSocket 狀態圓點（下拉選單內） */
+  .fa-circle {
+    font-size: 0.6rem;
+
+    &.text-success {
+      color: #28a745;
+    }
+
+    &.text-warning {
+      color: #ffc107;
+    }
+
+    &.text-danger {
+      color: #dc3545;
+    }
+
+    &.text-muted {
+      color: #6c757d;
+    }
+  }
+
+  /* 實例資訊區塊 */
+  .flex-column {
+    span {
+      line-height: 1.4;
+    }
+
+    small {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+// ====================================
+// HAHistory View Styles
+// ====================================
+
+/* 確保 hahistory view 可以滾動 - 針對所有可能的父容器 */
+.o_action_manager:has(.hahistory-container),
+.o_view_controller:has(.hahistory-container),
+.o_content:has(.hahistory-container),
+.o_component:has(.hahistory-container) {
+  overflow: auto !important;
+}
+
+.hahistory-container {
+  padding-bottom: 2rem;
+}
+
+.hahistory-toolbar {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #dee2e6;
+  background: $card-bg;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.hahistory-chart-container {
+  padding: 1rem;
+  min-height: 400px;
+}
+
+.hahistory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.hahistory-chart-card {
+  background: $card-bg;
+  border-radius: $card-border-radius;
+  padding: 1rem;
+  box-shadow: $card-shadow;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+
+  .hahistory-chart-title {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #495057;
+    flex-shrink: 0;
+  }
+
+  /* UnifiedChart 容器 */
+  > div:last-child {
+    flex: 1;
+    min-height: 250px;
+  }
+}
+
+/* Timeline 圖表卡片（單一 entity 時較矮，讓 bar 相對更粗） */
+.hahistory-chart-card--timeline {
+  min-height: 120px !important;
+
+  > div:last-child {
+    min-height: 80px !important;
+  }
+}
+
+/* 合併模式的 Timeline 圖表（多個 entity，需要更高的空間） */
+.hahistory-grid--combined .hahistory-chart-card--timeline {
+  /* 動態高度：每個 entity 約 35px，最小 120px */
+  min-height: 120px !important;
+  /* 讓高度可以根據內容自動增長 */
+  height: auto !important;
+
+  > div:last-child {
+    /* 給圖表容器足夠的高度，每個 entity 行約 35px */
+    min-height: 100px !important;
+  }
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .hahistory-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hahistory-chart-card {
+    min-height: 250px;
+  }
+}
+
+// ====================================
+// Entity Controller Styles
+// ====================================
+
+// 大型 Toggle Switch（後台版本）
+.entity-large-switch {
+  .form-check-input {
+    width: 3.5rem;
+    height: 1.75rem;
+    cursor: pointer;
+    background-color: #6b7280;
+    border: none;
+    transition: background-color 0.3s ease;
+
+    &:checked {
+      background-color: #047857; // emerald-700
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+    }
+
+    // Loading 狀態
+    &.entity-loading {
+      animation: entity-pulse 1.5s infinite;
+    }
+  }
+}
+
+// Light Switch 變體（黃色）
+.entity-light-switch {
+  .form-check-input:checked {
+    background-color: #fbbf24;
+  }
+}
+
+// 脈動動畫
+@keyframes entity-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+// 旋轉動畫
+@keyframes entity-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// 慢速旋轉（風扇用）
+@keyframes entity-spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.entity-spin {
+  animation: entity-spin 1s linear infinite;
+}
+
+.entity-spin-slow {
+  animation: entity-spin-slow 2s linear infinite;
+}
+
+// Value Slider（亮度/風速/位置）
+.entity-value-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .slider-track-container {
+    position: relative;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  .slider-value-badge {
+    background-color: #e9ecef;
+    color: #1f2937;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    min-width: 3rem;
+    text-align: center;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    flex: 1;
+
+    // WebKit Track
+    &::-webkit-slider-runnable-track {
+      height: 8px;
+      background: linear-gradient(
+        to right,
+        #3b82f6 0%,
+        #3b82f6 var(--slider-progress, 50%),
+        #e9ecef var(--slider-progress, 50%),
+        #e9ecef 100%
+      );
+      border-radius: 4px;
+    }
+
+    // WebKit Thumb
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      background: white;
+      border: 3px solid #3b82f6;
+      border-radius: 50%;
+      cursor: grab;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-top: -8px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    &::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    // Firefox Track
+    &::-moz-range-track {
+      height: 8px;
+      background: #e9ecef;
+      border-radius: 4px;
+    }
+
+    &::-moz-range-progress {
+      height: 8px;
+      background: #3b82f6;
+      border-radius: 4px 0 0 4px;
+    }
+
+    &::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      background: white;
+      border: 3px solid #3b82f6;
+      border-radius: 50%;
+      cursor: grab;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+
+      &::-webkit-slider-thumb,
+      &::-moz-range-thumb {
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+// 亮度滑桿變體
+.entity-brightness-slider {
+  input[type="range"] {
+    &::-webkit-slider-runnable-track {
+      background: linear-gradient(
+        to right,
+        #374151 0%,
+        #fbbf24 var(--slider-progress, 50%),
+        #e9ecef var(--slider-progress, 50%),
+        #e9ecef 100%
+      );
+    }
+
+    &::-webkit-slider-thumb {
+      border-color: #fbbf24;
+    }
+
+    &::-moz-range-progress {
+      background: linear-gradient(to right, #374151, #fbbf24);
+    }
+
+    &::-moz-range-thumb {
+      border-color: #fbbf24;
+    }
+  }
+}
+
+// Sensor Display
+.entity-sensor-display {
+  display: flex;
+  align-items: center;
+
+  .sensor-value-block {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+
+    .sensor-value {
+      font-weight: 700;
+      color: #1f2937;
+      line-height: 1;
+    }
+
+    .sensor-unit {
+      color: #6b7280;
+      font-weight: 500;
+    }
+  }
+}

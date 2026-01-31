@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ha_addon.StandaloneEntityCard">
+        <div class="standalone-entity-card card h-100 shadow-sm">
+            <div class="card-body position-relative">
+                <!-- Related Info Icon (top-right) -->
+                <button
+                    class="btn btn-sm btn-link text-muted p-0 position-absolute"
+                    style="top: 0.5rem; right: 0.5rem;"
+                    t-on-click.stop="onShowRelated"
+                    title="View related items"
+                >
+                    <i class="fa fa-info-circle"/>
+                </button>
+
+                <!-- Source Device Badge (if moved from another device) -->
+                <t t-if="hasSourceDevice">
+                    <div class="mb-2 pe-4">
+                        <span class="badge bg-info">
+                            <i class="fa fa-link me-1"/>
+                            From: <t t-esc="sourceDeviceInfo"/>
+                        </span>
+                    </div>
+                </t>
+
+                <!-- Card Header -->
+                <div class="d-flex align-items-center mb-2 pe-4">
+                    <span class="badge bg-secondary me-2" t-esc="props.entity.domain"/>
+                    <h6 class="card-title mb-0 text-truncate flex-grow-1">
+                        <t t-esc="displayName"/>
+                    </h6>
+                </div>
+
+                <!-- Entity ID -->
+                <div class="mb-2">
+                    <small class="text-muted">
+                        <code class="small"><t t-esc="props.entity.entity_id"/></code>
+                    </small>
+                </div>
+
+                <hr class="my-2"/>
+
+                <!-- Entity Controller -->
+                <EntityController entity="props.entity"/>
+            </div>
+        </div>
+    </t>
+</templates>

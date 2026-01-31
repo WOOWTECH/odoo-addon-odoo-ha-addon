@@ -1,0 +1,197 @@
+# E2E Test Configuration for Entity Controller Tests
+# Copy this file to e2e_config.local.yaml and customize for your environment
+
+# =============================================================================
+# ODOO CONNECTION SETTINGS
+# =============================================================================
+odoo_base_url: "http://localhost"
+odoo_port: 80  # Use 80 for nginx proxy, 8069 for direct access
+odoo_database: "odoo"
+odoo_username: "admin"
+odoo_password: "admin"
+
+# Home Assistant instance name to test
+ha_instance_name: "Test HA Instance"
+
+# =============================================================================
+# BROWSER SETTINGS
+# =============================================================================
+browser: "chromium"  # chromium, firefox, webkit
+headless: true       # Set to false for debugging
+slow_mo: 0           # Slow down actions by X ms (useful for debugging)
+timeout: 30000       # Default timeout in milliseconds
+
+# =============================================================================
+# SCREENSHOT SETTINGS
+# =============================================================================
+screenshot_on_failure: true
+screenshot_dir: "e2e_tests/screenshots"
+
+# =============================================================================
+# TEST ENTITIES
+# Configure mock entities for testing each domain
+# These should match entities created in your test HA instance
+# =============================================================================
+test_entities:
+  switch:
+    entity_id: "switch.test_switch"
+    name: "Test Switch"
+    initial_state: "off"
+
+  light:
+    entity_id: "light.test_light"
+    name: "Test Light"
+    initial_state: "off"
+    attributes:
+      brightness: 255
+      supported_color_modes:
+        - "brightness"
+
+  sensor:
+    entity_id: "sensor.test_temperature"
+    name: "Test Temperature"
+    initial_state: "23.5"
+    attributes:
+      unit_of_measurement: "°C"
+      device_class: "temperature"
+
+  climate:
+    entity_id: "climate.test_thermostat"
+    name: "Test Thermostat"
+    initial_state: "heat"
+    attributes:
+      temperature: 22
+      current_temperature: 20.5
+      hvac_modes:
+        - "off"
+        - "heat"
+        - "cool"
+        - "auto"
+      fan_modes:
+        - "auto"
+        - "low"
+        - "medium"
+        - "high"
+
+  cover:
+    entity_id: "cover.test_blind"
+    name: "Test Blind"
+    initial_state: "open"
+    attributes:
+      current_position: 100
+
+  fan:
+    entity_id: "fan.test_fan"
+    name: "Test Fan"
+    initial_state: "off"
+    attributes:
+      percentage: 50
+      oscillating: false
+      preset_modes:
+        - "normal"
+        - "sleep"
+        - "nature"
+
+  automation:
+    entity_id: "automation.test_automation"
+    name: "Test Automation"
+    initial_state: "on"
+
+  scene:
+    entity_id: "scene.test_scene"
+    name: "Test Scene"
+    initial_state: "scening"
+
+  script:
+    entity_id: "script.test_script"
+    name: "Test Script"
+    initial_state: "off"
+
+# =============================================================================
+# DOMAIN TEST SETTINGS
+# Enable/disable tests for each domain and configure test parameters
+# =============================================================================
+domain_tests:
+  switch:
+    enabled: true
+    test_toggle: true
+
+  light:
+    enabled: true
+    test_toggle: true
+    test_brightness: true
+    brightness_values:
+      - 0
+      - 64
+      - 128
+      - 192
+      - 255
+
+  sensor:
+    enabled: true
+    # Sensors are read-only, only test display
+
+  climate:
+    enabled: true
+    test_temperature: true
+    temperature_values:
+      - 18
+      - 20
+      - 22
+      - 24
+    test_fan_mode: true
+
+  cover:
+    enabled: true
+    test_open_close: true
+    test_position: true
+    position_values:
+      - 0
+      - 25
+      - 50
+      - 75
+      - 100
+
+  fan:
+    enabled: true
+    test_toggle: true
+    test_percentage: true
+    percentage_values:
+      - 0
+      - 25
+      - 50
+      - 75
+      - 100
+    test_oscillate: true
+    test_preset_mode: true
+
+  automation:
+    enabled: true
+    test_toggle: true
+    test_trigger: true
+
+  scene:
+    enabled: true
+    test_activate: true
+
+  script:
+    enabled: true
+    test_run: true
+    test_toggle: true
+
+# =============================================================================
+# WAIT TIMES (in milliseconds)
+# =============================================================================
+wait_times:
+  page_load: 5000
+  api_response: 3000
+  animation: 500
+  debounce: 1000
+
+# =============================================================================
+# REPORTING SETTINGS
+# =============================================================================
+reporting:
+  generate_html: true
+  generate_json: true
+  output_dir: "e2e_tests/reports"

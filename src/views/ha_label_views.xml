@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Label Action -->
+    <record id="ha_label_action" model="ir.actions.act_window">
+        <field name="name">HA Labels</field>
+        <field name="res_model">ha.label</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Label List View -->
+    <record id="ha_label_view_list" model="ir.ui.view">
+        <field name="name">ha.label.list</field>
+        <field name="model">ha.label</field>
+        <field name="arch" type="xml">
+            <list string="Labels" editable="bottom">
+                <field name="name"/>
+                <field name="label_id" readonly="1"/>
+                <field name="icon"/>
+                <field name="ha_color"/>
+                <field name="color" widget="color_picker"/>
+                <field name="ha_instance_id"/>
+                <field name="device_count"/>
+                <field name="area_count"/>
+                <field name="entity_count"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Label Form View -->
+    <record id="ha_label_view_form" model="ir.ui.view">
+        <field name="name">ha.label.form</field>
+        <field name="model">ha.label</field>
+        <field name="arch" type="xml">
+            <form string="Label">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Label Name"/>
+                        <h1>
+                            <field name="name" placeholder="Label name..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Configuration">
+                            <field name="ha_instance_id" options="{'no_create': True}"/>
+                            <field name="label_id" readonly="1"/>
+                            <field name="icon" placeholder="mdi:tag"/>
+                            <field name="ha_color" placeholder="e.g., red, blue, green"/>
+                            <field name="color" widget="color_picker"/>
+                        </group>
+                        <group string="Statistics">
+                            <field name="device_count"/>
+                            <field name="area_count"/>
+                            <field name="entity_count"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description" placeholder="Label description..."/>
+                    </group>
+                    <notebook>
+                        <page string="Devices" name="devices">
+                            <field name="device_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="manufacturer"/>
+                                    <field name="model"/>
+                                    <field name="area_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Areas" name="areas">
+                            <field name="area_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="entity_count"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Entities" name="entities">
+                            <field name="entity_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="entity_id"/>
+                                    <field name="domain"/>
+                                    <field name="entity_state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Technical" name="technical">
+                            <group>
+                                <group string="Timestamps">
+                                    <field name="created_at" readonly="1"/>
+                                    <field name="modified_at" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Label Search View -->
+    <record id="ha_label_view_search" model="ir.ui.view">
+        <field name="name">ha.label.search</field>
+        <field name="model">ha.label</field>
+        <field name="arch" type="xml">
+            <search string="Label Search">
+                <field name="name"/>
+                <field name="label_id"/>
+                <field name="ha_instance_id"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
+                    <filter name="group_by_color" string="Color" context="{'group_by': 'ha_color'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

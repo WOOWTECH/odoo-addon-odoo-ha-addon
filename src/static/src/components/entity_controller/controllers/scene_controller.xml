@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Scene Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Scene">
+        <div class="scene-controller">
+            <button class="btn btn-primary" t-on-click.stop="() => this.onActivate()" t-att-disabled="state.isLoading">
+                <i t-if="state.isLoading" class="fa fa-spinner entity-spin me-1"/>
+                <i t-else="" class="fa fa-play-circle me-1"/>
+                Activate
+            </button>
+        </div>
+    </t>
+</templates>

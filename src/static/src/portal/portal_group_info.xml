@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Portal Group Info Main Template -->
+    <t t-name="odoo_ha_addon.PortalGroupInfo">
+        <div class="portal-group-info portal-fade-in">
+            <!-- Group Header Card -->
+            <t t-call="odoo_ha_addon.PortalGroupInfo.HeaderCard"/>
+
+            <!-- Entities Table -->
+            <t t-call="odoo_ha_addon.PortalGroupInfo.EntitiesTable"/>
+
+            <!-- Statistics Cards -->
+            <t t-call="odoo_ha_addon.PortalGroupInfo.StatisticsCards"/>
+
+            <!-- Auto-update notice -->
+            <div class="text-center text-muted small mb-4">
+                <i class="fa fa-refresh portal-spin"/>
+                實體狀態每 5 秒自動更新
+            </div>
+        </div>
+    </t>
+
+    <!-- Group Header (Simplified) -->
+    <t t-name="odoo_ha_addon.PortalGroupInfo.HeaderCard">
+        <div class="portal-group-header mb-4">
+            <h4 class="d-flex align-items-center gap-2 mb-0">
+                <i class="fa fa-object-group text-primary"></i>
+                <span><t t-esc="groupName"/></span>
+                <small class="text-muted">(<t t-esc="entityCount"/> 個實體)</small>
+            </h4>
+            <t t-if="groupDescription">
+                <p class="text-muted mt-2 mb-0">
+                    <t t-esc="groupDescription"/>
+                </p>
+            </t>
+        </div>
+    </t>
+
+    <!-- Entities Card Grid -->
+    <t t-name="odoo_ha_addon.PortalGroupInfo.EntitiesTable">
+        <div class="card shadow-sm mb-4 portal-entity-card">
+            <div class="card-header card-header-section bg-secondary text-white">
+                <h5 class="entity-name mb-0">
+                    <i class="fa fa-th entity-icon"/>實體
+                    <small class="ml-2">(<t t-esc="entityCount"/> 總計)</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                <t t-if="hasEntities">
+                    <div class="portal-entity-grid">
+                        <t t-foreach="state.entities" t-as="entity" t-key="entity.id">
+                            <div class="portal-entity-card portal-fade-in"
+                                 t-att-class="{'portal-state-changed portal-state-pulse': entity.stateChanged}">
+                                <!-- Header: 名稱 + 網域 badge -->
+                                <div class="card-header-section">
+                                    <h6 class="entity-name">
+                                        <i class="fa entity-icon" t-att-class="getDomainIcon ? getDomainIcon(entity.domain) : 'fa-plug'"/>
+                                        <t t-esc="entity.name or '未命名'"/>
+                                    </h6>
+                                    <span class="toggle-state-badge is-off">
+                                        <t t-esc="entity.domain"/>
+                                    </span>
+                                </div>
+
+                                <!-- Entity ID -->
+                                <div class="entity-id">
+                                    <code><t t-esc="entity.entity_id"/></code>
+                                </div>
+
+                                <!-- 狀態 Badge -->
+                                <div class="entity-state">
+                                    <span class="toggle-state-badge" t-att-class="{'is-on': entity.entity_state === 'on', 'is-off': entity.entity_state !== 'on'}">
+                                        <t t-esc="entity.entity_state"/>
+                                    </span>
+                                </div>
+
+                                <!-- 控制器 (only for control permission) -->
+                                <t t-if="canControlEntity(entity)">
+                                    <div class="entity-controller">
+                                        <PortalEntityController
+                                            entity="entity"
+                                            permission="permission"/>
+                                    </div>
+                                </t>
+
+                                <!-- 上次更新 -->
+                                <div class="entity-updated">
+                                    <i class="fa fa-clock-o"/>
+                                    <t t-if="entity.last_changed">
+                                        <t t-esc="entity.last_changed"/>
+                                    </t>
+                                    <t t-else="">無</t>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="text-center text-muted py-4">
+                        <i class="fa fa-inbox fa-2x mb-2 d-block"/>
+                        此群組中沒有實體
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <!-- Statistics Cards -->
+    <t t-name="odoo_ha_addon.PortalGroupInfo.StatisticsCards">
+        <div class="row mb-4">
+            <!-- Total Entities -->
+            <div class="col-md-4 mb-3 mb-md-0">
+                <div class="card shadow-sm h-100 portal-entity-card portal-fade-in">
+                    <div class="card-body text-center">
+                        <div class="sensor-value text-primary portal-transition-colors">
+                            <t t-esc="entityCount"/>
+                        </div>
+                        <small class="text-muted">總實體數</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Online Entities -->
+            <div class="col-md-4 mb-3 mb-md-0">
+                <div class="card shadow-sm h-100 portal-entity-card portal-fade-in">
+                    <div class="card-body text-center">
+                        <div class="sensor-value portal-transition-colors" style="color: var(--portal-accent-success);">
+                            <t t-esc="onlineCount"/>
+                        </div>
+                        <small class="text-muted">可用</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offline Entities -->
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100 portal-entity-card portal-fade-in">
+                    <div class="card-body text-center">
+                        <div class="sensor-value portal-transition-colors" style="color: var(--portal-accent-warning);">
+                            <t t-esc="offlineCount"/>
+                        </div>
+                        <small class="text-muted">不可用</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

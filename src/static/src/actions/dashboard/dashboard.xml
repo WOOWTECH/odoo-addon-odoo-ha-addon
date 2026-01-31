@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+  <t t-name="odoo_ha_addon.Dashboard">
+    <div class="o_action o_view_controller">
+      <div class="o_content">
+        <!-- Dashboard Header -->
+        <div class="o_ha_dashboard_header bg-white border-bottom p-3 mb-3">
+          <!-- Breadcrumb Navigation (Phase 2.2) -->
+          <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb mb-0">
+              <li class="breadcrumb-item">
+                <a href="#" t-on-click.prevent="() => this.goBackToInstances()" class="text-decoration-none">
+                  <i class="fa fa-home me-1"/>
+                  Instances
+                </a>
+              </li>
+              <li class="breadcrumb-item active" t-if="this.currentInstanceName" aria-current="page">
+                <span t-esc="this.currentInstanceName"/>
+              </li>
+              <li class="breadcrumb-item active" aria-current="page">HA Info</li>
+            </ol>
+          </nav>
+          <h3 class="mb-0">
+            <i class="fa fa-dashboard me-2"/>
+            Home Assistant Dashboard
+          </h3>
+        </div>
+
+        <div class="o_dashboard">
+          <div class="row">
+            <div class="col-md-6">
+              <DashboardItem fullWidth="true">
+                <h3>WebSocket 連線狀態</h3>
+                <div class="websocket-status">
+                  <div class="status-indicator" t-att-class="state.websocket.connected ? 'connected' : 'disconnected'">
+                    <span class="status-dot"></span>
+                    <span t-if="state.websocket.connected">已連線</span>
+                    <span t-else="">未連線</span>
+                  </div>
+                  <div class="status-details mt-2">
+                    <p>
+                      <strong>Home Assistant URL:</strong>
+                      <span t-esc="state.websocket.url"/></p>
+                    <p>
+                      <strong>最後更新:</strong>
+                      <span t-esc="state.websocket.lastUpdate"/></p>
+                    <p t-if="!state.websocket.configSynced and state.websocket.connected" class="text-warning">
+                      <i class="fa fa-exclamation-triangle"/>
+                      組態已變更，將於下次 Cron 時自動重啟
+                    </p>
+                    <p t-if="state.websocket.error" class="text-danger">
+                      <strong>錯誤:</strong>
+                      <span t-esc="state.websocket.error"/>
+                    </p>
+                  </div>
+                  <div class="mt-3">
+                    <button class="btn btn-primary btn-sm" t-on-click="restartWebSocket" t-att-disabled="state.websocket.restarting">
+                      <i t-if="state.websocket.restarting" class="fa fa-spinner fa-spin"/>
+                      <i t-else="" class="fa fa-refresh"/>
+                      <span t-if="state.websocket.restarting">
+                        重啟中...</span>
+                      <span t-else="">
+                        重啟 WebSocket</span>
+                    </button>
+                  </div>
+                </div>
+              </DashboardItem>
+            </div>
+            <div class="col-md-6">
+              <DashboardItem fullWidth="true">
+                <h3>Home Assistant 硬體資訊</h3>
+                <div class="hardware-info">
+                  <div t-if="state.hardware.loading" class="text-muted">
+                    <i class="fa fa-spinner fa-spin"/>
+                    載入中...
+                  </div>
+                  <div t-elif="state.hardware.error" class="text-danger">
+                    <strong>錯誤:</strong>
+                    <span t-esc="state.hardware.error"/>
+                  </div>
+                  <div
+                    t-elif="state.hardware.data" class="hardware-details">
+                    <!-- 硬碟資訊 -->
+                    <div t-if="state.hardware.data.drives and state.hardware.data.drives.length" class="mb-3">
+                      <h5><i class="fa fa-hdd-o"/>
+                        儲存裝置</h5>
+                      <t t-foreach="state.hardware.data.drives" t-as="drive" t-key="drive.id">
+                        <div class="mb-2">
+                          <p class="mb-1">
+                            <strong><span t-esc="drive.vendor"/>
+                              <span t-esc="drive.model"/></strong>
+                          </p>
+                          <p class="text-muted small mb-0">
+                            容量:
+                            <span t-esc="formatSize(drive.size)"/>
+                          </p>
+                          <p t-if="drive.filesystems and drive.filesystems.length" class="text-muted small mb-0">
+                            分區數:
+                            <span t-esc="drive.filesystems.length"/>
+                            個
+                          </p>
+                        </div>
+                      </t>
+                    </div>
+                    <!-- 裝置數量統計 -->
+                    <div t-if="state.hardware.data.devices" class="mb-3">
+                      <h5><i class="fa fa-microchip"/>
+                        硬體裝置</h5>
+                      <p>
+                        <strong>裝置總數:</strong>
+                        <span t-esc="state.hardware.data.devices.length"/>
+                        個</p>
+                    </div>
+                  </div>
+                  <div t-else="" class="text-muted">
+                    無硬體資訊
+                  </div>
+                </div>
+              </DashboardItem>
+            </div>
+            <div class="col-md-12">
+              <DashboardItem fullWidth="true">
+                <h3>Home Assistant 網路資訊</h3>
+                <div
+                  class="network-info">
+                  <!-- Home Assistant 共享網址區塊 -->
+                  <div class="ha-urls-section mb-3">
+                    <h5><i class="fa fa-link"/>
+                      Home Assistant 共享網址</h5>
+                    <div t-if="state.haUrls.loading" class="text-muted">
+                      <i class="fa fa-spinner fa-spin"/>
+                      載入中...
+                    </div>
+                    <div t-elif="state.haUrls.error" class="text-danger">
+                      <strong>錯誤:</strong>
+                      <span t-esc="state.haUrls.error"/>
+                    </div>
+                    <div
+                      t-elif="state.haUrls.data" class="url-list">
+                      <!-- 內部網址 Card -->
+                      <div t-if="state.haUrls.data.internal" class="card mb-3">
+                        <div class="card-body">
+                          <h6 class="card-title">
+                            <i class="fa fa-home text-primary"/>
+                            <strong>內部網址</strong>
+                            <span class="badge badge-primary ml-2">Internal</span>
+                          </h6>
+                          <p class="mb-0">
+                            <a t-att-href="state.haUrls.data.internal" target="_blank" class="text-decoration-none">
+                              <i class="fa fa-external-link"/>
+                              <span t-esc="state.haUrls.data.internal"/>
+                            </a>
+                          </p>
+                        </div>
+                      </div>
+                      <!-- 外部網址 Card -->
+                      <div t-if="state.haUrls.data.external" class="card mb-3">
+                        <div class="card-body">
+                          <h6 class="card-title">
+                            <i class="fa fa-globe text-success"/>
+                            <strong>外部網址</strong>
+                            <span class="badge badge-success ml-2">External</span>
+                          </h6>
+                          <p class="mb-0">
+                            <a t-att-href="state.haUrls.data.external" target="_blank" class="text-decoration-none">
+                              <i class="fa fa-external-link"/>
+                              <span t-esc="state.haUrls.data.external"/>
+                            </a>
+                          </p>
+                        </div>
+                      </div>
+                      <!-- 雲端網址 Card -->
+                      <div t-if="state.haUrls.data.cloud" class="card mb-3">
+                        <div class="card-body">
+                          <h6 class="card-title">
+                            <i class="fa fa-cloud text-info"/>
+                            <strong>雲端網址</strong>
+                            <span class="badge badge-info ml-2">Cloud</span>
+                          </h6>
+                          <p class="mb-0">
+                            <a t-att-href="state.haUrls.data.cloud" target="_blank" class="text-decoration-none">
+                              <i class="fa fa-external-link"/>
+                              <span t-esc="state.haUrls.data.cloud"/>
+                            </a>
+                          </p>
+                        </div>
+                      </div>
+                      <!-- 無 URL 提示 -->
+                      <div t-if="!state.haUrls.data.internal and !state.haUrls.data.external and !state.haUrls.data.cloud" class="card mb-3">
+                        <div class="card-body text-muted text-center">
+                          <i class="fa fa-info-circle"/>
+                          未設定任何共享網址
+                        </div>
+                      </div>
+                    </div>
+                    <div t-else="" class="card mb-3">
+                      <div class="card-body text-muted text-center">
+                        無 URL 資訊
+                      </div>
+                    </div>
+                  </div>
+                  <!-- 網路介面卡資訊 -->
+                  <div t-if="state.network.loading" class="text-muted">
+                    <i class="fa fa-spinner fa-spin"/>
+                    載入中...
+                  </div>
+                  <div t-elif="state.network.error" class="text-danger">
+                    <strong>錯誤:</strong>
+                    <span t-esc="state.network.error"/>
+                  </div>
+                  <div t-elif="state.network.data and state.network.data.interfaces" class="network-details">
+                    <div t-if="state.network.data.interfaces.length" class="mb-3">
+                      <h5><i class="fa fa-sitemap"/>
+                        網路介面卡</h5>
+                      <t t-foreach="state.network.data.interfaces" t-as="iface" t-key="iface_index">
+                        <div class="card mb-3">
+                          <div class="card-body">
+                            <h6 class="card-title">
+                              <i class="fa fa-plug"/>
+                              <strong><span t-esc="iface.interface"/></strong>
+                              <span t-if="iface.enabled" class="badge badge-success ml-2">啟用</span>
+                              <span t-else="" class="badge badge-secondary ml-2">停用</span>
+                            </h6>
+                            <div class="row">
+                              <div class="col-md-6">
+                                <p class="mb-1">
+                                  <strong>類型:</strong>
+                                  <span t-esc="iface.type || 'N/A'"/>
+                                </p>
+                                <p class="mb-1">
+                                  <strong>MAC 位址:</strong>
+                                  <span t-esc="iface.mac || 'N/A'"/>
+                                </p>
+                              </div>
+                              <div
+                                class="col-md-6">
+                                <!-- IPv4 資訊 -->
+                                <div t-if="iface.ipv4" class="mb-2">
+                                  <p class="mb-1">
+                                    <strong><i class="fa fa-globe"/>
+                                      IPv4:</strong>
+                                  </p>
+                                  <ul class="list-unstyled ml-3">
+                                    <li t-if="iface.ipv4.address and iface.ipv4.address.length">
+                                      <strong>位址:</strong>
+                                      <t t-foreach="iface.ipv4.address" t-as="addr" t-key="addr_index">
+                                        <span t-esc="addr"/><t t-if="!addr_last">,
+                                        </t>
+                                      </t>
+                                    </li>
+                                    <li t-if="iface.ipv4.gateway">
+                                      <strong>閘道:</strong>
+                                      <span t-esc="iface.ipv4.gateway"/>
+                                    </li>
+                                    <li t-if="iface.ipv4.nameservers and iface.ipv4.nameservers.length">
+                                      <strong>DNS:</strong>
+                                      <t t-foreach="iface.ipv4.nameservers" t-as="ns" t-key="ns_index">
+                                        <span t-esc="ns"/><t t-if="!ns_last">,
+                                        </t>
+                                      </t>
+                                    </li>
+                                  </ul>
+                                </div>
+                                <!-- IPv6 資訊 -->
+                                <div t-if="iface.ipv6" class="mb-2">
+                                  <p class="mb-1">
+                                    <strong><i class="fa fa-globe"/>
+                                      IPv6:</strong>
+                                  </p>
+                                  <ul class="list-unstyled ml-3">
+                                    <li t-if="iface.ipv6.address and iface.ipv6.address.length">
+                                      <strong>位址:</strong>
+                                      <t t-foreach="iface.ipv6.address" t-as="addr6" t-key="addr6_index">
+                                        <span t-esc="addr6"/><t t-if="!addr6_last">,
+                                        </t>
+                                      </t>
+                                    </li>
+                                    <li t-if="iface.ipv6.gateway">
+                                      <strong>閘道:</strong>
+                                      <span t-esc="iface.ipv6.gateway"/>
+                                    </li>
+                                    <li t-if="iface.ipv6.nameservers and iface.ipv6.nameservers.length">
+                                      <strong>DNS:</strong>
+                                      <t t-foreach="iface.ipv6.nameservers" t-as="ns6" t-key="ns6_index">
+                                        <span t-esc="ns6"/><t t-if="!ns6_last">,
+                                        </t>
+                                      </t>
+                                    </li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </t>
+                    </div>
+                  </div>
+                  <div t-else="" class="text-muted">
+                    無網路資訊
+                  </div>
+                </div>
+              </DashboardItem>
+            </div>
+
+            <!-- Glances Block -->
+            <div class="col-md-12">
+              <DashboardItem fullWidth="true">
+                <GlancesBlock instanceId="this.instanceId"/>
+              </DashboardItem>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </t>
+</templates>

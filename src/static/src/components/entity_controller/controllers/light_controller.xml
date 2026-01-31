@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Light Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Light">
+        <div class="light-controller">
+            <div class="d-flex align-items-center gap-3">
+                <div class="form-check form-switch entity-large-switch entity-light-switch">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        role="switch"
+                        t-att-checked="isOn"
+                        t-att-disabled="state.isLoading"
+                        t-att-class="{'entity-loading': state.isLoading}"
+                        t-on-click.stop.prevent="() => this.onToggle()"
+                    />
+                </div>
+                <i class="fa fa-lightbulb-o fa-lg" t-att-class="{'text-warning': isOn, 'text-muted': isOff}"/>
+            </div>
+
+            <!-- Brightness slider (only when light is on and has brightness) -->
+            <t t-if="isOn and state.attributes?.brightness !== undefined">
+                <div class="brightness-control entity-value-slider entity-brightness-slider mt-3">
+                    <div class="slider-track-container d-flex align-items-center gap-2">
+                        <i class="fa fa-adjust text-muted"/>
+                        <input
+                            type="range"
+                            min="0"
+                            max="255"
+                            step="1"
+                            t-att-value="currentBrightness"
+                            t-att-style="'--slider-progress: ' + Math.round((currentBrightness / 255) * 100) + '%'"
+                            t-on-input.stop="(ev) => this.onBrightnessInput(ev.target.value)"
+                            t-on-change.stop="(ev) => this.onSetBrightness(ev.target.value)"
+                            t-att-disabled="state.isLoading"
+                        />
+                        <span class="slider-value-badge">
+                            <t t-esc="Math.round((currentBrightness / 255) * 100)"/>%
+                        </span>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,3 @@
+# Home Assistant WebSocket Integration Dependencies
+websockets>=12.0
+asyncio

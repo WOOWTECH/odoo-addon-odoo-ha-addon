@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <!-- ir.actions.client 是 Odoo 框架中的客戶端動作類型，用於在前端執行 JavaScript 組件。
+  程式碼中：
+    - ir.actions.client 定義了一個名為 "Dashboard" 的客戶端動作
+    - tag 欄位指定要載入的 JavaScript 組件標識符 odoo_ha_addon.ha_info_dashboard
+  這個 tag 對應到你的前端組件 static/src/dashboard.js 中註冊的組件名稱，當用戶點擊選單項目時，Odoo 會載入並渲染對應的
+   JavaScript 組件來顯示你的 Home Assistant 儀表板。 -->
+    <record id="ha_info_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard</field>
+        <field name="tag">odoo_ha_addon.ha_info_dashboard</field>
+    </record>
+</odoo>

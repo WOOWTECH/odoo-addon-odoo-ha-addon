@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="entity_action" model="ir.actions.act_window">
+        <field name="name">HA Entity</field>
+        <field name="res_model">ha.entity</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'search_default_available': 1}</field>
+    </record>
+    <record id="ha_entity_view_kanban" model="ir.ui.view">
+        <field name="name">ha.entity.kanban</field>
+        <field name="model">ha.entity</field>
+        <field name="arch" type="xml">
+            <kanban js_class="entity_kanban">
+                <field name="domain"/>
+                <field name="entity_id"/>
+                <field name="entity_state"/>
+                <field name="last_changed"/>
+                <field name="enable_record"/>
+                <templates>
+                    <t t-name="card">
+                        <!-- <p><t t-esc="record.entity_id.raw_value"/></p> -->
+                        <widget name="entity_demo" />
+                    </t>
+                    <t t-name="menu">
+                        <a t-if="widget.deletable" role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="ha_entity_view_list" model="ir.ui.view">
+        <field name="name">ha.entity.list</field>
+        <field name="model">ha.entity</field>
+        <field name="arch" type="xml">
+            <list string="Entity">
+                <field name="id" readonly="1"/>
+                <field name="name" readonly="1"/>
+                <field name="entity_id" readonly="1"/>
+                <field name="entity_state" string="State" readonly="1"/>
+                <field name="domain" readonly="1"/>
+                <field name="ha_instance_id" readonly="1"/>
+                <field name="device_id" readonly="1" optional="hide"/>
+                <field name="group_ids" widget="many2many_tags" readonly="1"
+                       domain="[('ha_instance_id', '=', ha_instance_id)]"
+                       options="{'color_field': 'color'}"/>
+                <field name="tag_ids" widget="many2many_tags"
+                       domain="[('ha_instance_id', '=', ha_instance_id)]"
+                       options="{'color_field': 'color'}"
+                       context="{'default_ha_instance_id': ha_instance_id}"/>
+                <field name="label_ids" widget="many2many_tags"
+                       options="{'color_field': 'color'}"
+                       context="{'default_ha_instance_id': ha_instance_id}"/>
+                <field name="attributes" readonly="1"/>
+                <field name="enable_record"/>
+                <field name="properties"/>
+                <field name="last_changed" readonly="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Entity Form View -->
+    <record id="ha_entity_view_form" model="ir.ui.view">
+        <field name="name">ha.entity.form</field>
+        <field name="model">ha.entity</field>
+        <field name="arch" type="xml">
+            <form string="Entity" class="o_ha_entity_form">
+                <header>
+                    <button name="action_share" type="object" string="Share with Users"
+                            class="btn-secondary"
+                            groups="odoo_ha_addon.group_ha_manager"
+                            title="Share this entity with specific users"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_tags"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-tags"
+                                invisible="tag_count == 0">
+                            <field name="tag_count" widget="statinfo" string="Tags"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Entity Name"/>
+                        <h1>
+                            <!-- name 欄位可編輯，會雙向同步到 HA Entity Registry 的 name 欄位 -->
+                            <!-- 清空此欄位時，HA 會恢復使用 original_name -->
+                            <field name="name" placeholder="Entity Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="entity_id" readonly="1"/>
+                            <field name="domain" readonly="1"/>
+                            <field name="entity_state" string="State" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="ha_instance_id" readonly="1"/>
+                            <field name="area_id" domain="[('ha_instance_id', '=', ha_instance_id)]"/>
+                            <field name="device_id" readonly="1" options="{'no_open': True}"/>
+                            <field name="enable_record"/>
+                            <field name="last_changed" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Groups, Tags &amp; Labels">
+                        <field name="group_ids" widget="many2many_tags" readonly="1"
+                               domain="[('ha_instance_id', '=', ha_instance_id)]"
+                               options="{'color_field': 'color', 'no_create': False}"/>
+                        <field name="tag_ids" widget="many2many_tags"
+                               domain="[('ha_instance_id', '=', ha_instance_id)]"
+                               options="{'color_field': 'color', 'no_create': False}"
+                               context="{'default_ha_instance_id': ha_instance_id}"/>
+                        <field name="label_ids" widget="many2many_tags"
+                               options="{'color_field': 'color'}"
+                               context="{'default_ha_instance_id': ha_instance_id}"/>
+                    </group>
+                    <group string="Note">
+                        <field name="note" nolabel="1" placeholder="Add internal notes here..."/>
+                    </group>
+                    <group string="Custom Properties">
+                        <field name="properties" columns="2"/>
+                    </group>
+                    <notebook>
+                        <page string="Attributes" name="attributes">
+                            <field name="attributes_str" widget="ace" readonly="1"/>
+                        </page>
+                        <page string="History" name="history">
+                            <field name="history_ids" readonly="1">
+                                <list string="History">
+                                    <field name="entity_state" string="State"/>
+                                    <field name="last_changed"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Sharing" name="sharing" groups="odoo_ha_addon.group_ha_manager">
+                            <field name="share_ids">
+                                <list string="Shares" editable="bottom" create="false">
+                                    <field name="user_id" readonly="1"/>
+                                    <field name="permission"/>
+                                    <field name="expiry_date"/>
+                                    <field name="is_expired" widget="boolean"/>
+                                    <button name="action_extend_expiry" type="object"
+                                            string="Extend 30 days" icon="fa-calendar-plus-o"
+                                            title="Extend expiry date by 30 days"
+                                            invisible="not expiry_date"/>
+                                    <button name="unlink" type="object"
+                                            string="Revoke" icon="fa-trash"
+                                            title="Remove this share"
+                                            confirm="Are you sure you want to revoke this share?"/>
+                                </list>
+                            </field>
+                            <div class="alert alert-info mt-3" role="status"
+                                 invisible="share_ids">
+                                <i class="fa fa-info-circle me-2" title="Info"/>
+                                This entity has not been shared with any users yet.
+                                Click "Share with Users" to share it.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <!-- Entity Controller - Responsive sidebar block -->
+                <div class="o_ha_entity_controller card shadow-sm">
+                    <div class="card-header py-2">
+                        <h6 class="mb-0">
+                            <i class="fa fa-gamepad me-2"/>Entity Control
+                        </h6>
+                    </div>
+                    <div class="card-body py-3">
+                        <widget name="entity_demo"/>
+                    </div>
+                </div>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Entity Search View -->
+    <record id="ha_entity_view_search" model="ir.ui.view">
+        <field name="name">ha.entity.search</field>
+        <field name="model">ha.entity</field>
+        <field name="arch" type="xml">
+            <search string="Entity Search">
+                <field name="name"/>
+                <field name="entity_id"/>
+                <field name="domain"/>
+                <field name="ha_instance_id"/>
+                <filter name="available" string="Available" domain="[('entity_state', '!=', 'unavailable')]"/>
+                <filter name="recording" string="Recording Enabled" domain="[('enable_record', '=', True)]"/>
+                <separator/>
+                <filter name="current_instance" string="Current Instance"
+                        domain="[('is_current_user_instance', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
+                    <filter name="group_by_domain" string="Domain" context="{'group_by': 'domain'}"/>
+                    <filter name="group_by_area" string="Area" context="{'group_by': 'area_id'}"/>
+                    <filter name="group_by_device" string="Device" context="{'group_by': 'device_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Entity - View Tags Action -->
+    <record id="ha_entity_view_tags_action" model="ir.actions.act_window">
+        <field name="name">Entity Tags</field>
+        <field name="res_model">ha.entity.tag</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+</odoo>

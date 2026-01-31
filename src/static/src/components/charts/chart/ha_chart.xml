@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ha_addon.HAChart">
+        <div>
+            <canvas t-ref="canvas_root"></canvas>
+        </div>
+    </t>
+</templates>
+

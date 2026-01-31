@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ===================================== -->
+    <!-- HA Instance List View                 -->
+    <!-- ===================================== -->
+    <record id="view_ha_instance_list" model="ir.ui.view">
+        <field name="name">ha.instance.list</field>
+        <field name="model">ha.instance</field>
+        <field name="arch" type="xml">
+            <list string="HA Instances" decoration-muted="not active">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="api_url"/>
+                <field name="websocket_status" widget="badge"
+                       decoration-success="websocket_status == 'connected'"
+                       decoration-danger="websocket_status == 'error'"
+                       decoration-warning="websocket_status == 'connecting'"
+                       decoration-muted="websocket_status == 'disconnected'"/>
+                <field name="entity_count"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="last_sync_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ===================================== -->
+    <!-- HA Instance Form View (Modal/Create)  -->
+    <!-- Simplified view for creating new instance from Settings -->
+    <!-- ===================================== -->
+    <record id="view_ha_instance_form_modal" model="ir.ui.view">
+        <field name="name">ha.instance.form.modal</field>
+        <field name="model">ha.instance</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <form string="New HA Instance">
+                <sheet>
+                    <group>
+                        <group string="Basic Information">
+                            <field name="name" placeholder="e.g., Home HA, Office HA" required="1"/>
+                            <field name="sequence"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        <group string="Connection Settings">
+                            <field name="api_url" placeholder="http://homeassistant.local:8123" required="1"/>
+                            <field name="api_token" password="True" placeholder="Long-lived access token" required="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description" placeholder="Optional notes or description..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ===================================== -->
+    <!-- HA Instance Form View                 -->
+    <!-- ===================================== -->
+    <record id="view_ha_instance_form" model="ir.ui.view">
+        <field name="name">ha.instance.form</field>
+        <field name="model">ha.instance</field>
+        <field name="arch" type="xml">
+            <form string="HA Instance">
+                <header>
+                    <button name="action_test_connection"
+                            string="Test Connection"
+                            type="object"
+                            class="oe_highlight"
+                            icon="fa-plug"/>
+                    <button name="action_sync_registry"
+                            string="Sync Registry"
+                            type="object"
+                            invisible="not active"
+                            groups="odoo_ha_addon.group_ha_manager"
+                            icon="fa-database"
+                            title="Sync Labels, Areas, and Devices from Home Assistant (in order)"/>
+                    <button name="action_sync_entities"
+                            string="Sync Entities"
+                            type="object"
+                            invisible="not active"
+                            groups="odoo_ha_addon.group_ha_manager"
+                            icon="fa-refresh"
+                            title="Sync entities and their area relations from Home Assistant"/>
+                    <button name="action_sync_history"
+                            string="Sync History"
+                            type="object"
+                            invisible="not active"
+                            groups="odoo_ha_addon.group_ha_manager"
+                            icon="fa-history"
+                            title="Sync history data for enabled entities"/>
+                    <button name="action_restart_websocket"
+                            string="Restart WebSocket"
+                            type="object"
+                            invisible="not active"
+                            groups="odoo_ha_addon.group_ha_manager"
+                            icon="fa-power-off"
+                            class="btn-warning"
+                            title="Restart WebSocket service for this instance"/>
+                    <button name="action_clear_data"
+                            string="Clear Instance Data"
+                            type="object"
+                            icon="fa-trash"
+                            class="btn-danger"
+                            groups="odoo_ha_addon.group_ha_manager"
+                            confirm="⚠️ Warning: This will permanently delete all data associated with this instance. This operation cannot be undone. Continue?"
+                            title="Clear all data (entities, history, areas, groups) for this instance"/>
+                    <field name="websocket_status" widget="statusbar"
+                           statusbar_visible="disconnected,connecting,connected"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(entity_action)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-cube"
+                                context="{'search_default_ha_instance_id': id}">
+                            <field name="entity_count" widget="statinfo" string="Entities"/>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="Inactive"
+                            bg_color="bg-danger"
+                            invisible="active"/>
+
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., Home HA, Office HA"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group name="connection_info" string="Connection Information">
+                            <field name="api_url" placeholder="http://homeassistant.local:8123"/>
+                            <field name="ws_url" readonly="1"/>
+                            <field name="api_token" password="True" groups="odoo_ha_addon.group_ha_manager"/>
+                        </group>
+                        <group name="settings" string="Settings">
+                            <field name="sequence"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="last_sync_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group string="Instance Identification" invisible="not ha_instance_uuid">
+                        <group>
+                            <field name="ha_instance_uuid" readonly="1" string="URL Fingerprint"/>
+                            <field name="last_api_url" readonly="1" string="Previous URL"/>
+                        </group>
+                        <div class="alert alert-info" role="status" style="margin-top: 8px;">
+                            <strong>Description:</strong> The fingerprint is a unique identifier calculated based on the API URL. When the URL changes, a detection is triggered to remind you whether old data needs to be cleared.
+                        </div>
+                    </group>
+
+                    <notebook>
+                        <page name="description" string="Description">
+                            <field name="description" placeholder="Add notes or description for this instance..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ===================================== -->
+    <!-- HA Instance Kanban View               -->
+    <!-- ===================================== -->
+    <record id="view_ha_instance_kanban" model="ir.ui.view">
+        <field name="name">ha.instance.kanban</field>
+        <field name="model">ha.instance</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="api_url"/>
+                <field name="websocket_status"/>
+                <field name="entity_count"/>
+                <field name="active"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_global_click">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                    <div class="o_kanban_record_subtitle">
+                                        <field name="api_url"/>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span t-if="!record.active.raw_value" class="badge badge-secondary">Inactive</span>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <div class="oe_kanban_bottom_left">
+                                    <span class="badge"
+                                          t-att-class="{
+                                              'badge-success': record.websocket_status.raw_value == 'connected',
+                                              'badge-danger': record.websocket_status.raw_value == 'error',
+                                              'badge-warning': record.websocket_status.raw_value == 'connecting',
+                                              'badge-secondary': record.websocket_status.raw_value == 'disconnected'
+                                          }">
+                                        <field name="websocket_status"/>
+                                    </span>
+                                </div>
+                                <div class="oe_kanban_bottom_right">
+                                    <field name="entity_count"/> entities
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ===================================== -->
+    <!-- HA Instance Search View               -->
+    <!-- ===================================== -->
+    <record id="view_ha_instance_search" model="ir.ui.view">
+        <field name="name">ha.instance.search</field>
+        <field name="model">ha.instance</field>
+        <field name="arch" type="xml">
+            <search string="Search HA Instances">
+                <field name="name" string="Instance Name"
+                       filter_domain="['|', ('name', 'ilike', self), ('description', 'ilike', self)]"/>
+                <field name="api_url"/>
+                <separator/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inactive" name="inactive" domain="[('active', '=', False)]"/>
+                <separator/>
+                <!-- WebSocket Status filters removed: computed field (store=False) cannot be used in search domains -->
+                <group expand="0" string="Group By">
+                    <filter string="Active" name="group_by_active" context="{'group_by': 'active'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ===================================== -->
+    <!-- Server Actions                        -->
+    <!-- ===================================== -->
+
+    <!-- 重啟 WebSocket 服務 (支援多選) -->
+    <record id="action_server_restart_websocket" model="ir.actions.server">
+        <field name="name">Restart WebSocket Service</field>
+        <field name="model_id" ref="model_ha_instance"/>
+        <field name="binding_model_id" ref="model_ha_instance"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records.action_restart_websocket()
+        </field>
+    </record>
+
+    <!-- ===================================== -->
+    <!-- HA Instance Action                    -->
+    <!-- ===================================== -->
+    <record id="action_ha_instance" model="ir.actions.act_window">
+        <field name="name">HA Instances</field>
+        <field name="res_model">ha.instance</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Home Assistant instance
+            </p>
+            <p>
+                Configure your Home Assistant instances to integrate with Odoo.<br/>
+                You can manage multiple Home Assistant servers and switch between them.
+            </p>
+        </field>
+    </record>
+
+</odoo>

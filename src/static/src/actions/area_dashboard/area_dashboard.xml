@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+  <t t-name="odoo_ha_addon.HaAreaDashboard">
+    <div class="area-dashboard o_content">
+      <!-- Header -->
+      <div class="area-dashboard-header bg-white border-bottom p-3 mb-3">
+        <!-- Breadcrumb Navigation (Phase 2.2) -->
+        <nav aria-label="breadcrumb" class="mb-2">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">
+              <a href="#" t-on-click.prevent="() => this.goBackToInstances()" class="text-decoration-none">
+                <i class="fa fa-home me-1"/>
+                Instances
+              </a>
+            </li>
+            <li class="breadcrumb-item active" t-if="this.currentInstanceName" aria-current="page">
+              <span t-esc="this.currentInstanceName"/>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Areas</li>
+          </ol>
+        </nav>
+        <h2 class="mb-0">
+          <i class="fa fa-map-marker me-2"/>
+          Area Dashboard
+        </h2>
+      </div>
+
+      <!-- Loading State -->
+      <t t-if="state.loading">
+        <div class="alert alert-info" role="status">
+          <i class="fa fa-spinner fa-spin me-2"/>
+          Loading...
+        </div>
+      </t>
+
+      <!-- Error State -->
+      <t t-if="state.error">
+        <div class="alert alert-danger" role="alert">
+          <i class="fa fa-exclamation-triangle me-2"/>
+          <t t-esc="state.error"/>
+        </div>
+      </t>
+
+      <!-- Main Content -->
+      <t t-if="!state.loading and !state.error">
+        <!-- Area Selector Tabs -->
+        <div class="area-selector-tabs mb-4">
+          <ul class="nav nav-tabs">
+            <t t-foreach="state.areas" t-as="area" t-key="area.id">
+              <li class="nav-item">
+                <button
+                  class="nav-link"
+                  t-att-class="{ 'active': state.selectedArea?.id === area.id }"
+                  t-on-click="() => this.selectArea(area)"
+                >
+                  <t t-if="area.icon">
+                    <i t-att-class="area.icon + ' me-2'"/>
+                  </t>
+                  <t t-esc="area.name"/>
+                </button>
+              </li>
+            </t>
+          </ul>
+        </div>
+
+        <!-- Empty State -->
+        <t t-if="!hasContent">
+          <div class="alert alert-warning" role="status">
+            <i class="fa fa-info-circle me-2"/>
+            No devices or entities in this area
+          </div>
+        </t>
+
+        <!-- Device-First Content -->
+        <div t-else="" class="device-first-content px-3 py-2">
+          <!-- Devices Section -->
+          <section t-if="state.devices.length > 0" class="devices-section mb-4">
+            <h4 class="mb-3 d-flex align-items-center">
+              <i class="fa fa-cube me-2 text-primary"/>
+              Devices
+              <span class="badge bg-primary ms-2">
+                <t t-esc="state.devices.length"/>
+              </span>
+            </h4>
+            <div class="devices-list">
+              <t t-foreach="state.devices" t-as="device" t-key="device.id">
+                <DeviceCard device="device"/>
+              </t>
+            </div>
+          </section>
+
+          <!-- Standalone Entities Section (Collapsible) -->
+          <section t-if="state.standaloneEntities.length > 0" class="standalone-entities-section card mb-3">
+            <div
+              class="card-header d-flex align-items-center justify-content-between"
+              style="cursor: pointer;"
+              data-bs-toggle="collapse"
+              data-bs-target="#standaloneEntitiesCollapse"
+              aria-expanded="true"
+              aria-controls="standaloneEntitiesCollapse"
+            >
+              <h5 class="mb-0 d-flex align-items-center">
+                <i class="fa fa-plug me-2 text-success"/>
+                Standalone Entities
+                <span class="badge bg-success ms-2">
+                  <t t-esc="state.standaloneEntities.length"/>
+                </span>
+              </h5>
+              <i class="fa fa-chevron-down collapse-icon"/>
+            </div>
+            <div id="standaloneEntitiesCollapse" class="collapse show">
+              <div class="card-body">
+                <div class="entity-grid row g-3">
+                  <t t-foreach="state.standaloneEntities" t-as="entity" t-key="entity.id">
+                    <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                      <StandaloneEntityCard entity="entity"/>
+                    </div>
+                  </t>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </t>
+    </div>
+  </t>
+</templates>

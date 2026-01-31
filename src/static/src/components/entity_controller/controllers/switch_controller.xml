@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Switch Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Switch">
+        <div class="switch-controller d-flex align-items-center gap-3">
+            <div class="form-check form-switch entity-large-switch">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    t-att-checked="isOn"
+                    t-att-disabled="state.isLoading"
+                    t-att-class="{'entity-loading': state.isLoading}"
+                    t-on-click.stop.prevent="() => this.onToggle()"
+                />
+            </div>
+            <i class="fa fa-power-off fa-lg" t-att-class="{'text-success': isOn, 'text-muted': isOff}"/>
+        </div>
+    </t>
+</templates>

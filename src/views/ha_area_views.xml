@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Area Action -->
+    <record id="ha_area_action" model="ir.actions.act_window">
+        <field name="name">HA Areas</field>
+        <field name="res_model">ha.area</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Area List View -->
+    <record id="ha_area_view_list" model="ir.ui.view">
+        <field name="name">ha.area.list</field>
+        <field name="model">ha.area</field>
+        <field name="arch" type="xml">
+            <list string="Areas" editable="bottom">
+                <field name="name"/>
+                <field name="area_id" readonly="1"/>
+                <field name="ha_instance_id"/>
+                <field name="icon"/>
+                <field name="floor_id"/>
+                <field name="label_ids" widget="many2many_tags" options="{'color_field': 'color'}" context="{'default_ha_instance_id': ha_instance_id}"/>
+                <field name="entity_count" readonly="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Area Form View -->
+    <record id="ha_area_view_form" model="ir.ui.view">
+        <field name="name">ha.area.form</field>
+        <field name="model">ha.area</field>
+        <field name="arch" type="xml">
+            <form string="Area">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Area Name"/>
+                        <h1>
+                            <field name="name" placeholder="Area Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Basic Info">
+                            <field name="area_id" readonly="1"/>
+                            <field name="ha_instance_id"/>
+                            <field name="icon"/>
+                            <field name="picture"/>
+                            <field name="floor_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Metadata">
+                            <field name="aliases" widget="json"/>
+                            <field name="label_ids" widget="many2many_tags" options="{'color_field': 'color'}" context="{'default_ha_instance_id': ha_instance_id}"/>
+                        </group>
+                        <group string="Statistics">
+                            <field name="entity_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Entities" name="entities">
+                            <field name="entity_ids" readonly="1">
+                                <list string="Entities">
+                                    <field name="name"/>
+                                    <field name="entity_id"/>
+                                    <field name="domain"/>
+                                    <field name="entity_state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Area Search View -->
+    <record id="ha_area_view_search" model="ir.ui.view">
+        <field name="name">ha.area.search</field>
+        <field name="model">ha.area</field>
+        <field name="arch" type="xml">
+            <search string="Area Search">
+                <field name="name"/>
+                <field name="area_id"/>
+                <field name="ha_instance_id"/>
+                <field name="floor_id"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
+                    <filter name="group_by_floor" string="Floor" context="{'group_by': 'floor_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

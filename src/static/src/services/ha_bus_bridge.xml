@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ha_addon.HaBusBridge">
+        <!-- Bridge 組件不需要渲染任何 UI，只負責 Bus 事件訂閱 -->
+    </t>
+</templates>

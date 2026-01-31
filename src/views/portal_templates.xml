@@ -1,0 +1,762 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--
+        Portal Templates for Entity and Entity Group User-based Access
+
+        These templates provide views for shared entities
+        and entity groups via user authentication and ha.entity.share records.
+        Uses Odoo's portal layout and OWL components for reactive real-time updates.
+
+        Routes (from controllers/portal.py):
+        - /my/ha (HA instance list with shares)
+        - /my/ha/<int:instance_id> (Entity/Group tabs for specific instance)
+        - /portal/entity/<int:entity_id> (requires login + share)
+        - /portal/entity_group/<int:group_id> (requires login + share)
+
+        OWL Components (from static/src/portal/):
+        - PortalEntityInfo: Entity info card with polling
+        - PortalGroupInfo: Group info with entities table and stats
+        - PortalEntityController: Device control UI (only for 'control' permission)
+    -->
+
+    <!-- ========================================
+         Portal /my Home Page Integration
+         ======================================== -->
+
+    <!-- Inherit /my home page to add HA section -->
+    <template id="portal_my_home_ha" name="Portal My Home - Home Assistant"
+              inherit_id="portal.portal_my_home" priority="40">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-set="ha_share_count" t-value="request.env['ha.entity.share'].sudo().search_count([
+                ('user_id', '=', request.env.user.id),
+                ('is_expired', '=', False)
+            ])"/>
+            <t t-if="ha_share_count > 0">
+                <div class="o_portal_category row g-2 mt-3" id="portal_ha_category">
+                    <div class="o_portal_index_card col-md-6 order-2">
+                        <a href="/my/ha" title="Home Assistant" class="d-flex gap-2 gap-md-3 py-3 pe-2 px-md-3 h-100 rounded text-decoration-none bg-100">
+                            <div class="o_portal_icon d-block align-self-start">
+                                <i class="fa fa-home fa-2x text-primary"></i>
+                            </div>
+                            <div class="">
+                                <div class="mt-0 mb-1 fs-5 fw-normal lh-1 d-flex gap-2">
+                                    <span class="fw-bold" data-placeholder_count="ha_share_count"><t t-out="ha_share_count"/></span>
+                                    <span>Home Assistant</span>
+                                </div>
+                                <div class="opacity-75">
+                                    View and control your shared devices
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- ========================================
+         Breadcrumb Integration
+         ======================================== -->
+
+    <!-- Inherit portal breadcrumbs to add HA navigation -->
+    <template id="portal_breadcrumbs_ha" name="Portal Breadcrumbs - Home Assistant"
+              inherit_id="portal.portal_breadcrumbs" priority="40">
+        <xpath expr="//li[hasclass('breadcrumb-item')][last()]" position="after">
+            <!-- HA Instances List Link (for all HA pages) -->
+            <li t-if="page_name in ['portal_my_ha', 'portal_my_ha_instance', 'portal_entity', 'portal_entity_group']"
+                class="breadcrumb-item">
+                <a href="/my/ha">Home Assistant</a>
+            </li>
+
+            <!-- HA Instance Detail Link -->
+            <li t-if="page_name in ['portal_my_ha_instance', 'portal_entity', 'portal_entity_group'] and instance"
+                class="breadcrumb-item">
+                <a t-attf-href="/my/ha/#{instance.id}" t-out="instance.name"/>
+            </li>
+
+            <!-- Current Page (Active) -->
+            <li t-if="page_name == 'portal_my_ha'" class="breadcrumb-item active">
+                Instances
+            </li>
+            <li t-if="page_name == 'portal_my_ha_instance'" class="breadcrumb-item active">
+                <t t-out="instance.name"/> Shares
+            </li>
+            <li t-if="page_name == 'portal_entity'" class="breadcrumb-item active">
+                <t t-out="entity.name or entity.entity_id"/>
+            </li>
+            <li t-if="page_name == 'portal_entity_group'" class="breadcrumb-item active">
+                <t t-out="group.name"/>
+            </li>
+        </xpath>
+    </template>
+
+    <!-- ========================================
+         /my/ha Instance List Page
+         ======================================== -->
+
+    <!-- My HA Instances Page -->
+    <template id="portal_my_ha" name="My Home Assistant Instances">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Home Assistant</t>
+            </t>
+
+            <div class="container py-4">
+                <!-- Instances List -->
+                <t t-if="instances">
+                    <div class="row">
+                        <t t-foreach="instances" t-as="inst">
+                            <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="card h-100 shadow-sm border-0 portal-ha-instance-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-3"
+                                                 style="width: 48px; height: 48px;">
+                                                <i class="fa fa-server fa-lg"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h5 class="card-title mb-0">
+                                                    <t t-out="inst['instance'].name"/>
+                                                </h5>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between text-muted small">
+                                                <span>
+                                                    <i class="fa fa-plug me-1"></i>
+                                                    <t t-out="inst['entity_count']"/> Entities
+                                                </span>
+                                                <span>
+                                                    <i class="fa fa-object-group me-1"></i>
+                                                    <t t-out="inst['group_count']"/> Groups
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <a t-attf-href="/my/ha/{{ inst['instance'].id }}"
+                                           class="btn btn-primary btn-sm w-100">
+                                            <i class="fa fa-eye me-2"></i>View Devices
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+
+                <!-- Empty State -->
+                <t t-else="">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center py-5">
+                            <div class="mb-4">
+                                <i class="fa fa-home fa-4x text-muted"></i>
+                            </div>
+                            <h4 class="text-muted">No Shared Devices</h4>
+                            <p class="text-muted mb-0">
+                                You don't have any Home Assistant devices shared with you yet.
+                            </p>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ========================================
+         /my/ha/<instance_id> Instance Detail Page
+         ======================================== -->
+
+    <!-- Instance Detail Page with Entity/Group Tabs -->
+    <template id="portal_my_ha_instance" name="My HA Instance Detail">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title" t-value="instance.name"/>
+            </t>
+
+            <div class="container py-4">
+                <!-- Instance Header -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-3"
+                                 style="width: 64px; height: 64px;">
+                                <i class="fa fa-server fa-2x"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-1"><t t-out="instance.name"/></h3>
+                                <p class="text-muted mb-0">
+                                    <span class="me-3">
+                                        <i class="fa fa-plug me-1"></i>
+                                        <t t-out="len(entity_shares)"/> Entity<t t-if="len(entity_shares) != 1">s</t>
+                                    </span>
+                                    <span>
+                                        <i class="fa fa-object-group me-1"></i>
+                                        <t t-out="len(group_shares)"/> Group<t t-if="len(group_shares) != 1">s</t>
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs Navigation -->
+                <ul class="nav nav-tabs mb-4" id="haInstanceTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a t-attf-class="nav-link #{'active' if active_tab == 'entities' else ''}"
+                           t-attf-href="/my/ha/{{ instance.id }}?tab=entities"
+                           role="tab">
+                            <i class="fa fa-plug me-2"></i>
+                            Entities
+                            <span class="badge bg-primary ms-2"><t t-out="len(entity_shares)"/></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a t-attf-class="nav-link #{'active' if active_tab == 'groups' else ''}"
+                           t-attf-href="/my/ha/{{ instance.id }}?tab=groups"
+                           role="tab">
+                            <i class="fa fa-object-group me-2"></i>
+                            Groups
+                            <span class="badge bg-primary ms-2"><t t-out="len(group_shares)"/></span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Entities Tab -->
+                    <div t-attf-class="tab-pane fade #{'show active' if active_tab == 'entities' else ''}"
+                         id="entities-tab" role="tabpanel">
+                        <t t-if="entity_shares">
+                            <!-- Entities Table (Desktop) -->
+                            <div class="card shadow-sm border-0 d-none d-md-block">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">State</th>
+                                                <th scope="col">Permission</th>
+                                                <th scope="col">Expiry</th>
+                                                <th scope="col" class="text-end">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="entity_shares" t-as="share">
+                                                <tr class="portal-ha-entity-row">
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <i t-attf-class="fa fa-{{ share.entity_id.domain == 'light' and 'lightbulb-o' or share.entity_id.domain == 'switch' and 'toggle-on' or share.entity_id.domain == 'sensor' and 'thermometer-half' or share.entity_id.domain == 'climate' and 'snowflake-o' or 'plug' }} me-2 text-muted"></i>
+                                                            <div>
+                                                                <strong><t t-out="share.entity_id.name or share.entity_id.entity_id"/></strong>
+                                                                <br/>
+                                                                <small class="text-muted">
+                                                                    <t t-out="share.entity_id.entity_id"/>
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span t-attf-class="badge bg-{{ share.entity_id.entity_state in ['on', 'open', 'active', 'home'] and 'success' or share.entity_id.entity_state in ['off', 'closed', 'inactive'] and 'secondary' or 'info' }}">
+                                                            <t t-out="share.entity_id.entity_state"/>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span t-attf-class="badge bg-{{ share.permission == 'control' and 'success' or 'secondary' }}">
+                                                            <i t-attf-class="fa fa-{{ share.permission == 'control' and 'unlock' or 'eye' }} me-1"></i>
+                                                            <t t-out="share.permission == 'control' and 'Control' or 'View'"/>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <t t-if="share.expiry_date">
+                                                            <span class="text-muted small">
+                                                                <i class="fa fa-clock-o me-1"></i>
+                                                                <t t-out="share.expiry_date" t-options="{'widget': 'date'}"/>
+                                                            </span>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span class="text-success small">
+                                                                <i class="fa fa-infinity me-1"></i>No expiry
+                                                            </span>
+                                                        </t>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <a t-attf-href="/portal/entity/{{ share.entity_id.id }}"
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            <i class="fa fa-external-link me-1"></i>View
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Entities Cards (Mobile) -->
+                            <div class="d-md-none">
+                                <t t-foreach="entity_shares" t-as="share">
+                                    <div class="card shadow-sm border-0 mb-3 portal-ha-entity-card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <h6 class="mb-0">
+                                                        <i t-attf-class="fa fa-{{ share.entity_id.domain == 'light' and 'lightbulb-o' or share.entity_id.domain == 'switch' and 'toggle-on' or share.entity_id.domain == 'sensor' and 'thermometer-half' or share.entity_id.domain == 'climate' and 'snowflake-o' or 'plug' }} me-2 text-muted"></i>
+                                                        <t t-out="share.entity_id.name or share.entity_id.entity_id"/>
+                                                    </h6>
+                                                    <small class="text-muted">
+                                                        <t t-out="share.entity_id.entity_id"/>
+                                                    </small>
+                                                </div>
+                                                <span t-attf-class="badge bg-{{ share.entity_id.entity_state in ['on', 'open', 'active', 'home'] and 'success' or share.entity_id.entity_state in ['off', 'closed', 'inactive'] and 'secondary' or 'info' }}">
+                                                    <t t-out="share.entity_id.entity_state"/>
+                                                </span>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span t-attf-class="badge bg-{{ share.permission == 'control' and 'success' or 'secondary' }} me-2">
+                                                        <i t-attf-class="fa fa-{{ share.permission == 'control' and 'unlock' or 'eye' }} me-1"></i>
+                                                        <t t-out="share.permission == 'control' and 'Control' or 'View'"/>
+                                                    </span>
+                                                    <t t-if="share.expiry_date">
+                                                        <small class="text-muted">
+                                                            <i class="fa fa-clock-o me-1"></i>
+                                                            <t t-out="share.expiry_date" t-options="{'widget': 'date'}"/>
+                                                        </small>
+                                                    </t>
+                                                </div>
+                                                <a t-attf-href="/portal/entity/{{ share.entity_id.id }}"
+                                                   class="btn btn-sm btn-primary">
+                                                    View
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-body text-center py-5">
+                                    <i class="fa fa-plug fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">No Entities</h5>
+                                    <p class="text-muted mb-0">
+                                        No individual entities shared from this instance.
+                                    </p>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- Groups Tab -->
+                    <div t-attf-class="tab-pane fade #{'show active' if active_tab == 'groups' else ''}"
+                         id="groups-tab" role="tabpanel">
+                        <t t-if="group_shares">
+                            <!-- Groups Table (Desktop) -->
+                            <div class="card shadow-sm border-0 d-none d-md-block">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">Entities</th>
+                                                <th scope="col">Permission</th>
+                                                <th scope="col">Expiry</th>
+                                                <th scope="col" class="text-end">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="group_shares" t-as="share">
+                                                <tr class="portal-ha-group-row">
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="fa fa-object-group me-2 text-muted"></i>
+                                                            <div>
+                                                                <strong><t t-out="share.group_id.name"/></strong>
+                                                                <t t-if="share.group_id.description">
+                                                                    <br/>
+                                                                    <small class="text-muted">
+                                                                        <t t-out="share.group_id.description[:50]"/>
+                                                                        <t t-if="len(share.group_id.description or '') > 50">...</t>
+                                                                    </small>
+                                                                </t>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-info">
+                                                            <t t-out="share.group_id.entity_count"/> entities
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span t-attf-class="badge bg-{{ share.permission == 'control' and 'success' or 'secondary' }}">
+                                                            <i t-attf-class="fa fa-{{ share.permission == 'control' and 'unlock' or 'eye' }} me-1"></i>
+                                                            <t t-out="share.permission == 'control' and 'Control' or 'View'"/>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <t t-if="share.expiry_date">
+                                                            <span class="text-muted small">
+                                                                <i class="fa fa-clock-o me-1"></i>
+                                                                <t t-out="share.expiry_date" t-options="{'widget': 'date'}"/>
+                                                            </span>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span class="text-success small">
+                                                                <i class="fa fa-infinity me-1"></i>No expiry
+                                                            </span>
+                                                        </t>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <a t-attf-href="/portal/entity_group/{{ share.group_id.id }}"
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            <i class="fa fa-external-link me-1"></i>View
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Groups Cards (Mobile) -->
+                            <div class="d-md-none">
+                                <t t-foreach="group_shares" t-as="share">
+                                    <div class="card shadow-sm border-0 mb-3 portal-ha-group-card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <h6 class="mb-0">
+                                                        <i class="fa fa-object-group me-2 text-muted"></i>
+                                                        <t t-out="share.group_id.name"/>
+                                                    </h6>
+                                                    <t t-if="share.group_id.description">
+                                                        <small class="text-muted">
+                                                            <t t-out="share.group_id.description[:50]"/>
+                                                            <t t-if="len(share.group_id.description or '') > 50">...</t>
+                                                        </small>
+                                                    </t>
+                                                </div>
+                                                <span class="badge bg-info">
+                                                    <t t-out="share.group_id.entity_count"/>
+                                                </span>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span t-attf-class="badge bg-{{ share.permission == 'control' and 'success' or 'secondary' }} me-2">
+                                                        <i t-attf-class="fa fa-{{ share.permission == 'control' and 'unlock' or 'eye' }} me-1"></i>
+                                                        <t t-out="share.permission == 'control' and 'Control' or 'View'"/>
+                                                    </span>
+                                                    <t t-if="share.expiry_date">
+                                                        <small class="text-muted">
+                                                            <i class="fa fa-clock-o me-1"></i>
+                                                            <t t-out="share.expiry_date" t-options="{'widget': 'date'}"/>
+                                                        </small>
+                                                    </t>
+                                                </div>
+                                                <a t-attf-href="/portal/entity_group/{{ share.group_id.id }}"
+                                                   class="btn btn-sm btn-primary">
+                                                    View
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-body text-center py-5">
+                                    <i class="fa fa-object-group fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">No Groups</h5>
+                                    <p class="text-muted mb-0">
+                                        No entity groups shared from this instance.
+                                    </p>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ========================================
+         Error Pages
+         ======================================== -->
+
+    <!-- 403 Access Denied Error Page -->
+    <template id="portal_error_403" name="Portal Access Denied">
+        <t t-call="portal.portal_layout">
+            <t t-set="no_breadcrumbs" t-value="True"/>
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-lg-6">
+                        <div class="card border-danger">
+                            <div class="card-body text-center py-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-lock fa-4x text-danger"></i>
+                                </div>
+                                <h2 class="card-title text-danger mb-3">Access Denied</h2>
+                                <p class="card-text text-muted mb-4">
+                                    You do not have permission to access this resource.
+                                    Please contact the owner to request access.
+                                </p>
+                                <a href="/" class="btn btn-outline-secondary">
+                                    <i class="fa fa-home mr-2"></i>Back to Home
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- 404 Not Found Error Page -->
+    <template id="portal_error_404" name="Portal Not Found">
+        <t t-call="portal.portal_layout">
+            <t t-set="no_breadcrumbs" t-value="True"/>
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-lg-6">
+                        <div class="card border-warning">
+                            <div class="card-body text-center py-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-question-circle fa-4x text-warning"></i>
+                                </div>
+                                <h2 class="card-title text-warning mb-3">Not Found</h2>
+                                <p class="card-text text-muted mb-4">
+                                    The requested resource does not exist or has been removed.
+                                    Please check the link and try again.
+                                </p>
+                                <a href="/" class="btn btn-outline-secondary">
+                                    <i class="fa fa-home mr-2"></i>Back to Home
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ========================================
+         Entity Portal Page
+         ======================================== -->
+
+    <template id="portal_entity" name="Portal Entity View">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title" t-value="entity.name or entity.entity_id"/>
+            </t>
+            <t t-set="o_portal_fullwidth_alert" groups=""/>
+
+            <div id="wrap" class="o_portal_wrap portal-page">
+                <div class="container py-4">
+                    <div class="row">
+                        <!-- Main Content Column -->
+                        <div class="col-lg-8">
+                            <!-- OWL Component: Entity Info + Attributes (with auto-polling) -->
+                            <owl-component
+                                name="odoo_ha_addon.PortalEntityInfo"
+                                t-att-props="json.dumps({
+                                    'entity': {
+                                        'id': entity.id,
+                                        'entity_id': entity.entity_id,
+                                        'name': entity.name,
+                                        'domain': entity.domain,
+                                        'entity_state': entity.entity_state,
+                                        'last_changed': str(entity.last_changed) if entity.last_changed else None,
+                                        'attributes': entity.attributes or {},
+                                        'area_name': entity.area_id.name if entity.area_id else None,
+                                    },
+                                })"/>
+
+                            <!-- Message Thread / Chatter (stays as QWeb - Odoo built-in) -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-comments mr-2"></i>Discussion
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <t t-call="portal.message_thread">
+                                        <t t-set="object" t-value="entity"/>
+                                        <t t-set="pid" t-value="0"/>
+                                        <t t-set="hash" t-value="''"/>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sidebar Column -->
+                        <div class="col-lg-4">
+                            <!-- Live Status Card (OWL Component with auto-polling) -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-heartbeat mr-2"></i>Live Status
+                                    </h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <owl-component
+                                        name="odoo_ha_addon.PortalLiveStatus"
+                                        t-att-props="json.dumps({
+                                            'entityId': entity.id,
+                                            'initialState': entity.entity_state,
+                                        })"/>
+                                </div>
+                            </div>
+
+                            <!-- Control Card (OWL Component for 'control' permission only) -->
+                            <t t-if="permission == 'control' and entity.domain in controllable_domains">
+                                <div class="card shadow-sm mb-4" id="control-card">
+                                    <div class="card-header bg-success text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fa fa-power-off mr-2"></i>Control
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <owl-component
+                                            name="odoo_ha_addon.PortalEntityController"
+                                            t-att-props="json.dumps({
+                                                'entity': {
+                                                    'id': entity.id,
+                                                    'entity_id': entity.entity_id,
+                                                    'name': entity.name,
+                                                    'domain': entity.domain,
+                                                    'entity_state': entity.entity_state,
+                                                    'attributes': entity.attributes or {},
+                                                },
+                                                'permission': permission,
+                                            })"/>
+                                    </div>
+                                </div>
+                            </t>
+
+                            <!-- View-only notice for view permission -->
+                            <t t-if="permission == 'view'">
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fa fa-eye mr-2"></i>View Only
+                                        </h5>
+                                    </div>
+                                    <div class="card-body text-center text-muted">
+                                        <p class="mb-0">
+                                            You have view-only access to this entity.
+                                            Contact the owner to request control permission.
+                                        </p>
+                                    </div>
+                                </div>
+                            </t>
+
+                            <!-- Quick Info Card (static - no polling needed) -->
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-info mr-2"></i>Quick Info
+                                    </h5>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Domain</span>
+                                        <span class="badge badge-primary"><t t-out="entity.domain"/></span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Permission</span>
+                                        <span t-attf-class="badge badge-#{permission == 'control' and 'success' or 'secondary'}">
+                                            <t t-out="permission"/>
+                                        </span>
+                                    </li>
+                                    <t t-if="entity.area_id">
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Area</span>
+                                            <span><t t-out="entity.area_id.name"/></span>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- No inline JavaScript - polling handled by OWL Component -->
+        </t>
+    </template>
+
+    <!-- ========================================
+         Entity Group Portal Page
+         ======================================== -->
+
+    <template id="portal_entity_group" name="Portal Entity Group View">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title" t-value="group.name"/>
+            </t>
+            <t t-set="o_portal_fullwidth_alert" groups=""/>
+
+            <div id="wrap" class="o_portal_wrap portal-page">
+                <div class="container py-4">
+                    <!-- Permission Banner -->
+                    <div t-attf-class="alert alert-#{permission == 'control' and 'success' or 'info'} mb-4">
+                        <i t-attf-class="fa fa-#{permission == 'control' and 'unlock' or 'eye'} mr-2"></i>
+                        <t t-if="permission == 'control'">
+                            You have <strong>control</strong> permission. You can view and control entities in this group.
+                        </t>
+                        <t t-else="">
+                            You have <strong>view-only</strong> permission. Contact the owner to request control access.
+                        </t>
+                    </div>
+
+                    <!-- OWL Component: Group Info + Entities Table + Statistics (with auto-polling) -->
+                    <owl-component
+                        name="odoo_ha_addon.PortalGroupInfo"
+                        t-att-props="json.dumps({
+                            'group': {
+                                'id': group.id,
+                                'name': group.name,
+                                'description': group.description or None,
+                                'entities': [{
+                                    'id': e.id,
+                                    'entity_id': e.entity_id,
+                                    'name': e.name,
+                                    'domain': e.domain,
+                                    'entity_state': e.entity_state,
+                                    'last_changed': str(e.last_changed) if e.last_changed else None,
+                                } for e in group.entity_ids],
+                            },
+                            'permission': permission,
+                            'controllableDomains': controllable_domains,
+                        })"/>
+
+                    <!-- Message Thread / Chatter (stays as QWeb - Odoo built-in) -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fa fa-comments mr-2"></i>Discussion
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <t t-call="portal.message_thread">
+                                <t t-set="object" t-value="group"/>
+                                <t t-set="pid" t-value="0"/>
+                                <t t-set="hash" t-value="''"/>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- No inline JavaScript - polling handled by OWL Component -->
+        </t>
+    </template>
+
+</odoo>

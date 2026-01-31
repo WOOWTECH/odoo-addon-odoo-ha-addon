@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- HA Instance Dashboard Action (入口頁) -->
+    <record id="ha_instance_dashboard_action" model="ir.actions.client">
+        <field name="name">Home Assistant Instances</field>
+        <field name="tag">odoo_ha_addon.ha_instance_dashboard</field>
+        <field name="target">current</field>
+    </record>
+</odoo>

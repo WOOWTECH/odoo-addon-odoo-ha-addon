@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ha_addon.InstanceSelector">
+        <div class="o_ha_instance_selector dropdown" t-ref="rootRef">
+            <!-- Dropdown Button -->
+            <button
+                type="button"
+                class="btn btn-sm btn-light dropdown-toggle d-flex align-items-center gap-2"
+                t-att-class="{ 'disabled': props.loading }"
+                t-on-click="toggleDropdown">
+
+                <!-- Loading Spinner -->
+                <t t-if="props.loading">
+                    <i class="fa fa-spinner fa-spin me-1"/>
+                    <span>Loading instances...</span>
+                </t>
+
+                <!-- Current Instance Display -->
+                <t t-else="">
+                    <t t-if="currentInstance">
+                        <!-- Status Icon -->
+                        <i t-att-class="'fa ' + getStatusIcon(currentInstance.websocket_status) + ' me-1'"
+                           t-att-title="currentInstance.websocket_status"/>
+
+                        <!-- Instance Name -->
+                        <span class="fw-semibold" t-esc="currentInstance.name"/>
+
+                        <!-- Entity Count -->
+                        <span class="text-muted ms-1"
+                              style="font-size: 0.85rem;"
+                              t-esc="'(' + currentInstance.entity_count + ' entities)'"/>
+                    </t>
+                    <t t-else="">
+                        <i class="fa fa-server me-1"/>
+                        <span>Select HA Instance</span>
+                    </t>
+                </t>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <ul class="dropdown-menu"
+                t-att-class="{ 'show': state.isOpen }"
+                style="min-width: 300px;">
+
+                <t t-if="!props.instances.length">
+                    <li>
+                        <span class="dropdown-item text-muted">
+                            <i class="fa fa-info-circle me-2"/>
+                            No instances available
+                        </span>
+                    </li>
+                </t>
+
+                <t t-else="">
+                    <!-- Instance List -->
+                    <t t-foreach="props.instances" t-as="instance" t-key="instance.id">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between"
+                               href="#"
+                               t-att-class="{ 'active': isCurrentInstance(instance.id) }"
+                               t-on-click="(ev) => this.selectInstance(instance.id, ev)">
+
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <!-- Current Instance Checkmark -->
+                                    <i t-if="isCurrentInstance(instance.id)"
+                                       class="fa fa-check text-success me-2"/>
+                                    <i t-else="" class="me-4"/>
+
+                                    <!-- Status Icon -->
+                                    <i t-att-class="'fa ' + getStatusIcon(instance.websocket_status) + ' me-2'"
+                                       t-att-title="instance.websocket_status"/>
+
+                                    <!-- Instance Info -->
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-semibold" t-esc="instance.name"/>
+                                        <small class="text-muted" t-esc="instance.entity_count + ' entities'"/>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    </t>
+                </t>
+            </ul>
+        </div>
+    </t>
+</templates>

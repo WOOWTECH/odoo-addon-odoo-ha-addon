@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Wizard Form View -->
+    <record id="view_ha_instance_clear_wizard_form" model="ir.ui.view">
+        <field name="name">ha.instance.clear.wizard.form</field>
+        <field name="model">ha.instance.clear.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Confirm Clear Instance Data">
+                <separator string="⚠️ Warning: This operation is irreversible!"/>
+                <group>
+                    <group>
+                        <field name="instance_id" invisible="1"/>
+                        <field name="instance_name"/>
+                    </group>
+                </group>
+
+                <group string="The following data will be cleared:">
+                    <group>
+                        <field name="entity_count" widget="statinfo" options="{'label_field': 'string'}"/>
+                        <field name="history_count" widget="statinfo" options="{'label_field': 'string'}"/>
+                        <field name="area_count" widget="statinfo" options="{'label_field': 'string'}"/>
+                        <field name="device_count" widget="statinfo" options="{'label_field': 'string'}"/>
+                        <field name="label_count" widget="statinfo" options="{'label_field': 'string'}"/>
+                    </group>
+                    <group>
+                        <field name="group_count" widget="statinfo" options="{'label_field': 'string'}"/>
+                        <field name="group_tag_count" widget="statinfo" options="{'label_field': 'string'}"/>
+                        <field name="entity_tag_count" widget="statinfo" options="{'label_field': 'string'}"/>
+                        <field name="queue_count" widget="statinfo" options="{'label_field': 'string'}"/>
+                    </group>
+                </group>
+
+                <div class="alert alert-warning" role="alert">
+                    <strong>Note:</strong>
+                    <ul>
+                        <li>All Entity, History, Area, Device, Label, Group, Tag data will be permanently deleted from Odoo</li>
+                        <li>Area and Label data in Home Assistant will NOT be affected</li>
+                        <li>This operation cannot be undone</li>
+                        <li>It is recommended to backup the database before clearing</li>
+                        <li>Data needs to be re-synced after clearing</li>
+                    </ul>
+                </div>
+
+                <footer>
+                    <button name="action_confirm_clear"
+                            type="object"
+                            string="Confirm Clear"
+                            class="btn-danger"/>
+                    <button name="action_cancel"
+                            type="object"
+                            string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

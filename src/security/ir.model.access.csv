@@ -1,0 +1,23 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ha_instance_manager,HA Instance (Manager),odoo_ha_addon.model_ha_instance,odoo_ha_addon.group_ha_manager,1,1,1,1
+access_ha_instance_user,HA Instance (User Read-Only),odoo_ha_addon.model_ha_instance,odoo_ha_addon.group_ha_user,1,0,0,0
+access_ha_entity_manager,HA Entity (Manager),odoo_ha_addon.model_ha_entity,odoo_ha_addon.group_ha_manager,1,1,0,0
+access_ha_entity_user,HA Entity (User Read-Only),odoo_ha_addon.model_ha_entity,odoo_ha_addon.group_ha_user,1,0,0,0
+access_ha_entity_history_manager,HA Entity History (Manager),odoo_ha_addon.model_ha_entity_history,odoo_ha_addon.group_ha_manager,1,1,1,1
+access_ha_entity_history_user,HA Entity History (User Read-Only),odoo_ha_addon.model_ha_entity_history,odoo_ha_addon.group_ha_user,1,0,0,0
+access_ha_area_manager,HA Area (Manager),odoo_ha_addon.model_ha_area,odoo_ha_addon.group_ha_manager,1,1,1,1
+access_ha_area_user,HA Area (User Read-Only),odoo_ha_addon.model_ha_area,odoo_ha_addon.group_ha_user,1,0,0,0
+access_ha_device_manager,HA Device (Manager),odoo_ha_addon.model_ha_device,odoo_ha_addon.group_ha_manager,1,1,0,0
+access_ha_device_user,HA Device (User Read-Only),odoo_ha_addon.model_ha_device,odoo_ha_addon.group_ha_user,1,0,0,0
+access_ha_label_manager,HA Label (Manager),odoo_ha_addon.model_ha_label,odoo_ha_addon.group_ha_manager,1,1,1,1
+access_ha_label_user,HA Label (User Read-Only),odoo_ha_addon.model_ha_label,odoo_ha_addon.group_ha_user,1,0,0,0
+access_ha_entity_group,HA Entity Group (User),odoo_ha_addon.model_ha_entity_group,odoo_ha_addon.group_ha_user,1,1,1,1
+access_ha_entity_group_tag,HA Entity Group Tag (User),odoo_ha_addon.model_ha_entity_group_tag,odoo_ha_addon.group_ha_user,1,1,1,1
+access_ha_entity_tag,HA Entity Tag (User),odoo_ha_addon.model_ha_entity_tag,odoo_ha_addon.group_ha_user,1,1,1,1
+access_ha_ws_request_queue_system,HA WebSocket Queue (System),odoo_ha_addon.model_ha_ws_request_queue,base.group_system,1,1,1,1
+access_ha_realtime_update,HA Realtime Update (User Read-Only),odoo_ha_addon.model_ha_realtime_update,odoo_ha_addon.group_ha_user,1,0,0,0
+access_ha_instance_clear_wizard_manager,HA Instance Clear Wizard (Manager Only),odoo_ha_addon.model_ha_instance_clear_wizard,odoo_ha_addon.group_ha_manager,1,1,1,1
+access_ha_entity_share_manager,HA Entity Share (Manager),odoo_ha_addon.model_ha_entity_share,odoo_ha_addon.group_ha_manager,1,1,1,1
+access_ha_entity_share_user,HA Entity Share (User Read-Only),odoo_ha_addon.model_ha_entity_share,odoo_ha_addon.group_ha_user,1,0,0,0
+access_ha_entity_share_portal,HA Entity Share (Portal),odoo_ha_addon.model_ha_entity_share,base.group_portal,1,0,0,0
+access_ha_entity_share_wizard_manager,HA Entity Share Wizard (Manager Only),odoo_ha_addon.model_ha_entity_share_wizard,odoo_ha_addon.group_ha_manager,1,1,1,1

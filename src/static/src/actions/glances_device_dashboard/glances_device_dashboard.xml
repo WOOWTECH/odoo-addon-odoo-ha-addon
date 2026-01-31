@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+  <t t-name="odoo_ha_addon.GlancesDeviceDashboard">
+    <div class="o_action o_view_controller">
+      <div class="o_content">
+        <!-- Dashboard Header -->
+        <div class="o_ha_dashboard_header bg-white border-bottom p-3 mb-3">
+          <!-- Breadcrumb Navigation -->
+          <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb mb-0">
+              <li class="breadcrumb-item">
+                <a href="#" t-on-click.prevent="() => this.goBackToInstances()" class="text-decoration-none">
+                  <i class="fa fa-home me-1"/>
+                  Instances
+                </a>
+              </li>
+              <li class="breadcrumb-item" t-if="this.currentInstanceName">
+                <a href="#" t-on-click.prevent="() => this.goBackToHaInfo()" class="text-decoration-none">
+                  <span t-esc="this.currentInstanceName"/>
+                </a>
+              </li>
+              <li class="breadcrumb-item">
+                <a href="#" t-on-click.prevent="() => this.goBackToHaInfo()" class="text-decoration-none">
+                  HA Info
+                </a>
+              </li>
+              <li class="breadcrumb-item active" aria-current="page">
+                <span t-esc="this.deviceName"/>
+              </li>
+            </ol>
+          </nav>
+          <div class="d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">
+              <i class="fa fa-server me-2"/>
+              <span t-esc="this.deviceName"/>
+            </h3>
+            <small t-if="state.lastUpdate" class="text-muted">
+              <i class="fa fa-refresh me-1"/>
+              Last update: <span t-esc="state.lastUpdate"/>
+            </small>
+          </div>
+        </div>
+
+        <div class="o_dashboard">
+          <!-- Loading -->
+          <div t-if="state.loading" class="text-center py-5">
+            <i class="fa fa-spinner fa-spin fa-3x"/>
+            <p class="mt-3 text-muted">Loading device information...</p>
+          </div>
+
+          <!-- Error -->
+          <div t-elif="state.error" class="alert alert-danger m-3">
+            <i class="fa fa-exclamation-triangle me-2"/>
+            <span t-esc="state.error"/>
+          </div>
+
+          <!-- No entities -->
+          <div t-elif="!state.entities.length" class="text-center py-5">
+            <i class="fa fa-info-circle fa-3x text-muted"/>
+            <p class="mt-3 text-muted">No entities available for this device</p>
+          </div>
+
+          <!-- 實體分組顯示 -->
+          <div t-else="" class="glances-dashboard-content">
+            <t t-foreach="Object.entries(state.groupedEntities)" t-as="groupEntry" t-key="groupEntry[0]">
+              <t t-set="groupKey" t-value="groupEntry[0]"/>
+              <t t-set="group" t-value="groupEntry[1]"/>
+
+              <div class="row mb-4">
+                <div class="col-12">
+                  <DashboardItem fullWidth="true">
+                    <h4 class="mb-3">
+                      <i t-att-class="'fa ' + group.icon + ' me-2'"/>
+                      <span t-esc="group.name"/>
+                      <span class="badge bg-secondary ms-2" t-esc="group.entities.length"/>
+                    </h4>
+
+                    <div class="row">
+                      <t t-foreach="group.entities" t-as="entity" t-key="entity.entity_id">
+                        <div class="col-md-6 col-lg-4 col-xl-3 mb-3">
+                          <div class="card h-100 glances-entity-card">
+                            <div class="card-body">
+                              <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="entity-name">
+                                  <i t-att-class="getEntityIcon(entity) + ' me-2 text-muted'"/>
+                                  <span class="small" t-esc="entity.name"/>
+                                </div>
+                              </div>
+
+                              <div class="entity-value text-center py-2">
+                                <span t-att-class="'h3 mb-0 ' + getStateClass(entity)"
+                                      t-esc="formatValue(entity.state, entity.unit_of_measurement)"/>
+                              </div>
+
+                              <div class="entity-meta text-muted small">
+                                <t t-if="entity.device_class">
+                                  <span class="badge bg-light text-dark me-1" t-esc="entity.device_class"/>
+                                </t>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </t>
+                    </div>
+                  </DashboardItem>
+                </div>
+              </div>
+            </t>
+          </div>
+        </div>
+      </div>
+    </div>
+  </t>
+</templates>

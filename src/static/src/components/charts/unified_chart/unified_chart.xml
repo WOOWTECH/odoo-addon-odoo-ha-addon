@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ha_addon.UnifiedChart">
+        <div class="unified-chart-container">
+            <canvas t-ref="chart" class="unified-chart"/>
+        </div>
+    </t>
+</templates>

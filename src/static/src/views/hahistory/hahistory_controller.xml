@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ha_addon.HaHistoryController">
+        <Layout display="props.display">
+            <t t-set-slot="control-panel-additional-actions">
+                <CogMenu/>
+            </t>
+            <t t-set-slot="layout-actions">
+                <SearchBar toggler="searchBarToggler" autofocus="firstLoad"/>
+            </t>
+            <t t-component="props.Renderer"
+               model="model"
+               displayMode="state.displayMode"
+               setDisplayMode.bind="setDisplayMode"
+               updateKey="state.updateKey"/>
+        </Layout>
+    </t>
+</templates> 

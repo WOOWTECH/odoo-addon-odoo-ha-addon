@@ -1,0 +1,552 @@
+# Translation template for odoo_ha_addon module.
+# Copyright (C) 2024 WOOW
+# This file is distributed under the same license as the odoo_ha_addon package.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: odoo_ha_addon 18.0.4.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-20 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: odoo_ha_addon
+#: model:ir.actions.client,name:odoo_ha_addon.ha_instance_dashboard_action
+msgid "Home Assistant Instances"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model:ir.actions.client,name:odoo_ha_addon.area_dashboard_action
+msgid "Area Dashboard"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_group_view_form
+msgid "Permission Notes:"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_group_view_form
+msgid "Authorized users can view all entities and data in this group"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_group_view_form
+msgid "If no users are specified, all users with instance access can view this group"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_group_view_form
+msgid "HA Managers can always view and manage all groups"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.odoo_ha_addon_settings_view
+msgid "Restart WebSocket"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model:ir.actions.server,name:odoo_ha_addon.action_server_restart_websocket
+msgid "Restart WebSocket Service"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_instance_view_form
+msgid "Description:"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_instance_view_form
+msgid "The fingerprint is a unique identifier calculated based on the API URL. When the URL changes, a detection is triggered to remind you whether old data needs to be cleared."
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "Confirm Clear Instance Data"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "⚠️ Warning: This operation is irreversible!"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "The following data will be cleared:"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "Note:"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "All Entity, History, Area, Group, Tag data will be permanently deleted"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "This operation cannot be undone"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "It is recommended to backup the database before clearing"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "Data needs to be re-synced after clearing"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "Confirm Clear"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
+msgid "Cancel"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/wizard/ha_instance_clear_wizard.py:0
+msgid "An error occurred while clearing instance data: %s"
+msgstr ""
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields.selection,name:odoo_ha_addon.selection__ha_instance__websocket_status__error
+msgid "Error"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/wizard/ha_instance_clear_wizard.py:0
+msgid "Invalid instance ID"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/wizard/ha_instance_clear_wizard.py:0
+msgid ""
+"Successfully cleared all data for instance '%s'\n"
+"\n"
+"Deletion Statistics:\n"
+"• Entities: %d\n"
+"• History: %d\n"
+"• Areas: %d\n"
+"• Groups: %d\n"
+"• Tags: %d\n"
+"• Queue: %d\n"
+"Total: %d records"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/wizard/ha_instance_clear_wizard.py:0
+msgid "✓ Data Cleared"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/wizard/ha_instance_clear_wizard.py:0
+msgid "✗ Clear Failed"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid "⚠️ API URL Changed"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid ""
+"Connection successful!\n"
+"\n"
+"⚠️ URL change detected:\n"
+"Old: %s\n"
+"New: %s\n"
+"\n"
+"If this is a different Home Assistant instance, it is recommended to clear old data to avoid data confusion.\n"
+"Please use the 'Clear Instance Data' button.\n"
+"\n"
+"If this is just a URL change (e.g., from HTTP to HTTPS), no need to clear data.\n"
+"\n"
+"⚠️ Please click SAVE to confirm the URL change.\n"
+"Fingerprint will be updated automatically on save."
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid "✓ Connection Successful"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid "Connected to Home Assistant %s"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid "✗ Connection Failed"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid ""
+"Invalid API URL format: %s\n"
+"URL must start with http:// or https://"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_instance.py:0
+msgid ""
+"Cannot delete instance '%s' because it has %d associated entities.\n"
+"Please delete all associated entities first."
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_group.py:0
+msgid "Group name \"%s\" already exists, please use a different name"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_group.py:0
+#: code:addons/odoo_ha_addon/models/ha_entity_group_tag.py:0
+msgid " (and %d more)"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_group.py:0
+msgid ""
+"Group \"%s\" belongs to instance \"%s\",\n"
+"but the following entities belong to different instances: %s\n"
+"All entities in a group must belong to the same instance."
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_group.py:0
+msgid ""
+"Group \"%s\" belongs to instance \"%s\",\n"
+"but the following tags belong to different instances: %s\n"
+"All tags in a group must belong to the same instance."
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity.py:0
+msgid ""
+"Entity \"%s\" belongs to instance \"%s\",\n"
+"but the following groups belong to different instances: %s\n"
+"An entity can only join groups from the same instance."
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity.py:0
+msgid "WebSocket Service"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity.py:0
+msgid "WebSocket service started"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity.py:0
+#: code:addons/odoo_ha_addon/models/common/websocket_thread_manager.py:0
+msgid "Start failed: %s"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity.py:0
+msgid "Stop failed: %s"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_group_tag.py:0
+msgid "Tag name \"%s\" already exists, please use a different name"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/ha_entity_group_tag.py:0
+msgid ""
+"Tag \"%s\" belongs to instance \"%s\",\n"
+"but the following groups belong to different instances: %s\n"
+"A tag can only be associated with groups from the same instance."
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/common/websocket_thread_manager.py:0
+msgid "Restart too frequent, please wait %d seconds"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/common/websocket_thread_manager.py:0
+msgid "WebSocket service restarted (instance %d)"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/common/websocket_thread_manager.py:0
+msgid "Restart failed: %s"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/models/common/websocket_thread_manager.py:0
+msgid "All WebSocket services restarted (%d instances)"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Switched to %s"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Instance ID not specified"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Instance not found (ID: %s)"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Instance \"%s\" is inactive"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Instance \"%s\" is not fully configured (missing: %s)"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "No HA instance available"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Unable to get Odoo environment"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Connected"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "Disconnected"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "instance_id is required"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Failed to load HA instance list: "
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Error loading instance list: "
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Switched to instance: "
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Failed to switch instance: "
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Error switching instance: "
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Failed to load Area list: "
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Error loading Area list: "
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Failed to load Area Entity list: "
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Error loading Entity list: "
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "succeeded"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Failed to execute %s.%s: "
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Error executing service: "
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Turn on"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Turn off"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Toggle"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Set temperature"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Set HVAC mode"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Open"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Close"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Stop"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Lock"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Unlock"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Execute"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Instance invalidated: "
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "default instance"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "first active instance"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "fallback instance"
+msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-javascript
+#: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
+msgid "Auto-switched to %s: "
+msgstr ""

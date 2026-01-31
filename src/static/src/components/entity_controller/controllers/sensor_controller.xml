@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Sensor Domain Controller (Read-only) -->
+    <t t-name="odoo_ha_addon.EntityController.Sensor">
+        <div class="sensor-controller entity-sensor-display d-flex align-items-center gap-3">
+            <i class="fa fa-tachometer fa-2x text-muted"/>
+            <div class="sensor-value-block">
+                <span class="sensor-value fs-4 fw-bold">
+                    <t t-esc="state.entityState"/>
+                </span>
+                <t t-if="state.attributes?.unit_of_measurement">
+                    <span class="sensor-unit text-muted ms-1">
+                        <t t-esc="state.attributes.unit_of_measurement"/>
+                    </span>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Generic Controller (for unsupported domains) -->
+    <t t-name="odoo_ha_addon.EntityController.Generic">
+        <div class="generic-controller d-flex align-items-center gap-3">
+            <span class="badge fs-6 bg-secondary">
+                <t t-esc="state.entityState"/>
+            </span>
+            <small class="text-muted">
+                (<t t-esc="domain"/>)
+            </small>
+        </div>
+    </t>
+</templates>

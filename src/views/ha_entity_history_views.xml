@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="ha_entity_history_view_list" model="ir.ui.view">
+        <field name="name">ha.entity.history.list</field>
+        <field name="model">ha.entity.history</field>
+        <field name="arch" type="xml">
+            <list string="Hisotry">
+                <field name="id"/>
+                <field name="domain"/>
+                <!-- <field name="entity_id" string="Entity Name"/> --> <!-- 會是關聯的 entity.name -->
+                <field name="entity_id_string"/>
+                <field name="entity_name"/>
+                <field name="entity_state" string="State"/>
+                <field name="attributes"/>
+                <field name="last_changed"/>
+                <field name="last_updated"/>
+            </list>
+        </field>
+    </record>
+    <record id="ha_entity_history_view_hahistory" model="ir.ui.view">
+      <field name="name">ha.entity.history.hahistory</field>
+      <field name="model">ha.entity.history</field>
+      <field name="arch" type="xml">
+        <!--
+          domain: 支援 history 視覺化的 entity domain
+          - numeric: sensor, input_number, number, counter
+          - binary: binary_sensor, switch, light, input_boolean
+          - categorical: climate, fan, cover, lock, media_player, vacuum
+        -->
+        <hahistory domain="sensor,input_number,number,counter,binary_sensor,switch,light,input_boolean,climate,fan,cover,lock,media_player,vacuum">
+        </hahistory>
+      </field>
+    </record>
+
+    <!-- Entity History Search View -->
+    <record id="ha_entity_history_view_search" model="ir.ui.view">
+        <field name="name">ha.entity.history.search</field>
+        <field name="model">ha.entity.history</field>
+        <field name="arch" type="xml">
+            <search string="Entity History Search">
+                <field name="entity_name"/>
+                <field name="entity_id_string"/>
+                <field name="domain"/>
+                <field name="ha_instance_id"/>
+                <filter name="available" string="Available" domain="[('entity_state', '!=', 'unavailable')]"/>
+                <separator/>
+                <filter name="current_instance" string="Current Instance"
+                        domain="[('is_current_user_instance', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
+                    <filter name="group_by_domain" string="Domain" context="{'group_by': 'domain'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="entity_history_action" model="ir.actions.act_window">
+        <field name="name">HA Entity History</field>
+        <field name="res_model">ha.entity.history</field>
+        <field name="view_mode">hahistory,list,form</field>
+        <field name="context">{'search_default_available': 1}</field>
+    </record>
+    <record id="entity_history_action_view_hahistory" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">hahistory</field>
+        <field name="view_id" ref="ha_entity_history_view_hahistory"/>
+        <field name="act_window_id" ref="entity_history_action"/>
+    </record>
+</odoo>
