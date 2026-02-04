@@ -547,7 +547,33 @@ class HADevice(models.Model):
                     related_scripts = set()
                     related_scenes = set()
 
-                    # Query search/related for each entity belonging to this device
+                    # 1. First, query search/related for the DEVICE itself
+                    # This catches automations/scripts/scenes that reference the device directly
+                    try:
+                        device_result = client.call_websocket_api_sync(
+                            'search/related',
+                            {'item_type': 'device', 'item_id': device.device_id}
+                        )
+                        if device_result and isinstance(device_result, dict):
+                            device_automations = device_result.get('automation', [])
+                            device_scripts = device_result.get('script', [])
+                            device_scenes = device_result.get('scene', [])
+
+                            if device_automations or device_scripts or device_scenes:
+                                _logger.debug(
+                                    f"Device {device.device_id} has related: "
+                                    f"automations={device_automations}, "
+                                    f"scripts={device_scripts}, "
+                                    f"scenes={device_scenes}"
+                                )
+
+                            related_automations.update(device_automations)
+                            related_scripts.update(device_scripts)
+                            related_scenes.update(device_scenes)
+                    except Exception as e:
+                        _logger.warning(f"Failed to get related items for device {device.device_id}: {e}")
+
+                    # 2. Then query search/related for each entity belonging to this device
                     for entity in device.entity_ids:
                         try:
                             result = client.call_websocket_api_sync(
