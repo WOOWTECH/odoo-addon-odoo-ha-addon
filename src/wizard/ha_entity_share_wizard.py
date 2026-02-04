@@ -50,8 +50,9 @@ class HAEntityShareWizard(models.TransientModel):
         'user_id',
         string='Share With Users',
         required=True,
-        # Allow both internal users (share=False) and portal users (share=True with portal group)
-        domain="[('active', '=', True), '|', ('share', '=', False), ('groups_id.name', '=', 'Portal')]",
+        # Allow all active users - both internal (share=False) and portal (share=True)
+        # Note: share=True indicates portal/public users in Odoo
+        domain="[('active', '=', True)]",
         help='Select users to share with. Supports both internal users and portal users.'
     )
 
