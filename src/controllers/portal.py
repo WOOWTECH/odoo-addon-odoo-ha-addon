@@ -246,7 +246,8 @@ class HAPortalController(http.Controller):
         '/portal/entity/<int:entity_id>/state',
         type='json',
         auth='user',
-        cors='*'
+        # Note: Removed cors='*' - CORS is now restricted to same-origin for security.
+        # If cross-origin access is needed, configure specific domains via proxy.
     )
     def portal_entity_state(self, entity_id, **kw):
         """
@@ -293,8 +294,9 @@ class HAPortalController(http.Controller):
         '/portal/call-service',
         type='json',
         auth='user',
-        cors='*',
-        csrf=False
+        # Note: CORS is restricted to same-origin by omitting cors parameter.
+        # CSRF is enabled (default) for JSON routes - Odoo's JSON-RPC provides
+        # protection via Content-Type header checking. No need to disable csrf.
     )
     def portal_call_service(self, domain=None, service=None, service_data=None, **kw):
         """
@@ -478,7 +480,8 @@ class HAPortalController(http.Controller):
         '/portal/entity_group/<int:group_id>/state',
         type='json',
         auth='user',
-        cors='*'
+        # Note: Removed cors='*' - CORS is now restricted to same-origin for security.
+        # If cross-origin access is needed, configure specific domains via proxy.
     )
     def portal_entity_group_state(self, group_id, **kw):
         """

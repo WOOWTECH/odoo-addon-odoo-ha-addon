@@ -324,9 +324,13 @@ class HAInstance(models.Model):
         url = re.sub(r'[\x00-\x1f\x7f]', '', url)
 
         # 安全性：限制 URL 長度（防止 DoS）
+        # Note: We raise an error instead of silently truncating, as truncated URLs
+        # are almost certainly invalid and would cause confusing errors later.
         if len(url) > 2048:
-            _logger.warning(f"API URL too long ({len(url)} chars), truncating to 2048")
-            url = url[:2048]
+            _logger.error(f"API URL too long ({len(url)} chars), maximum allowed is 2048")
+            raise ValidationError(
+                _("API URL is too long (%d characters). Maximum allowed is 2048 characters.") % len(url)
+            )
 
         # 驗證 URL 格式（基本檢查）
         if not url.startswith(('http://', 'https://')):

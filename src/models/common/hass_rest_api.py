@@ -113,9 +113,18 @@ class HassRestApi:
             return data
         else:
             # 處理錯誤
-            print(f"Error: {response.status_code}")
-            print(response.text)
-            raise BaseException("failed to fetch HA API")
+            _logger.error(
+                f"HA API request failed: status={response.status_code}, "
+                f"url={url}, response={response.text[:500] if response.text else 'empty'}"
+            )
+            if response.status_code == 401:
+                raise ConnectionError(f"HA API authentication failed (401): Invalid or expired access token")
+            elif response.status_code == 403:
+                raise PermissionError(f"HA API access denied (403): Insufficient permissions")
+            elif response.status_code == 404:
+                raise ValueError(f"HA API endpoint not found (404): {url}")
+            else:
+                raise ConnectionError(f"HA API request failed: HTTP {response.status_code}")
 
     def get_ha_history(self, entity_id: str, timestamp: Optional[datetime] = None, end_timestamp: Optional[datetime] = None):
         """
@@ -155,6 +164,15 @@ class HassRestApi:
             return data
         else:
             # 處理錯誤
-            print(f"Error: {response.status_code}")
-            print(response.text)
-            raise BaseException("failed to fetch HA API")
+            _logger.error(
+                f"HA API history request failed: status={response.status_code}, "
+                f"url={url}, response={response.text[:500] if response.text else 'empty'}"
+            )
+            if response.status_code == 401:
+                raise ConnectionError(f"HA API authentication failed (401): Invalid or expired access token")
+            elif response.status_code == 403:
+                raise PermissionError(f"HA API access denied (403): Insufficient permissions")
+            elif response.status_code == 404:
+                raise ValueError(f"HA API endpoint not found (404): {url}")
+            else:
+                raise ConnectionError(f"HA API history request failed: HTTP {response.status_code}")

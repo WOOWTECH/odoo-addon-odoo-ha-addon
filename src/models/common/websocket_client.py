@@ -4,6 +4,25 @@ import uuid
 import logging
 from odoo import api, models
 
+# =============================================================================
+# WebSocket Client Configuration Constants
+# =============================================================================
+# These constants control the polling and timeout behavior of the WebSocket client.
+# Adjust these values based on your deployment environment and performance requirements.
+
+# Polling interval for waiting on WebSocket responses (in seconds)
+# Lower values provide faster response but increase database load
+WS_POLL_INTERVAL = 0.3  # 300ms
+
+# Polling interval for subscription operations (in seconds)
+# Subscriptions typically take longer, so we use a longer interval
+WS_SUBSCRIPTION_POLL_INTERVAL = 0.5  # 500ms
+
+# Timeout (in seconds) for determining subscription completion when no new events arrive
+# If no new events are received within this time, the subscription is considered complete
+WS_NO_EVENT_TIMEOUT = 5  # 5 seconds
+
+
 class WebSocketClient:
     """
     通用 WebSocket 客戶端
@@ -179,6 +198,11 @@ class WebSocketClient:
                 'ha_instance_id': self.instance_id,  # Phase 3: 指定實例 ID
             })
 
+            # WARNING: Explicit cr.commit() is necessary here for cross-process communication.
+            # The WebSocket thread runs in a separate process and needs to see this record
+            # immediately. Without this commit, the record would only be visible after the
+            # current transaction ends, causing the WebSocket thread to never see the request.
+            # This breaks Odoo's normal transaction management - ensure proper error handling.
             self.env.cr.commit()
 
             self._logger.info(f"Created subscription request: {request_id} (type: {message_type}, instance: {self.instance_id})")
@@ -229,15 +253,17 @@ class WebSocketClient:
             dict: {'success': bool, 'data': list, 'error': str}
         """
         start_time = time.time()
-        poll_interval = 0.5  # 500ms 輪詢間隔（訂閱比一般請求需要更長時間）
+        poll_interval = WS_SUBSCRIPTION_POLL_INTERVAL
         last_event_time = start_time
-        no_event_timeout = 5  # 5 秒無新事件則認為完成
+        no_event_timeout = WS_NO_EVENT_TIMEOUT
         last_event_count = 0  # 追蹤上一次的事件數量
 
         self._logger.debug(f"Waiting for subscription {request_id} to complete")
 
         while time.time() - start_time < timeout:
-            # 重新讀取記錄以獲取最新狀態
+            # WARNING: Explicit cr.commit() is necessary here for cross-process visibility.
+            # This allows us to see updates made by the WebSocket thread in a separate process.
+            # Without this, we would be reading stale data from our transaction snapshot.
             self.env.cr.commit()
             ws_request = self.env['ha.ws.request.queue'].sudo().search([
                 ('id', '=', ws_request.id)
@@ -350,7 +376,11 @@ class WebSocketClient:
             'ha_instance_id': self.instance_id,  # Phase 3: 指定實例 ID
         })
 
-        # 立即 commit 讓 WebSocket thread 能看到這筆記錄
+        # WARNING: Explicit cr.commit() is necessary here for cross-process communication.
+        # The WebSocket thread runs in a separate process and needs to see this record
+        # immediately. Without this commit, the record would only be visible after the
+        # current transaction ends, causing the WebSocket thread to never see the request.
+        # This breaks Odoo's normal transaction management - ensure proper error handling.
         self.env.cr.commit()
 
         self._logger.info(f"Created WebSocket request: {request_id} (type: {message_type}, instance: {self.instance_id})")
@@ -359,7 +389,7 @@ class WebSocketClient:
     def _wait_for_result(self, ws_request, request_id, timeout):
         """等待並處理請求結果"""
         start_time = time.time()
-        poll_interval = 0.3  # 300ms 輪詢間隔
+        poll_interval = WS_POLL_INTERVAL
         poll_count = 0
         
         self._logger.debug(f"Starting polling for request {request_id}, timeout: {timeout}s")
@@ -369,9 +399,11 @@ class WebSocketClient:
             elapsed = time.time() - start_time
             
             self._logger.debug(f"Poll #{poll_count} for request {request_id} (elapsed: {elapsed:.1f}s)")
-            
-            # 每次輪詢都 commit 以獲得新的 transaction snapshot
-            # 這樣才能看到 WebSocket thread 更新的記錄狀態
+
+            # WARNING: Explicit cr.commit() is necessary here for cross-process visibility.
+            # Each commit gives us a fresh transaction snapshot, allowing us to see updates
+            # made by the WebSocket thread running in a separate process. Without this,
+            # we would keep reading the same stale data from our original transaction.
             self.env.cr.commit()
             ws_request = self.env['ha.ws.request.queue'].sudo().search([
                 ('id', '=', ws_request.id)
