@@ -1140,3 +1140,75 @@ msgstr "透過我的帳戶 → HA 設備 (/my/ha) 存取"
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_entity_share_wizard_form
 msgid "Selected:"
 msgstr "已選擇："
+
+#. module: odoo_ha_addon
+#. Device Form - Related Tabs
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__automation_ids
+msgid "Related Automations"
+msgstr "相關自動化"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__script_ids
+msgid "Related Scripts"
+msgstr "相關腳本"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__scene_ids
+msgid "Related Scenes"
+msgstr "相關場景"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__entity_count
+msgid "Entity Count"
+msgstr "實體數量"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__automation_count
+msgid "Automation Count"
+msgstr "自動化數量"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__script_count
+msgid "Script Count"
+msgstr "腳本數量"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__scene_count
+msgid "Scene Count"
+msgstr "場景數量"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,help:odoo_ha_addon.field_ha_device__automation_ids
+msgid "Automation entities from the same HA instance"
+msgstr "來自同一 HA 實例的自動化實體"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,help:odoo_ha_addon.field_ha_device__script_ids
+msgid "Script entities from the same HA instance"
+msgstr "來自同一 HA 實例的腳本實體"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,help:odoo_ha_addon.field_ha_device__scene_ids
+msgid "Scene entities from the same HA instance"
+msgstr "來自同一 HA 實例的場景實體"
+
+#. module: odoo_ha_addon
+#. Device Form View - Tab Names
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Automations"
+msgstr "自動化"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Scripts"
+msgstr "腳本"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Scenes"
+msgstr "場景"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Last Triggered"
+msgstr "上次觸發"

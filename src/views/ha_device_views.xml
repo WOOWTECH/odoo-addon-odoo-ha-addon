@@ -72,6 +72,36 @@
                                     <field name="name"/>
                                     <field name="domain"/>
                                     <field name="entity_state" string="State"/>
+                                    <field name="last_changed"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Automations" name="automations">
+                            <field name="automation_ids" readonly="1">
+                                <list>
+                                    <field name="entity_id"/>
+                                    <field name="name"/>
+                                    <field name="entity_state" string="State"/>
+                                    <field name="last_changed" string="Last Triggered"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Scripts" name="scripts">
+                            <field name="script_ids" readonly="1">
+                                <list>
+                                    <field name="entity_id"/>
+                                    <field name="name"/>
+                                    <field name="entity_state" string="State"/>
+                                    <field name="last_changed" string="Last Triggered"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Scenes" name="scenes">
+                            <field name="scene_ids" readonly="1">
+                                <list>
+                                    <field name="entity_id"/>
+                                    <field name="name"/>
+                                    <field name="entity_state" string="State"/>
                                 </list>
                             </field>
                         </page>

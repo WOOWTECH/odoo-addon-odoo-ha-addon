@@ -143,6 +143,45 @@ class HADevice(models.Model):
         string='Entities',
         help='Entities belonging to this device'
     )
+
+    # Computed fields for related automation/script/scene entities
+    automation_ids = fields.Many2many(
+        'ha.entity',
+        string='Related Automations',
+        compute='_compute_related_automations',
+        help='Automation entities from the same HA instance'
+    )
+    script_ids = fields.Many2many(
+        'ha.entity',
+        string='Related Scripts',
+        compute='_compute_related_scripts',
+        help='Script entities from the same HA instance'
+    )
+    scene_ids = fields.Many2many(
+        'ha.entity',
+        string='Related Scenes',
+        compute='_compute_related_scenes',
+        help='Scene entities from the same HA instance'
+    )
+
+    # Count fields for display in list view
+    entity_count = fields.Integer(
+        string='Entity Count',
+        compute='_compute_entity_count'
+    )
+    automation_count = fields.Integer(
+        string='Automation Count',
+        compute='_compute_related_automations'
+    )
+    script_count = fields.Integer(
+        string='Script Count',
+        compute='_compute_related_scripts'
+    )
+    scene_count = fields.Integer(
+        string='Scene Count',
+        compute='_compute_related_scenes'
+    )
+
     via_device_id = fields.Char(
         string='Via Device ID',
         readonly=True,
@@ -158,6 +197,58 @@ class HADevice(models.Model):
     # - name_by_user: 使用者自訂名稱（雙向同步到 HA Device Registry）
     # - label_ids: Device 標籤（雙向同步到 HA Device Registry）
     _USER_EDITABLE_FIELDS = {'area_id', 'name_by_user', 'label_ids'}
+
+    # ========== Computed Fields ==========
+
+    @api.depends('entity_ids')
+    def _compute_entity_count(self):
+        for device in self:
+            device.entity_count = len(device.entity_ids)
+
+    @api.depends('ha_instance_id')
+    def _compute_related_automations(self):
+        """Compute automation entities from the same HA instance"""
+        for device in self:
+            if device.ha_instance_id:
+                automations = self.env['ha.entity'].sudo().search([
+                    ('domain', '=', 'automation'),
+                    ('ha_instance_id', '=', device.ha_instance_id.id),
+                ])
+                device.automation_ids = automations
+                device.automation_count = len(automations)
+            else:
+                device.automation_ids = False
+                device.automation_count = 0
+
+    @api.depends('ha_instance_id')
+    def _compute_related_scripts(self):
+        """Compute script entities from the same HA instance"""
+        for device in self:
+            if device.ha_instance_id:
+                scripts = self.env['ha.entity'].sudo().search([
+                    ('domain', '=', 'script'),
+                    ('ha_instance_id', '=', device.ha_instance_id.id),
+                ])
+                device.script_ids = scripts
+                device.script_count = len(scripts)
+            else:
+                device.script_ids = False
+                device.script_count = 0
+
+    @api.depends('ha_instance_id')
+    def _compute_related_scenes(self):
+        """Compute scene entities from the same HA instance"""
+        for device in self:
+            if device.ha_instance_id:
+                scenes = self.env['ha.entity'].sudo().search([
+                    ('domain', '=', 'scene'),
+                    ('ha_instance_id', '=', device.ha_instance_id.id),
+                ])
+                device.scene_ids = scenes
+                device.scene_count = len(scenes)
+            else:
+                device.scene_ids = False
+                device.scene_count = 0
 
     # ========== Bidirectional Sync: Odoo → HA ==========
 
