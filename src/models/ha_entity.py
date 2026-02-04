@@ -426,8 +426,17 @@ class HAEntity(models.Model):
             # Phase 3: 處理實體狀態並更新資料庫，傳入 instance_id
             self._process_entity_states(entity_states, instance_id)
 
-            # 同步完成後，更新 entity 與 area 和 labels 的關聯
+            # 同步完成後，更新 entity 與 area, labels 和 device 的關聯
             if sync_area_relations:
+                # 確保 devices 已同步（device_id 依賴 device 記錄存在）
+                # Check if devices exist, if not sync them first
+                device_count = self.env['ha.device'].sudo().search_count([
+                    ('ha_instance_id', '=', instance_id)
+                ])
+                if device_count == 0:
+                    _logger.info("No devices found, syncing devices first...")
+                    self.env['ha.device'].sudo().sync_devices_from_ha(instance_id=instance_id)
+
                 self._sync_entity_registry_relations(instance_id)
 
             # 更新實例的 last_sync_date（批量同步完成時間）
@@ -484,6 +493,9 @@ class HAEntity(models.Model):
                 ('ha_instance_id', '=', instance_id)
             ])
             device_map = {device.device_id: device.id for device in devices}
+            _logger.info(f"Device map size: {len(device_map)} devices for instance {instance_id}")
+            if device_map:
+                _logger.debug(f"Sample device_ids in map: {list(device_map.keys())[:3]}")
 
             area_updated_count = 0
             label_updated_count = 0
@@ -541,7 +553,11 @@ class HAEntity(models.Model):
                         if entity.device_id.id != odoo_device_id:
                             update_vals['device_id'] = odoo_device_id
                             device_updated_count += 1
-                            _logger.debug(f"Updated entity {entity_id} -> device {ha_device_id}")
+                            _logger.debug(f"Updated entity {entity_id} -> device {ha_device_id} (odoo_id={odoo_device_id})")
+                    elif ha_device_id and ha_device_id not in device_map:
+                        # Log when device_id is in registry but not in our device_map
+                        if device_updated_count < 3:  # Only log first few
+                            _logger.warning(f"Entity {entity_id} has device_id={ha_device_id} but not in device_map")
                     elif not ha_device_id and entity.device_id:
                         # HA 中沒有 device，清空 Odoo 的 device_id
                         update_vals['device_id'] = False
