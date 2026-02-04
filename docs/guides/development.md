@@ -100,12 +100,12 @@ Always test the uninstall hook:
 
 ```bash
 # 1. Install the addon with test data
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -i odoo_ha_addon
+docker compose exec web odoo -d odoo -i odoo_ha_addon
 
 # 2. Create test records for all models
 
 # 3. Uninstall and check logs
-docker compose -f docker-compose-18.yml exec web odoo -d odoo --uninstall odoo_ha_addon
+docker compose exec web odoo -d odoo --uninstall odoo_ha_addon
 
 # 4. Verify all data is cleaned
 ```

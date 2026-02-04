@@ -2195,7 +2195,7 @@ class TestSerializationHandling(TransactionCase):
 
 ```bash
 # 進入 Odoo shell
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo
+docker compose exec web odoo shell -d odoo
 
 # 或在本機
 python odoo-bin shell -d odoo --config=/etc/odoo/odoo.conf

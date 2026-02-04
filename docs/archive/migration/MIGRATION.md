@@ -14,7 +14,7 @@
 
 ```bash
 # 進入 Docker 容器
-docker compose -f docker-compose-18.yml exec db bash
+docker compose exec db bash
 
 # 備份數據庫
 pg_dump -U odoo odoo > /tmp/odoo_backup_$(date +%Y%m%d_%H%M%S).sql
@@ -24,7 +24,7 @@ pg_dump -U odoo odoo > /tmp/odoo_backup_$(date +%Y%m%d_%H%M%S).sql
 
 ```bash
 # 進入 PostgreSQL
-docker compose -f docker-compose-18.yml exec db psql -U odoo -d odoo
+docker compose exec db psql -U odoo -d odoo
 ```
 
 然後執行以下 SQL：
@@ -68,8 +68,8 @@ COMMIT;
 
 ```bash
 # 重啟並升級模組
-docker compose -f docker-compose-18.yml restart web
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon --dev xml
+docker compose restart web
+docker compose exec web odoo -d odoo -u odoo_ha_addon --dev xml
 ```
 
 ## 🔍 驗證遷移
@@ -157,6 +157,6 @@ COMMIT;
 ## 📞 支援
 
 如有問題，請檢查：
-1. 數據庫日誌：`docker compose -f docker-compose-18.yml logs db`
-2. Odoo 日誌：`docker compose -f docker-compose-18.yml logs web`
+1. 數據庫日誌：`docker compose logs db`
+2. Odoo 日誌：`docker compose logs web`
 3. 瀏覽器控制台是否有 JavaScript 錯誤

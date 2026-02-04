@@ -152,8 +152,8 @@ i18n/
 
 **測試步驟**:
 ```bash
-docker compose -f docker-compose-18.yml restart web
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon --stop-after-init
+docker compose restart web
+docker compose exec web odoo -d odoo -u odoo_ha_addon --stop-after-init
 ```
 
 **實際結果**:
@@ -292,7 +292,7 @@ msgstr "我的新功能"
 
 **3. 更新模組**
 ```bash
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon
+docker compose exec web odoo -d odoo -u odoo_ha_addon
 ```
 
 **4. 重新載入翻譯**（在 Odoo Web UI）

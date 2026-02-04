@@ -208,7 +208,7 @@ _connections_lock = threading.Lock()
 
 ```bash
 # 進入 Odoo 容器
-docker compose -f docker-compose-18.yml exec web bash
+docker compose exec web bash
 
 # 查看所有實例的配置
 odoo shell -d odoo
@@ -247,13 +247,13 @@ for inst in instances:
 
 ```bash
 # 查看最後 100 行日誌（包含 post-load hook 信息）
-docker compose -f docker-compose-18.yml logs --tail=100 web | grep -E "(post_load|WebSocket|start_websocket|instance.*config)"
+docker compose logs --tail=100 web | grep -E "(post_load|WebSocket|start_websocket|instance.*config)"
 
 # 實時監控日誌
-docker compose -f docker-compose-18.yml logs -f web | grep -E "(WebSocket|instance)"
+docker compose logs -f web | grep -E "(WebSocket|instance)"
 
 # 查看特定實例的相關日誌
-docker compose -f docker-compose-18.yml logs web | grep "instance_id=5"  # 替換為實際實例 ID
+docker compose logs web | grep "instance_id=5"  # 替換為實際實例 ID
 ```
 
 #### 4. 追蹤執行過程
@@ -580,7 +580,7 @@ monitor_service.start_monitoring(env)
 
 ```bash
 # 1. 查看實例配置
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo << 'PYEOF'
+docker compose exec web odoo shell -d odoo << 'PYEOF'
 from odoo import api, SUPERUSER_ID
 env = api.Environment(cr, SUPERUSER_ID, {})
 instances = env['ha.instance'].sudo().search([])
@@ -589,10 +589,10 @@ for inst in instances:
 PYEOF
 
 # 2. 檢查 WebSocket 狀態
-docker compose -f docker-compose-18.yml logs --tail=50 web | grep -E "(WebSocket|start_websocket|thread started)"
+docker compose logs --tail=50 web | grep -E "(WebSocket|start_websocket|thread started)"
 
 # 3. 驗證心跳
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo << 'PYEOF'
+docker compose exec web odoo shell -d odoo << 'PYEOF'
 from datetime import datetime, timezone
 db_name = env.cr.dbname
 instances = env['ha.instance'].sudo().search([])

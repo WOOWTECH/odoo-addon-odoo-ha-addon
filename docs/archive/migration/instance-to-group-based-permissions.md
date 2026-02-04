@@ -84,7 +84,7 @@
 
 ```bash
 # 備份當前數據庫
-docker compose -f docker-compose-18.yml exec -e PGHOST=db -e PGUSER=odoo -e PGPASSWORD=odoo web \
+docker compose exec -e PGHOST=db -e PGUSER=odoo -e PGPASSWORD=odoo web \
   pg_dump -d odoo > odoo_backup_$(date +%Y%m%d_%H%M%S).sql
 ```
 
@@ -153,14 +153,14 @@ git diff
 
 ```bash
 # 重啟 Odoo 並升級模組
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 
 # 升級模組
-docker compose -f docker-compose-18.yml exec -e PGHOST=db -e PGUSER=odoo -e PGPASSWORD=odoo web \
+docker compose exec -e PGHOST=db -e PGUSER=odoo -e PGPASSWORD=odoo web \
   odoo -d odoo -u odoo_ha_addon --stop-after-init
 
 # 檢查日誌確認沒有錯誤
-docker compose -f docker-compose-18.yml logs web --tail=100 | grep -i error
+docker compose logs web --tail=100 | grep -i error
 ```
 
 ### 步驟 3: 執行數據遷移腳本
@@ -169,7 +169,7 @@ docker compose -f docker-compose-18.yml logs web --tail=100 | grep -i error
 
 ```python
 # 在 Odoo shell 中執行
-# docker compose -f docker-compose-18.yml exec web odoo shell -d odoo
+# docker compose exec web odoo shell -d odoo
 
 env = self.env
 
@@ -401,7 +401,7 @@ else:
 
 ```bash
 # 1. 恢復數據庫備份
-docker compose -f docker-compose-18.yml exec -e PGHOST=db -e PGUSER=odoo -e PGPASSWORD=odoo web \
+docker compose exec -e PGHOST=db -e PGUSER=odoo -e PGPASSWORD=odoo web \
   psql -d odoo < odoo_backup_YYYYMMDD_HHMMSS.sql
 
 # 2. 回退代碼
@@ -411,10 +411,10 @@ git checkout HEAD~1 -- models/res_users.py
 git checkout HEAD~1 -- security/security.xml
 
 # 3. 重啟服務
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 
 # 4. 降級模組
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon --stop-after-init
+docker compose exec web odoo -d odoo -u odoo_ha_addon --stop-after-init
 ```
 
 ## 常見問題 (FAQ)
@@ -488,7 +488,7 @@ group.write({
 
 如果遷移過程中遇到問題：
 
-1. **檢查日誌**: `docker compose -f docker-compose-18.yml logs web --tail=200`
+1. **檢查日誌**: `docker compose logs web --tail=200`
 2. **查看錯誤**: 在 Odoo 界面檢查 Settings > Technical > Database Structure > Models
 3. **執行測試**: 使用本文檔的驗證腳本
 4. **回退系統**: 使用回退計劃恢復到舊版本

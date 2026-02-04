@@ -325,16 +325,18 @@ Now that you understand the high-level architecture:
 
 ```bash
 # Start Odoo with development mode
-docker compose -f docker-compose-18.yml up
+./scripts/start-dev.sh
+# 或
+docker compose up
 
 # Restart after Python changes
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 
 # Update addon
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon --dev xml
+docker compose exec web odoo -d odoo -u odoo_ha_addon --dev xml
 
 # View logs
-docker compose -f docker-compose-18.yml logs -f web
+docker compose logs -f web
 ```
 
 ### Important Files

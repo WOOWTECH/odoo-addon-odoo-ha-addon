@@ -9,14 +9,14 @@
 cd /Users/eugene/Documents/woow/AREA-odoo/odoo-server
 
 # 檢查 Docker 狀態
-docker compose -f docker-compose-18.yml ps
+docker compose ps
 ```
 
 ### 2. 備份資料庫（建議）
 
 ```bash
 # 進入 PostgreSQL 容器
-docker compose -f docker-compose-18.yml exec db bash
+docker compose exec db bash
 
 # 備份資料庫
 pg_dump -U odoo odoo > /tmp/odoo_backup_before_phase1.sql
@@ -25,7 +25,7 @@ pg_dump -U odoo odoo > /tmp/odoo_backup_before_phase1.sql
 exit
 
 # 將備份複製到本機（可選）
-docker compose -f docker-compose-18.yml cp db:/tmp/odoo_backup_before_phase1.sql ./backup/
+docker compose cp db:/tmp/odoo_backup_before_phase1.sql ./backup/
 ```
 
 ---
@@ -38,8 +38,8 @@ docker compose -f docker-compose-18.yml cp db:/tmp/odoo_backup_before_phase1.sql
 cd /Users/eugene/Documents/woow/AREA-odoo/odoo-server
 
 # 方法 A: 使用 restart + exec（推薦）
-docker compose -f docker-compose-18.yml restart web
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon --dev xml --log-handler odoo.tools.convert:DEBUG
+docker compose restart web
+docker compose exec web odoo -d odoo -u odoo_ha_addon --dev xml --log-handler odoo.tools.convert:DEBUG
 ```
 
 **預期輸出**：
@@ -67,7 +67,7 @@ INFO pre-migrate: ==============================================================
 ```bash
 # 在另一個終端視窗執行
 cd /Users/eugene/Documents/woow/AREA-odoo/odoo-server
-docker compose -f docker-compose-18.yml logs -f web
+docker compose logs -f web
 ```
 
 **尋找這些關鍵日誌**：
@@ -84,7 +84,7 @@ docker compose -f docker-compose-18.yml logs -f web
 
 ```bash
 # 進入 Odoo Shell
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo
+docker compose exec web odoo shell -d odoo
 ```
 
 在 Shell 中執行：
@@ -205,7 +205,7 @@ URL: http://localhost:8069
 
 **透過 Odoo Shell 測試**：
 ```python
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo
+docker compose exec web odoo shell -d odoo
 ```
 
 ```python
@@ -262,8 +262,8 @@ grep "version" /Users/eugene/Documents/woow/AREA-odoo/odoo-server/data/18/addons
 # 'version': '18.0.3.0',
 
 # 然後重新升級
-docker compose -f docker-compose-18.yml restart web
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon
+docker compose restart web
+docker compose exec web odoo -d odoo -u odoo_ha_addon
 ```
 
 ### 問題 2: 找不到 HA Instances 選單
@@ -279,10 +279,10 @@ docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon
 # 1. 強制刷新瀏覽器（Ctrl+Shift+R 或 Cmd+Shift+R）
 
 # 2. 清除 Odoo 快取並重啟
-docker compose -f docker-compose-18.yml exec web odoo -d odoo --dev xml
+docker compose exec web odoo -d odoo --dev xml
 
 # 3. 檢查使用者是否有權限（在 Odoo Shell）
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo
+docker compose exec web odoo shell -d odoo
 ```
 
 ```python
@@ -314,7 +314,7 @@ exit()
 curl http://localhost:8069/web/webclient/version_info
 
 # 3. 在 Odoo Shell 手動測試
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo
+docker compose exec web odoo shell -d odoo
 ```
 
 ```python
@@ -337,7 +337,7 @@ exit()
 **解決方法**：
 ```bash
 # 在 Odoo Shell 手動執行遷移邏輯
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo
+docker compose exec web odoo shell -d odoo
 ```
 
 ```python

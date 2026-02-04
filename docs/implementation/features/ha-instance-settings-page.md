@@ -762,7 +762,7 @@ def _onchange_ha_instance_id(self):
 
    ```bash
    cd /Users/eugene/Documents/woow/AREA-odoo/odoo-server
-   docker compose -f docker-compose-18.yml up
+   docker compose up
    ```
 
 2. 準備測試資料：

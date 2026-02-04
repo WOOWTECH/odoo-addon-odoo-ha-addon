@@ -196,7 +196,7 @@ user.write({'groups_id': [(4, ha_manager_group.id)]})
 **Verification:**
 ```bash
 # Check Odoo logs for confirmation message
-docker compose -f docker-compose-18.yml logs -f web | grep "Added user"
+docker compose logs -f web | grep "Added user"
 ```
 
 Expected log:
@@ -286,7 +286,7 @@ If the addon was already installed before this fix:
 **Or Use Odoo Shell:**
 ```python
 # Connect to Odoo shell
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo
+docker compose exec web odoo shell -d odoo
 
 # Run in shell
 env['res.users'].browse(2).write({'groups_id': [(4, env.ref('odoo_ha_addon.group_ha_manager').id)]})

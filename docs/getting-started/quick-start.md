@@ -13,8 +13,11 @@ Get up and running with the Odoo HA Addon in 5 minutes.
 ### Step 1: Start Odoo Server
 
 ```bash
-cd /Users/eugene/Documents/woow/AREA-odoo/odoo-server
-docker compose -f docker-compose-18.yml up
+# 進入專案目錄後啟動
+./scripts/start-dev.sh
+
+# 或使用標準 docker compose
+docker compose up
 ```
 
 ### Step 2: Access Odoo
@@ -80,26 +83,26 @@ Open your browser and navigate to:
 ### Enable Development Mode
 
 ```bash
-docker compose -f docker-compose-18.yml exec web odoo -d odoo --dev xml --log-handler odoo.tools.convert:DEBUG
+docker compose exec web odoo -d odoo --dev xml --log-handler odoo.tools.convert:DEBUG
 ```
 
 ### Update Addon After Changes
 
 ```bash
 # For Python changes
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 
 # For XML/JS changes (hot reload enabled in dev mode)
 # Just refresh your browser
 
 # Force update addon
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon --dev xml
+docker compose exec web odoo -d odoo -u odoo_ha_addon --dev xml
 ```
 
 ### Monitor Logs
 
 ```bash
-docker compose -f docker-compose-18.yml logs -f web
+docker compose logs -f web
 ```
 
 ## Common Commands

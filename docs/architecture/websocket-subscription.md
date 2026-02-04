@@ -1121,7 +1121,7 @@ result = client.subscribe_history_stream(
 
 ```python
 # 檢查 WebSocket 日誌
-docker compose -f docker-compose-18.yml logs -f web | grep "subscription"
+docker compose logs -f web | grep "subscription"
 
 # 檢查訂閱追蹤
 # 在 hass_websocket_service.py 中添加日誌

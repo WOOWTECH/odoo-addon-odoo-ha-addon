@@ -1276,7 +1276,7 @@ Systray 組件不再使用，需要決定如何處理相關文件。
 ```bash
 # 1. 重啟容器
 cd /Users/eugene/Documents/woow/AREA-odoo/odoo-server
-docker compose -f docker-compose-18.yml restart
+docker compose restart
 
 # 2. 升級 Addon（網頁界面）
 # http://localhost → Apps → WOOW Dashboard → Upgrade

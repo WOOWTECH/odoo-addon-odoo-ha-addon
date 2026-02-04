@@ -424,10 +424,10 @@ After modifying `.po` files:
 
 ```bash
 # Restart to reload translations
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 
 # Or full update if needed
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon --dev xml
+docker compose exec web odoo -d odoo -u odoo_ha_addon --dev xml
 ```
 
 ## File Locations

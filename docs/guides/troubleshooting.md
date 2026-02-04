@@ -29,12 +29,12 @@ This guide covers common issues and their solutions for the Odoo HA Addon.
 
 1. **Manual Installation** (Recommended for Docker):
    ```bash
-   docker compose -f docker-compose-18.yml exec web pip install --break-system-packages websockets>=10.0
+   docker compose exec web pip install --break-system-packages websockets>=10.0
    ```
 
 2. **Without `--break-system-packages`** (Older systems):
    ```bash
-   docker compose -f docker-compose-18.yml exec web pip install websockets>=10.0
+   docker compose exec web pip install websockets>=10.0
    ```
 
 3. **Add to requirements.txt** (Persistent fix):
@@ -68,7 +68,7 @@ This guide covers common issues and their solutions for the Odoo HA Addon.
 
 3. **Check Installation Logs**:
    ```bash
-   docker compose -f docker-compose-18.yml logs web | grep post_init_hook
+   docker compose logs web | grep post_init_hook
    ```
 
 ## WebSocket Issues
@@ -83,7 +83,7 @@ This guide covers common issues and their solutions for the Odoo HA Addon.
 **Diagnosis**:
 ```bash
 # Check WebSocket status
-docker compose -f docker-compose-18.yml logs web | grep WebSocket
+docker compose logs web | grep WebSocket
 
 # Check in Odoo shell
 env['ha.entity'].check_websocket_status()
@@ -106,13 +106,13 @@ env['ha.entity'].check_websocket_status()
 3. **Check Network Connectivity**:
    ```bash
    # Test from within Odoo container
-   docker compose -f docker-compose-18.yml exec web bash
+   docker compose exec web bash
    curl http://YOUR_HA_URL:8123/api/
    ```
 
 4. **Review Logs**:
    ```bash
-   docker compose -f docker-compose-18.yml logs -f web | grep -i websocket
+   docker compose logs -f web | grep -i websocket
    ```
 
 ### Issue: WebSocket Keeps Disconnecting
@@ -257,7 +257,7 @@ env.user.current_ha_instance_id
 
 2. **Restart Nginx**:
    ```bash
-   docker compose -f docker-compose-18.yml restart nginx
+   docker compose restart nginx
    ```
 
 3. **Check Bus Service**:
@@ -493,7 +493,7 @@ env.user.current_ha_instance_id
 
 2. **Restart Database**:
    ```bash
-   docker compose -f docker-compose-18.yml restart db
+   docker compose restart db
    ```
 
 3. **Analyze Locks**:

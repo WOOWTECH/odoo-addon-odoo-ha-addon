@@ -174,17 +174,17 @@ WebSocket 不工作？
 
 ```bash
 # 檢查是否有配置不完整的警告
-docker compose -f docker-compose-18.yml logs web | grep -i "configuration incomplete"
+docker compose logs web | grep -i "configuration incomplete"
 
 # 查看所有 WebSocket 相關日誌
-docker compose -f docker-compose-18.yml logs web | grep -i websocket
+docker compose logs web | grep -i websocket
 ```
 
 ### 檢查實例狀態
 
 ```bash
 # 進入 Odoo shell
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo
+docker compose exec web odoo shell -d odoo
 
 # 檢查實例配置
 from odoo import api, SUPERUSER_ID
@@ -201,7 +201,7 @@ for inst in instances:
 # 進入實例 > 點擊「Restart WebSocket」
 
 # 方法 2：通過 Shell
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo
+docker compose exec web odoo shell -d odoo
 from odoo.addons.odoo_ha_addon.models.common.websocket_thread_manager import restart_websocket_service
 restart_websocket_service(env, instance_id=1, force=True)
 ```
