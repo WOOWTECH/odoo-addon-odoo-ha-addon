@@ -31,6 +31,11 @@
                                widget="many2many_tags"
                                placeholder="Select users to share with..."
                                options="{'no_create': True, 'no_open': True}"/>
+                        <!-- Display count of internal vs portal users -->
+                        <div class="text-muted small" invisible="not user_types_display">
+                            <i class="fa fa-users me-1"/>
+                            Selected: <field name="user_types_display" nolabel="1" class="d-inline"/>
+                        </div>
                     </group>
                     <group>
                         <field name="permission"/>
@@ -44,6 +49,15 @@
                     <ul class="mb-0 mt-2">
                         <li><strong>View Only:</strong> Users can see the entity/group state but cannot control it</li>
                         <li><strong>Can Control:</strong> Users can view and control the entity/group (turn on/off, adjust settings)</li>
+                    </ul>
+                </div>
+
+                <div class="alert alert-light mt-2" role="status">
+                    <i class="fa fa-sign-in me-2" title="Access"/>
+                    <strong>Access Methods:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li><strong>Internal users:</strong> Access via WOOW Dashboard menu</li>
+                        <li><strong>Portal users:</strong> Access via My Account → HA Devices (/my/ha)</li>
                     </ul>
                 </div>
 

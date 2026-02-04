@@ -1080,3 +1080,63 @@ msgstr "您擁有控制權限。您可以查看和控制此群組中的實體。
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_entity_group
 msgid "You have view-only permission. Contact the owner to request control access."
 msgstr "您擁有唯讀權限。聯絡擁有者以要求控制存取權。"
+
+#. module: odoo_ha_addon
+#. Portal User Sharing - Wizard Help Text
+#: model:ir.model.fields,help:odoo_ha_addon.field_ha_entity_share_wizard__user_ids
+msgid "Select users to share with. Supports both internal users and portal users."
+msgstr "選擇要分享的用戶。支援內部用戶和入口網站用戶。"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity_share_wizard__user_types_display
+msgid "Selected User Types"
+msgstr "已選擇的用戶類型"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,help:odoo_ha_addon.field_ha_entity_share_wizard__user_types_display
+msgid "Shows how many internal and portal users are selected"
+msgstr "顯示已選擇的內部用戶和入口網站用戶數量"
+
+#. module: odoo_ha_addon
+#. Portal User Sharing - User Type Display
+#: code:addons/odoo_ha_addon/wizard/ha_entity_share_wizard.py:0
+#, python-format
+msgid "%d internal"
+msgstr "%d 個內部用戶"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/wizard/ha_entity_share_wizard.py:0
+#, python-format
+msgid "%d portal"
+msgstr "%d 個入口網站用戶"
+
+#. module: odoo_ha_addon
+#. Portal User Sharing - Access Methods (View)
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_entity_share_wizard_form
+msgid "Access Methods:"
+msgstr "存取方式："
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_entity_share_wizard_form
+msgid "Internal users:"
+msgstr "內部用戶："
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_entity_share_wizard_form
+msgid "Access via WOOW Dashboard menu"
+msgstr "透過 WOOW Dashboard 選單存取"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_entity_share_wizard_form
+msgid "Portal users:"
+msgstr "入口網站用戶："
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_entity_share_wizard_form
+msgid "Access via My Account → HA Devices (/my/ha)"
+msgstr "透過我的帳戶 → HA 設備 (/my/ha) 存取"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_entity_share_wizard_form
+msgid "Selected:"
+msgstr "已選擇："

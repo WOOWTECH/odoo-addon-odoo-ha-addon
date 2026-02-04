@@ -50,8 +50,9 @@ class HAEntityShareWizard(models.TransientModel):
         'user_id',
         string='Share With Users',
         required=True,
-        domain="[('share', '=', False)]",  # Exclude portal users
-        help='Select the users to share with'
+        # Allow both internal users (share=False) and portal users (share=True with portal group)
+        domain="[('active', '=', True), '|', ('share', '=', False), ('groups_id.name', '=', 'Portal')]",
+        help='Select users to share with. Supports both internal users and portal users.'
     )
 
     permission = fields.Selection([
@@ -79,6 +80,13 @@ class HAEntityShareWizard(models.TransientModel):
         string='Already Shared With',
         compute='_compute_existing_shares',
         help='Users who already have access to this entity/group'
+    )
+
+    # User type display (shows count of internal vs portal users)
+    user_types_display = fields.Char(
+        string='Selected User Types',
+        compute='_compute_user_types_display',
+        help='Shows how many internal and portal users are selected'
     )
 
     @api.depends('entity_id', 'group_id')
@@ -112,6 +120,26 @@ class HAEntityShareWizard(models.TransientModel):
                     wizard.existing_share_users += _(' (and %d more)') % (len(user_names) - 5)
             else:
                 wizard.existing_share_users = ''
+
+    @api.depends('user_ids')
+    def _compute_user_types_display(self):
+        """Compute display string showing count of internal vs portal users."""
+        for wizard in self:
+            if not wizard.user_ids:
+                wizard.user_types_display = ''
+                continue
+
+            # In Odoo, share=True indicates portal/public users, share=False indicates internal users
+            internal_users = wizard.user_ids.filtered(lambda u: not u.share)
+            portal_users = wizard.user_ids.filtered(lambda u: u.share)
+
+            parts = []
+            if internal_users:
+                parts.append(_('%d internal') % len(internal_users))
+            if portal_users:
+                parts.append(_('%d portal') % len(portal_users))
+
+            wizard.user_types_display = ', '.join(parts) if parts else ''
 
     @api.model
     def default_get(self, fields_list):
