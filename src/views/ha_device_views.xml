@@ -77,7 +77,7 @@
                             </field>
                         </page>
                         <page string="Automations" name="automations">
-                            <field name="automation_ids" readonly="1">
+                            <field name="related_automation_ids" readonly="1">
                                 <list>
                                     <field name="entity_id"/>
                                     <field name="name"/>
@@ -87,7 +87,7 @@
                             </field>
                         </page>
                         <page string="Scripts" name="scripts">
-                            <field name="script_ids" readonly="1">
+                            <field name="related_script_ids" readonly="1">
                                 <list>
                                     <field name="entity_id"/>
                                     <field name="name"/>
@@ -97,7 +97,7 @@
                             </field>
                         </page>
                         <page string="Scenes" name="scenes">
-                            <field name="scene_ids" readonly="1">
+                            <field name="related_scene_ids" readonly="1">
                                 <list>
                                     <field name="entity_id"/>
                                     <field name="name"/>

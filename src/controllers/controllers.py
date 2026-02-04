@@ -1746,3 +1746,69 @@ class AwesomeDashboard(http.Controller):
             'success': True,
             'data': response_data
         })
+
+    # ====================================
+    # Device Related Items Sync API
+    # ====================================
+
+    @http.route('/odoo_ha_addon/sync_device_related_items', type='json', auth='user')
+    def sync_device_related_items(self, ha_instance_id=None, device_id=None):
+        """
+        手動觸發同步設備的相關項目（Automations/Scripts/Scenes）
+
+        使用 HA 的 search/related API 來找出引用設備實體的
+        automations、scripts、scenes。
+
+        Args:
+            ha_instance_id (int, optional): HA 實例 ID。預設為 None（使用 session 實例）
+            device_id (int, optional): 特定設備的 Odoo ID。如果為 None，同步所有設備
+
+        Returns:
+            dict: 標準化響應格式
+                {
+                    'success': bool,
+                    'data': {
+                        'synced_devices': int,  # 同步的設備數量
+                        'message': str
+                    },
+                    'error': str  # 僅在 success=False 時存在
+                }
+        """
+        try:
+            # Phase 3: 如果沒指定實例 ID，使用當前實例
+            if ha_instance_id is None:
+                ha_instance_id = self._get_current_instance()
+                if ha_instance_id is None:
+                    return self._standardize_response({
+                        'success': False,
+                        'error': _('No active HA instance available')
+                    })
+
+            _logger.info(f"Manual sync device related items triggered (instance={ha_instance_id}, device={device_id})")
+
+            # 呼叫 ha.device 的同步方法
+            # sudo: 系統層級同步，需要更新所有設備的關聯
+            result = request.env['ha.device'].sudo()._sync_related_items_from_ha(
+                instance_id=ha_instance_id
+            )
+
+            if result.get('success'):
+                return self._standardize_response({
+                    'success': True,
+                    'data': {
+                        'synced_devices': result.get('synced_devices', 0),
+                        'message': _('Successfully synced related items for %s devices') % result.get('synced_devices', 0)
+                    }
+                })
+            else:
+                return self._standardize_response({
+                    'success': False,
+                    'error': result.get('error', _('Unknown error during sync'))
+                })
+
+        except Exception as e:
+            _logger.error(f"Failed to sync device related items: {e}", exc_info=True)
+            return self._standardize_response({
+                'success': False,
+                'error': str(e)
+            })

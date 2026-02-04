@@ -144,24 +144,52 @@ class HADevice(models.Model):
         help='Entities belonging to this device'
     )
 
-    # Computed fields for related automation/script/scene entities
+    # Stored Many2many fields for related automation/script/scene entities
+    # These are populated by _sync_related_items_from_ha() using HA's search/related API
+    # They show automations/scripts/scenes that REFERENCE this device's entities
+    related_automation_ids = fields.Many2many(
+        'ha.entity',
+        'ha_device_related_automation_rel',
+        'device_id',
+        'entity_id',
+        string='Related Automations',
+        help='Automations that reference this device\'s entities'
+    )
+    related_script_ids = fields.Many2many(
+        'ha.entity',
+        'ha_device_related_script_rel',
+        'device_id',
+        'entity_id',
+        string='Related Scripts',
+        help='Scripts that reference this device\'s entities'
+    )
+    related_scene_ids = fields.Many2many(
+        'ha.entity',
+        'ha_device_related_scene_rel',
+        'device_id',
+        'entity_id',
+        string='Related Scenes',
+        help='Scenes that include this device\'s entities'
+    )
+
+    # Legacy computed fields (kept for backward compatibility, now deprecated)
     automation_ids = fields.Many2many(
         'ha.entity',
-        string='Related Automations',
+        string='Automations (deprecated)',
         compute='_compute_related_automations',
-        help='Automation entities from the same HA instance'
+        help='DEPRECATED: Use related_automation_ids instead'
     )
     script_ids = fields.Many2many(
         'ha.entity',
-        string='Related Scripts',
+        string='Scripts (deprecated)',
         compute='_compute_related_scripts',
-        help='Script entities from the same HA instance'
+        help='DEPRECATED: Use related_script_ids instead'
     )
     scene_ids = fields.Many2many(
         'ha.entity',
-        string='Related Scenes',
+        string='Scenes (deprecated)',
         compute='_compute_related_scenes',
-        help='Scene entities from the same HA instance'
+        help='DEPRECATED: Use related_scene_ids instead'
     )
 
     # Count fields for display in list view
@@ -169,16 +197,29 @@ class HADevice(models.Model):
         string='Entity Count',
         compute='_compute_entity_count'
     )
+    related_automation_count = fields.Integer(
+        string='Related Automation Count',
+        compute='_compute_related_counts'
+    )
+    related_script_count = fields.Integer(
+        string='Related Script Count',
+        compute='_compute_related_counts'
+    )
+    related_scene_count = fields.Integer(
+        string='Related Scene Count',
+        compute='_compute_related_counts'
+    )
+    # Legacy count fields (deprecated)
     automation_count = fields.Integer(
-        string='Automation Count',
+        string='Automation Count (deprecated)',
         compute='_compute_related_automations'
     )
     script_count = fields.Integer(
-        string='Script Count',
+        string='Script Count (deprecated)',
         compute='_compute_related_scripts'
     )
     scene_count = fields.Integer(
-        string='Scene Count',
+        string='Scene Count (deprecated)',
         compute='_compute_related_scenes'
     )
 
@@ -204,6 +245,14 @@ class HADevice(models.Model):
     def _compute_entity_count(self):
         for device in self:
             device.entity_count = len(device.entity_ids)
+
+    @api.depends('related_automation_ids', 'related_script_ids', 'related_scene_ids')
+    def _compute_related_counts(self):
+        """Compute counts for related automations/scripts/scenes (stored fields)"""
+        for device in self:
+            device.related_automation_count = len(device.related_automation_ids)
+            device.related_script_count = len(device.related_script_ids)
+            device.related_scene_count = len(device.related_scene_ids)
 
     @api.depends('entity_ids')
     def _compute_related_automations(self):
@@ -448,3 +497,173 @@ class HADevice(models.Model):
         except Exception as e:
             _logger.error(f"Failed to sync devices: {e}", exc_info=True)
             return {'created': 0, 'updated': 0}
+
+    # ========== Related Items Sync: HA → Odoo (search/related API) ==========
+
+    @api.model
+    def _sync_related_items_from_ha(self, instance_id=None):
+        """
+        Sync related automations/scripts/scenes for all devices using HA's search/related API.
+
+        This method queries HA for each entity in each device to find which automations,
+        scripts, and scenes REFERENCE those entities (in their triggers, conditions, actions).
+
+        This is different from showing entities that BELONG to a device - we want to show
+        items that USE the device's entities.
+
+        Args:
+            instance_id: HA instance ID, if None uses HAInstanceHelper
+
+        Returns:
+            dict: {'devices_processed': int, 'total_relations': int}
+        """
+        _logger.info(f"=== Starting _sync_related_items_from_ha (instance_id={instance_id}) ===")
+
+        try:
+            if instance_id is None:
+                from odoo.addons.odoo_ha_addon.models.common.instance_helper import HAInstanceHelper
+                instance_id = HAInstanceHelper.get_current_instance(self.env, logger=_logger)
+                if not instance_id:
+                    _logger.error("No HA instance available")
+                    return {'devices_processed': 0, 'total_relations': 0}
+
+            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
+            client = get_websocket_client(self.env, instance_id=instance_id)
+
+            # Get all devices for this instance that have entities
+            devices = self.sudo().search([
+                ('ha_instance_id', '=', instance_id),
+            ])
+
+            _logger.info(f"Processing {len(devices)} devices for related items sync")
+
+            devices_processed = 0
+            total_relations = 0
+
+            for device in devices:
+                try:
+                    # Collect all related items across all entities in this device
+                    related_automations = set()
+                    related_scripts = set()
+                    related_scenes = set()
+
+                    # Query search/related for each entity belonging to this device
+                    for entity in device.entity_ids:
+                        try:
+                            result = client.call_websocket_api_sync(
+                                'search/related',
+                                {'item_type': 'entity', 'item_id': entity.entity_id}
+                            )
+
+                            if result and isinstance(result, dict):
+                                # Add automation entity_ids that reference this entity
+                                automations_from_api = result.get('automation', [])
+                                scripts_from_api = result.get('script', [])
+                                scenes_from_api = result.get('scene', [])
+
+                                if automations_from_api or scripts_from_api or scenes_from_api:
+                                    _logger.debug(
+                                        f"Entity {entity.entity_id} has related: "
+                                        f"automations={automations_from_api}, "
+                                        f"scripts={scripts_from_api}, "
+                                        f"scenes={scenes_from_api}"
+                                    )
+
+                                related_automations.update(automations_from_api)
+                                related_scripts.update(scripts_from_api)
+                                related_scenes.update(scenes_from_api)
+
+                        except Exception as e:
+                            _logger.warning(f"Failed to get related items for entity {entity.entity_id}: {e}")
+                            continue
+
+                    # Resolve entity_ids (strings) to ha.entity records
+                    automation_records = self.env['ha.entity'].sudo().search([
+                        ('entity_id', 'in', list(related_automations)),
+                        ('ha_instance_id', '=', instance_id)
+                    ]) if related_automations else self.env['ha.entity']
+
+                    script_records = self.env['ha.entity'].sudo().search([
+                        ('entity_id', 'in', list(related_scripts)),
+                        ('ha_instance_id', '=', instance_id)
+                    ]) if related_scripts else self.env['ha.entity']
+
+                    scene_records = self.env['ha.entity'].sudo().search([
+                        ('entity_id', 'in', list(related_scenes)),
+                        ('ha_instance_id', '=', instance_id)
+                    ]) if related_scenes else self.env['ha.entity']
+
+                    # Update device with related items (use sudo to bypass field restrictions)
+                    device.sudo().with_context(from_ha_sync=True).write({
+                        'related_automation_ids': [(6, 0, automation_records.ids)],
+                        'related_script_ids': [(6, 0, script_records.ids)],
+                        'related_scene_ids': [(6, 0, scene_records.ids)],
+                    })
+
+                    devices_processed += 1
+                    relation_count = len(automation_records) + len(script_records) + len(scene_records)
+                    total_relations += relation_count
+
+                    if relation_count > 0:
+                        _logger.debug(
+                            f"Device {device.name}: {len(automation_records)} automations, "
+                            f"{len(script_records)} scripts, {len(scene_records)} scenes"
+                        )
+
+                except Exception as e:
+                    _logger.error(f"Error processing device {device.name} ({device.device_id}): {e}")
+                    continue
+
+            _logger.info(
+                f"Related items sync completed: {devices_processed} devices processed, "
+                f"{total_relations} total relations found"
+            )
+            _logger.info("=== _sync_related_items_from_ha completed ===")
+
+            return {
+                'success': True,
+                'synced_devices': devices_processed,
+                'devices_processed': devices_processed,
+                'total_relations': total_relations
+            }
+
+        except Exception as e:
+            _logger.error(f"Failed to sync related items: {e}", exc_info=True)
+            return {
+                'success': False,
+                'error': str(e),
+                'synced_devices': 0,
+                'devices_processed': 0,
+                'total_relations': 0
+            }
+
+    @api.model
+    def _cron_sync_related_items(self):
+        """
+        Cron job wrapper to sync device related items (automations/scripts/scenes).
+
+        This method is called by the ir.cron scheduler and syncs related items
+        for all active HA instances.
+        """
+        _logger.info("Starting cron: Sync Device Related Items")
+
+        try:
+            # Get all active HA instances
+            instances = self.env['ha.instance'].sudo().search([('state', '=', 'active')])
+
+            for instance in instances:
+                try:
+                    _logger.info(f"Syncing related items for instance: {instance.name} (ID: {instance.id})")
+                    result = self._sync_related_items_from_ha(instance_id=instance.id)
+                    _logger.info(
+                        f"Instance {instance.name}: {result.get('devices_processed', 0)} devices, "
+                        f"{result.get('total_relations', 0)} relations"
+                    )
+                except Exception as e:
+                    _logger.error(f"Failed to sync related items for instance {instance.name}: {e}")
+                    continue
+
+            _logger.info("Cron completed: Sync Device Related Items")
+
+        except Exception as e:
+            _logger.error(f"Cron failed: Sync Device Related Items - {e}", exc_info=True)
