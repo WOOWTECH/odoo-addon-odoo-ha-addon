@@ -472,7 +472,7 @@ class HAEntity(models.Model):
             # Phase 3: 傳入 instance_id
             client = get_websocket_client(self.env, instance_id=instance_id)
 
-            # 取得 entity_registry 資料
+            # Fetch registry data BEFORE opening new cursor to avoid holding connections
             _logger.debug("Fetching entity_registry list...")
             registry_data = client.call_websocket_api_sync('config/entity_registry/list', {})
 
@@ -482,101 +482,134 @@ class HAEntity(models.Model):
 
             _logger.info(f"Received {len(registry_data)} entity registry entries")
 
-            # Phase 3: 建立 area_id -> ha.area record ID 的映射（只包含此實例的 areas）
-            areas = self.env['ha.area'].sudo().search([
-                ('ha_instance_id', '=', instance_id)
-            ])
-            area_map = {area.area_id: area.id for area in areas}
-
-            # 建立 device_id -> ha.device record ID 的映射（只包含此實例的 devices）
-            devices = self.env['ha.device'].sudo().search([
-                ('ha_instance_id', '=', instance_id)
-            ])
-            device_map = {device.device_id: device.id for device in devices}
-            _logger.info(f"Device map size: {len(device_map)} devices for instance {instance_id}")
-            if device_map:
-                _logger.debug(f"Sample device_ids in map: {list(device_map.keys())[:3]}")
-
-            area_updated_count = 0
-            label_updated_count = 0
-            device_updated_count = 0
-            for entry in registry_data:
-                try:
-                    entity_id = entry.get('entity_id')
-                    ha_area_id = entry.get('area_id')  # HA 的 area_id (string)
-                    ha_labels = entry.get('labels', [])  # HA 的 labels (label_id array)
-                    ha_device_id = entry.get('device_id')  # HA 的 device_id (string)
-
-                    if not entity_id:
-                        continue
-
-                    # Phase 3: 查找對應的 entity（加上 instance_id 過濾）
-                    entity = self.env['ha.entity'].sudo().search([
-                        ('entity_id', '=', entity_id),
-                        ('ha_instance_id', '=', instance_id)
-                    ], limit=1)
-
-                    if not entity:
-                        continue
-
-                    update_vals = {}
-
-                    # 更新 area_id
-                    if ha_area_id and ha_area_id in area_map:
-                        odoo_area_id = area_map[ha_area_id]
-                        if entity.area_id.id != odoo_area_id:
-                            update_vals['area_id'] = odoo_area_id
-                            area_updated_count += 1
-                            _logger.debug(f"Updated entity {entity_id} -> area {ha_area_id}")
-                    elif not ha_area_id and entity.area_id:
-                        # HA 中沒有 area，清空 Odoo 的 area_id
-                        update_vals['area_id'] = False
-                        area_updated_count += 1
-
-                    # 更新 label_ids
-                    if ha_labels:
-                        label_records = self.env['ha.label'].get_or_create_labels(ha_labels, instance_id)
-                        current_label_ids = set(entity.label_ids.ids)
-                        new_label_ids = set(label_records.ids)
-                        if current_label_ids != new_label_ids:
-                            update_vals['label_ids'] = [(6, 0, label_records.ids)]
-                            label_updated_count += 1
-                            _logger.debug(f"Updated entity {entity_id} labels: {ha_labels}")
-                    elif entity.label_ids:
-                        # 清空 labels
-                        update_vals['label_ids'] = [(5, 0, 0)]
-                        label_updated_count += 1
-
-                    # 更新 device_id
-                    if ha_device_id and ha_device_id in device_map:
-                        odoo_device_id = device_map[ha_device_id]
-                        if entity.device_id.id != odoo_device_id:
-                            update_vals['device_id'] = odoo_device_id
-                            device_updated_count += 1
-                            _logger.debug(f"Updated entity {entity_id} -> device {ha_device_id} (odoo_id={odoo_device_id})")
-                    elif ha_device_id and ha_device_id not in device_map:
-                        # Log when device_id is in registry but not in our device_map
-                        if device_updated_count < 3:  # Only log first few
-                            _logger.warning(f"Entity {entity_id} has device_id={ha_device_id} but not in device_map")
-                    elif not ha_device_id and entity.device_id:
-                        # HA 中沒有 device，清空 Odoo 的 device_id
-                        update_vals['device_id'] = False
-                        device_updated_count += 1
-
-                    if update_vals:
-                        entity.with_context(from_ha_sync=True).write(update_vals)
-
-                except Exception as e:
-                    _logger.error(f"Error syncing relations for entity: {e}")
-
-            _logger.info(
-                f"Entity relations sync completed (instance {instance_id}): "
-                f"{area_updated_count} areas updated, {label_updated_count} labels updated, "
-                f"{device_updated_count} devices updated"
-            )
+            # Use a NEW cursor to isolate sync from concurrent WebSocket updates
+            # This prevents "current transaction is aborted" errors from affecting the sync
+            with self.pool.cursor() as new_cr:
+                # Set isolation level to READ COMMITTED to avoid serialization conflicts
+                # with real-time WebSocket state updates running in the main server
+                new_cr.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+                new_env = self.env(cr=new_cr)
+                self._do_sync_entity_registry_relations(new_env, instance_id, registry_data)
+                new_cr.commit()
+                _logger.info(f"Entity relations sync transaction committed successfully")
 
         except Exception as e:
             _logger.error(f"Failed to sync entity-area-label-device relations: {e}", exc_info=True)
+
+    def _do_sync_entity_registry_relations(self, env, instance_id, registry_data):
+        """
+        Internal method to perform the actual sync using the provided environment.
+        This is called with a fresh cursor to isolate from concurrent updates.
+
+        Args:
+            env: The environment with a fresh cursor
+            instance_id: HA instance ID
+            registry_data: List of entity registry entries from HA
+        """
+        # Phase 3: 建立 area_id -> ha.area record ID 的映射（只包含此實例的 areas）
+        areas = env['ha.area'].sudo().search([
+            ('ha_instance_id', '=', instance_id)
+        ])
+        area_map = {area.area_id: area.id for area in areas}
+
+        # 建立 device_id -> ha.device record ID 的映射（只包含此實例的 devices）
+        devices = env['ha.device'].sudo().search([
+            ('ha_instance_id', '=', instance_id)
+        ])
+        device_map = {device.device_id: device.id for device in devices}
+        _logger.info(f"Device map size: {len(device_map)} devices for instance {instance_id}")
+        if device_map:
+            _logger.debug(f"Sample device_ids in map: {list(device_map.keys())[:3]}")
+
+        area_updated_count = 0
+        label_updated_count = 0
+        device_updated_count = 0
+        device_set_count = 0  # Entities where device_id was SET
+        device_clear_count = 0  # Entities where device_id was CLEARED
+        device_not_in_map_count = 0  # Entities with device_id not in our map
+        for entry in registry_data:
+            try:
+                entity_id = entry.get('entity_id')
+                ha_area_id = entry.get('area_id')  # HA 的 area_id (string)
+                ha_labels = entry.get('labels', [])  # HA 的 labels (label_id array)
+                ha_device_id = entry.get('device_id')  # HA 的 device_id (string)
+
+                if not entity_id:
+                    continue
+
+                # Phase 3: 查找對應的 entity（加上 instance_id 過濾）
+                entity = env['ha.entity'].sudo().search([
+                    ('entity_id', '=', entity_id),
+                    ('ha_instance_id', '=', instance_id)
+                ], limit=1)
+
+                if not entity:
+                    continue
+
+                update_vals = {}
+
+                # 更新 area_id
+                if ha_area_id and ha_area_id in area_map:
+                    odoo_area_id = area_map[ha_area_id]
+                    if entity.area_id.id != odoo_area_id:
+                        update_vals['area_id'] = odoo_area_id
+                        area_updated_count += 1
+                        _logger.debug(f"Updated entity {entity_id} -> area {ha_area_id}")
+                elif not ha_area_id and entity.area_id:
+                    # HA 中沒有 area，清空 Odoo 的 area_id
+                    update_vals['area_id'] = False
+                    area_updated_count += 1
+
+                # 更新 label_ids
+                if ha_labels:
+                    label_records = env['ha.label'].get_or_create_labels(ha_labels, instance_id)
+                    current_label_ids = set(entity.label_ids.ids)
+                    new_label_ids = set(label_records.ids)
+                    if current_label_ids != new_label_ids:
+                        update_vals['label_ids'] = [(6, 0, label_records.ids)]
+                        label_updated_count += 1
+                        _logger.debug(f"Updated entity {entity_id} labels: {ha_labels}")
+                elif entity.label_ids:
+                    # 清空 labels
+                    update_vals['label_ids'] = [(5, 0, 0)]
+                    label_updated_count += 1
+
+                # 更新 device_id
+                if ha_device_id and ha_device_id in device_map:
+                    odoo_device_id = device_map[ha_device_id]
+                    if entity.device_id.id != odoo_device_id:
+                        update_vals['device_id'] = odoo_device_id
+                        device_updated_count += 1
+                        device_set_count += 1
+                        _logger.debug(f"SET device_id: entity {entity_id} -> device {ha_device_id} (odoo_id={odoo_device_id})")
+                elif ha_device_id and ha_device_id not in device_map:
+                    # Log when device_id is in registry but not in our device_map
+                    device_not_in_map_count += 1
+                    if device_not_in_map_count <= 5:  # Only log first few
+                        _logger.warning(f"Entity {entity_id} has device_id={ha_device_id} but not in device_map")
+                elif not ha_device_id and entity.device_id:
+                    # HA 中沒有 device，清空 Odoo 的 device_id
+                    update_vals['device_id'] = False
+                    device_updated_count += 1
+                    device_clear_count += 1
+
+                if update_vals:
+                    _logger.debug(f"Writing update_vals for {entity_id}: {update_vals}")
+                    try:
+                        # Must use sudo() to bypass _USER_EDITABLE_FIELDS restriction for device_id
+                        entity.sudo().with_context(from_ha_sync=True).write(update_vals)
+                    except Exception as write_error:
+                        _logger.error(f"Write failed for {entity_id}: {write_error}")
+
+            except Exception as e:
+                _logger.error(f"Error syncing relations for entity: {e}")
+
+        _logger.info(
+            f"Entity relations sync completed (instance {instance_id}): "
+            f"{area_updated_count} areas updated, {label_updated_count} labels updated, "
+            f"{device_updated_count} device relations updated "
+            f"(SET: {device_set_count}, CLEARED: {device_clear_count}, NOT_IN_MAP: {device_not_in_map_count})"
+        )
 
     def fetch_states(self):
         """
