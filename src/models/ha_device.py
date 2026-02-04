@@ -205,50 +205,32 @@ class HADevice(models.Model):
         for device in self:
             device.entity_count = len(device.entity_ids)
 
-    @api.depends('ha_instance_id')
+    @api.depends('entity_ids')
     def _compute_related_automations(self):
-        """Compute automation entities from the same HA instance"""
+        """Compute automation entities that belong to this device"""
         for device in self:
-            if device.ha_instance_id:
-                automations = self.env['ha.entity'].sudo().search([
-                    ('domain', '=', 'automation'),
-                    ('ha_instance_id', '=', device.ha_instance_id.id),
-                ])
-                device.automation_ids = automations
-                device.automation_count = len(automations)
-            else:
-                device.automation_ids = False
-                device.automation_count = 0
+            # Only show automations that are direct children of this device
+            automations = device.entity_ids.filtered(lambda e: e.domain == 'automation')
+            device.automation_ids = automations
+            device.automation_count = len(automations)
 
-    @api.depends('ha_instance_id')
+    @api.depends('entity_ids')
     def _compute_related_scripts(self):
-        """Compute script entities from the same HA instance"""
+        """Compute script entities that belong to this device"""
         for device in self:
-            if device.ha_instance_id:
-                scripts = self.env['ha.entity'].sudo().search([
-                    ('domain', '=', 'script'),
-                    ('ha_instance_id', '=', device.ha_instance_id.id),
-                ])
-                device.script_ids = scripts
-                device.script_count = len(scripts)
-            else:
-                device.script_ids = False
-                device.script_count = 0
+            # Only show scripts that are direct children of this device
+            scripts = device.entity_ids.filtered(lambda e: e.domain == 'script')
+            device.script_ids = scripts
+            device.script_count = len(scripts)
 
-    @api.depends('ha_instance_id')
+    @api.depends('entity_ids')
     def _compute_related_scenes(self):
-        """Compute scene entities from the same HA instance"""
+        """Compute scene entities that belong to this device"""
         for device in self:
-            if device.ha_instance_id:
-                scenes = self.env['ha.entity'].sudo().search([
-                    ('domain', '=', 'scene'),
-                    ('ha_instance_id', '=', device.ha_instance_id.id),
-                ])
-                device.scene_ids = scenes
-                device.scene_count = len(scenes)
-            else:
-                device.scene_ids = False
-                device.scene_count = 0
+            # Only show scenes that are direct children of this device
+            scenes = device.entity_ids.filtered(lambda e: e.domain == 'scene')
+            device.scene_ids = scenes
+            device.scene_count = len(scenes)
 
     # ========== Bidirectional Sync: Odoo → HA ==========
 
