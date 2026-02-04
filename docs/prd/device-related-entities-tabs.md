@@ -1,235 +1,309 @@
 ---
 name: device-related-entities-tabs
-description: Add related entities list and automation/script/scene tabs to device form view
-status: backlog
+description: Show automations/scripts/scenes that REFERENCE a device's entities using HA search/related API
+status: in-progress
 created: 2026-02-04T11:10:43Z
-updated: 2026-02-04T11:10:43Z
+updated: 2026-02-04T12:48:19Z
 ---
 
 # Device Related Entities & Automation Tabs
 
 ## Problem Statement
 
-Currently, the Device form view has an "Entities" tab that should display all entities belonging to the device, but:
+Currently, the Device form view displays entities that **belong to** the device (via `device_id`), but:
 
-1. **Entities tab appears empty** - The entity list is not populating correctly
-2. **No automation/script/scene visibility** - Users cannot see automations, scripts, or scenes related to the device from the device form
+1. **Automations/Scripts/Scenes tabs show wrong data** - They show entities where `device_id = device` AND `domain = automation|script|scene`, but this is incorrect
+2. **HA behavior is different** - Home Assistant shows automations/scripts/scenes that **REFERENCE** the device's entities, not those that belong to the device
 
-Users need to quickly see:
-- All entities associated with a device (sensors, switches, lights, etc.)
-- Related automations that use the device's entities
-- Related scripts that control the device
-- Related scenes that include the device
+### Example of Correct Behavior (from HA screenshots)
+
+For device "Hue原廠燈條":
+- **Automations section** shows automation "建立" that references `light.hue_yuan_chang_deng_tiao` in its triggers/actions
+- **Scenes section** shows scene "場景" that includes the device's light entity
+- **Scripts section** shows script "新本" that controls the device
+
+This is fundamentally different from showing automations/scripts/scenes where `device_id` equals the device.
 
 ## Requirements
 
-### 1. Fix Entities Tab Population
+### 1. Fix Automations Tab - Show Referenced Automations
 
-**Current State:** Entities tab shows empty list
-**Expected:** Show all `ha.entity` records where `device_id` matches the current device
+**Current (Wrong):** Show `ha.entity` where `domain='automation'` AND `device_id=device`
+**Expected (Correct):** Show `ha.entity` where `domain='automation'` AND the automation's config REFERENCES any of the device's entities
 
-The existing field definition is correct:
-```python
-entity_ids = fields.One2many(
-    'ha.entity',
-    'device_id',
-    string='Entities',
-    help='Entities belonging to this device'
-)
-```
+### 2. Fix Scripts Tab - Show Referenced Scripts
 
-**Investigation needed:** Verify if entities have their `device_id` field properly populated during sync.
+**Current (Wrong):** Show `ha.entity` where `domain='script'` AND `device_id=device`
+**Expected (Correct):** Show `ha.entity` where `domain='script'` AND the script's config REFERENCES any of the device's entities
 
-### 2. Add Automations Tab
+### 3. Fix Scenes Tab - Show Referenced Scenes
 
-Display all entities with `domain = 'automation'` that reference any of the device's entities.
-
-**Tab Name:** "Automations"
-**Columns:**
-- Entity ID
-- Name
-- State (on/off)
-- Last Triggered
-
-**Logic:** An automation is "related" to a device if it references any of the device's entities in its triggers, conditions, or actions.
-
-### 3. Add Scripts Tab
-
-Display all entities with `domain = 'script'` that reference any of the device's entities.
-
-**Tab Name:** "Scripts"
-**Columns:**
-- Entity ID
-- Name
-- State
-- Last Triggered
-
-### 4. Add Scenes Tab
-
-Display all entities with `domain = 'scene'` that include any of the device's entities.
-
-**Tab Name:** "Scenes"
-**Columns:**
-- Entity ID
-- Name
-- State
+**Current (Wrong):** Show `ha.entity` where `domain='scene'` AND `device_id=device`
+**Expected (Correct):** Show `ha.entity` where `domain='scene'` AND the scene INCLUDES any of the device's entities
 
 ## Technical Design
 
-### Option A: Computed Fields (Recommended)
+### Home Assistant API: `search/related`
 
-Add computed Many2many fields to `ha.device` model:
+HA provides a WebSocket API to find related items:
+
+```json
+// Request
+{
+  "type": "search/related",
+  "item_type": "entity",
+  "item_id": "light.hue_yuan_chang_deng_tiao",
+  "id": 45
+}
+
+// Response
+{
+  "id": 45,
+  "type": "result",
+  "success": true,
+  "result": {
+    "area": ["wo_shi"],
+    "device": ["4a913b08c70ae173a12cf738e341aea4"],
+    "config_entry": ["01K5TQF9Q0CAPR3G1NA8V7REGR"],
+    "integration": ["virtual"],
+    "label": ["test9", "jj2"],
+    "automation": ["automation.duo_qie_kai_guan_kong_zhi_deng_ju"],
+    "scene": ["scene.test2"],
+    "script": ["script.notify"]
+  }
+}
+```
+
+### Implementation Approach
+
+#### Step 1: Create Device Related Items Sync Method
 
 ```python
 # In ha_device.py
-automation_ids = fields.Many2many(
-    'ha.entity',
-    string='Related Automations',
-    compute='_compute_related_automations',
-    help='Automations that reference this device\'s entities'
-)
+def _sync_related_items_from_ha(self, instance_id=None):
+    """
+    Sync related automations/scripts/scenes for all devices.
 
-script_ids = fields.Many2many(
-    'ha.entity',
-    string='Related Scripts',
-    compute='_compute_related_scripts',
-    help='Scripts that reference this device\'s entities'
-)
+    For each device:
+    1. Get all entity_ids belonging to the device
+    2. For each entity, call search/related API
+    3. Collect all automation/script/scene entity_ids
+    4. Deduplicate and store in device fields
+    """
+    from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
 
-scene_ids = fields.Many2many(
-    'ha.entity',
-    string='Related Scenes',
-    compute='_compute_related_scenes',
-    help='Scenes that include this device\'s entities'
-)
+    devices = self.search([('ha_instance_id', '=', instance_id)])
+    client = get_websocket_client(self.env, instance_id=instance_id)
 
-def _compute_related_automations(self):
-    for device in self:
-        entity_ids = device.entity_ids.mapped('entity_id')
-        # Find automations that reference any of these entity_ids
-        # This requires parsing automation attributes/config
-        automations = self.env['ha.entity'].search([
-            ('domain', '=', 'automation'),
-            ('ha_instance_id', '=', device.ha_instance_id.id),
-            # Additional filtering based on entity references
+    for device in devices:
+        related_automations = set()
+        related_scripts = set()
+        related_scenes = set()
+
+        # Query search/related for each entity in the device
+        for entity in device.entity_ids:
+            result = client.call_websocket_api_sync(
+                'search/related',
+                {'item_type': 'entity', 'item_id': entity.entity_id}
+            )
+
+            if result:
+                related_automations.update(result.get('automation', []))
+                related_scripts.update(result.get('script', []))
+                related_scenes.update(result.get('scene', []))
+
+        # Resolve entity_ids to ha.entity records
+        automation_records = self.env['ha.entity'].search([
+            ('entity_id', 'in', list(related_automations)),
+            ('ha_instance_id', '=', instance_id)
         ])
-        device.automation_ids = automations
+        script_records = self.env['ha.entity'].search([
+            ('entity_id', 'in', list(related_scripts)),
+            ('ha_instance_id', '=', instance_id)
+        ])
+        scene_records = self.env['ha.entity'].search([
+            ('entity_id', 'in', list(related_scenes)),
+            ('ha_instance_id', '=', instance_id)
+        ])
 
-def _compute_related_scripts(self):
-    # Similar logic for scripts
-    pass
-
-def _compute_related_scenes(self):
-    # Similar logic for scenes
-    pass
+        # Update device with related items
+        device.write({
+            'related_automation_ids': [(6, 0, automation_records.ids)],
+            'related_script_ids': [(6, 0, script_records.ids)],
+            'related_scene_ids': [(6, 0, scene_records.ids)],
+        })
 ```
 
-### Option B: Simple Domain Filter
+#### Step 2: Add Stored Many2many Fields
 
-If determining "related" is complex, start with showing all automations/scripts/scenes from the same HA instance:
+Change from computed fields to stored fields (populated during sync):
 
 ```python
-automation_ids = fields.One2many(
+# In ha_device.py (replace computed fields)
+related_automation_ids = fields.Many2many(
     'ha.entity',
-    compute='_compute_automations',
+    'ha_device_related_automation_rel',
+    'device_id',
+    'entity_id',
+    string='Related Automations',
+    help='Automations that reference this device\'s entities',
+    domain="[('domain', '=', 'automation')]"
 )
 
-def _compute_automations(self):
-    for device in self:
-        device.automation_ids = self.env['ha.entity'].search([
-            ('domain', '=', 'automation'),
-            ('ha_instance_id', '=', device.ha_instance_id.id),
-        ])
+related_script_ids = fields.Many2many(
+    'ha.entity',
+    'ha_device_related_script_rel',
+    'device_id',
+    'entity_id',
+    string='Related Scripts',
+    help='Scripts that reference this device\'s entities',
+    domain="[('domain', '=', 'script')]"
+)
+
+related_scene_ids = fields.Many2many(
+    'ha.entity',
+    'ha_device_related_scene_rel',
+    'device_id',
+    'entity_id',
+    string='Related Scenes',
+    help='Scenes that include this device\'s entities',
+    domain="[('domain', '=', 'scene')]"
+)
 ```
 
-### View Changes
+#### Step 3: Integrate into Sync Flow
 
-Update `ha_device_views.xml`:
+Call `_sync_related_items_from_ha()` after entity sync:
+
+```python
+# In hooks.py or cron job
+def sync_ha_data(instance_id):
+    # 1. Sync entities (existing)
+    env['ha.entity'].sync_entity_states_from_ha(instance_id)
+
+    # 2. Sync entity registry relations (existing)
+    env['ha.entity']._sync_entity_registry_relations(instance_id)
+
+    # 3. NEW: Sync device related items
+    env['ha.device']._sync_related_items_from_ha(instance_id)
+```
+
+#### Step 4: Update View Field Names
 
 ```xml
-<notebook>
-    <page string="Entities" name="entities">
-        <field name="entity_ids" readonly="1">
-            <list>
-                <field name="entity_id"/>
-                <field name="name"/>
-                <field name="domain"/>
-                <field name="entity_state" string="State"/>
-            </list>
-        </field>
-    </page>
-    <page string="Automations" name="automations">
-        <field name="automation_ids" readonly="1">
-            <list>
-                <field name="entity_id"/>
-                <field name="name"/>
-                <field name="entity_state" string="State"/>
-                <field name="last_changed" string="Last Triggered"/>
-            </list>
-        </field>
-    </page>
-    <page string="Scripts" name="scripts">
-        <field name="script_ids" readonly="1">
-            <list>
-                <field name="entity_id"/>
-                <field name="name"/>
-                <field name="entity_state" string="State"/>
-                <field name="last_changed" string="Last Triggered"/>
-            </list>
-        </field>
-    </page>
-    <page string="Scenes" name="scenes">
-        <field name="scene_ids" readonly="1">
-            <list>
-                <field name="entity_id"/>
-                <field name="name"/>
-                <field name="entity_state"/>
-            </list>
-        </field>
-    </page>
-    <page string="Technical" name="technical">
-        <!-- existing technical content -->
-    </page>
-</notebook>
+<!-- In ha_device_views.xml -->
+<page string="Automations" name="automations">
+    <!-- Change from automation_ids to related_automation_ids -->
+    <field name="related_automation_ids" readonly="1">
+        <list>
+            <field name="entity_id"/>
+            <field name="name"/>
+            <field name="entity_state" string="State"/>
+            <field name="last_changed" string="Last Triggered"/>
+        </list>
+    </field>
+</page>
+<page string="Scripts" name="scripts">
+    <field name="related_script_ids" readonly="1">
+        <list>
+            <field name="entity_id"/>
+            <field name="name"/>
+            <field name="entity_state" string="State"/>
+            <field name="last_changed" string="Last Triggered"/>
+        </list>
+    </field>
+</page>
+<page string="Scenes" name="scenes">
+    <field name="related_scene_ids" readonly="1">
+        <list>
+            <field name="entity_id"/>
+            <field name="name"/>
+            <field name="entity_state"/>
+        </list>
+    </field>
+</page>
 ```
+
+### Optimization Considerations
+
+#### API Call Reduction
+
+For devices with many entities (e.g., 20 entities), this would make 20 API calls. Options:
+1. **Batch processing** - Sync all devices in one cron job run
+2. **Caching** - Store results and only re-sync periodically (hourly/daily)
+3. **Lazy loading** - Only sync when user views the device form (not recommended for UX)
+
+Recommended: Use cron job to sync every 15-30 minutes.
+
+#### Performance
+
+- Use `fields.Many2many` with explicit relation tables
+- Add database index on relation tables
+- Consider limiting entities queried per device (e.g., max 50)
 
 ## Implementation Steps
 
-1. **Phase 1: Fix Entity Population**
-   - Investigate why `entity_ids` is empty
-   - Verify `device_id` is being set on entities during HA sync
-   - Fix sync logic if needed
+### Phase 1: Add New Fields (Model Changes)
+- [ ] Add `related_automation_ids`, `related_script_ids`, `related_scene_ids` fields
+- [ ] Create relation tables in database
+- [ ] Update `__manifest__.py` with migration if needed
 
-2. **Phase 2: Add Computed Fields**
-   - Add `automation_ids`, `script_ids`, `scene_ids` computed fields to `ha.device`
-   - Implement compute methods with basic filtering
+### Phase 2: Implement Sync Method
+- [ ] Add `_sync_related_items_from_ha()` method to `ha.device`
+- [ ] Handle API errors gracefully
+- [ ] Add logging for debugging
 
-3. **Phase 3: Update Views**
-   - Add new tabs to device form view
-   - Test display of related entities
+### Phase 3: Integrate with Sync Flow
+- [ ] Add cron job for periodic sync (or integrate into existing sync)
+- [ ] Ensure sync runs after entity sync
 
-4. **Phase 4: Advanced Filtering (Optional)**
-   - Parse automation/script/scene configurations
-   - Filter to only truly related automations (those that reference device entities)
+### Phase 4: Update Views
+- [ ] Update `ha_device_views.xml` to use new field names
+- [ ] Update i18n translations
+
+### Phase 5: Testing
+- [ ] Test with device that has related automations
+- [ ] Test with device that has no related items (empty tabs)
+- [ ] Test API error handling
 
 ## Success Criteria
 
-- [ ] Entities tab shows all entities belonging to the device
-- [ ] Automations tab displays automation entities from same HA instance
-- [ ] Scripts tab displays script entities from same HA instance
-- [ ] Scenes tab displays scene entities from same HA instance
-- [ ] All tabs are read-only (display only)
+- [ ] Automations tab shows automations that **reference** the device's entities
+- [ ] Scripts tab shows scripts that **reference** the device's entities
+- [ ] Scenes tab shows scenes that **include** the device's entities
+- [ ] Data matches what Home Assistant shows on device page
+- [ ] Empty tabs display gracefully (no errors)
+- [ ] Sync runs periodically without performance issues
 - [ ] i18n: Tab names translated to zh_TW
 
 ## Out of Scope
 
 - Editing automations/scripts/scenes from Odoo
 - Creating new automations from device view
-- Deep parsing of automation YAML to find exact entity references (Phase 4 optional)
+- Real-time updates via WebSocket subscription (can be future enhancement)
 
 ## References
 
-- Current device form: `src/views/ha_device_views.xml`
-- Device model: `src/models/ha_device.py`
-- Entity model: `src/models/ha_entity.py`
-- Entity sync logic: `src/models/ha_entity.py:sync_entity_from_ha_data()`
+### Files to Modify
+- `src/models/ha_device.py` - Add fields and sync method
+- `src/views/ha_device_views.xml` - Update tab field names
+- `src/data/ir_cron.xml` - Add cron job (optional)
+- `i18n/zh_TW.po` - Add translations
+
+### API Documentation
+- `docs/homeassistant-api/websocket-message-logs/search_related.md` - search/related API spec
+- `docs/reference/home-assistant-api/` - General HA API docs
+
+### Related Code
+- `src/controllers/controllers.py:get_entity_relations()` - Existing search/related usage
+- `src/models/common/websocket_client.py` - WebSocket client
+
+## Appendix: Current vs Expected Behavior
+
+| Aspect | Current (Wrong) | Expected (Correct) |
+|--------|-----------------|-------------------|
+| Data Source | `device_id` field on entity | HA `search/related` API |
+| Automations | Automations where device_id=device | Automations that **use** device's entities |
+| Scenes | Scenes where device_id=device | Scenes that **include** device's entities |
+| Scripts | Scripts where device_id=device | Scripts that **control** device's entities |
+| Hue原廠燈條 example | Empty (no automation has device_id=hue) | "建立" automation (references light.hue...) |
