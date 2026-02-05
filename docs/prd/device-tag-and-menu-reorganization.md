@@ -12,6 +12,27 @@
 
 ---
 
+## 實作狀態
+
+| Phase | 說明 | 狀態 | 檔案 |
+|-------|------|------|------|
+| 1 | 選單重組 | ✅ 完成 | `src/views/dashboard_menu.xml` |
+| 2 | Device Tag 模型 | ✅ 完成 | `src/models/ha_device_tag.py` |
+| 3 | Device Tag 視圖 | ✅ 完成 | `src/views/ha_device_tag_views.xml` |
+| 4 | Device 模型更新 | ✅ 完成 | `src/models/ha_device.py` |
+| 5 | Device 視圖更新 | ✅ 完成 | `src/views/ha_device_views.xml` |
+| 6 | 選單項目新增 | ✅ 完成 | `src/views/dashboard_menu.xml` |
+| 7 | 模組註冊 | ✅ 完成 | `src/models/__init__.py` |
+| 8 | 權限設定 | ✅ 完成 | `src/security/ir.model.access.csv` |
+
+### 已發現並修復的問題
+
+| 問題 | 檔案 | 修復 |
+|------|------|------|
+| `custom_name` 欄位名稱錯誤 | `ha_device_tag_views.xml:67` | 改為 `name_by_user` |
+
+---
+
 ## 變更範圍
 
 ### 1. 選單重組
@@ -86,8 +107,8 @@ tag_ids = fields.Many2many(
     'device_id',
     'tag_id',
     string='Tags',
-    help='Tags for this device',
-    tracking=True
+    domain="[('ha_instance_id', '=', ha_instance_id)]",
+    help='Tags for this device (Odoo-only, not synced with HA)'
 )
 
 tag_count = fields.Integer(
@@ -100,150 +121,15 @@ tag_count = fields.Integer(
 **新增方法**：
 - `_compute_tag_count()` - 計算標籤數量
 - `action_view_tags()` - 開啟標籤列表
-- 更新 `_check_instance_consistency()` - 驗證 tag 與 device 屬於同一實例
+
+**更新 `_USER_EDITABLE_FIELDS`**：加入 `tag_ids`
 
 ### 4. 更新 Device 表單視圖
 
 **新增內容**：
 1. Button Box 中新增 Tags 統計按鈕
-2. 新增 Tags 區塊，使用 `many2many_tags` widget
-
----
-
-## 實作計畫
-
-### Phase 1: 選單重組
-**檔案**：`src/views/dashboard_menu.xml`
-
-**變更**：
-1. 移除 Model 選單下的 Entity Tag 和 Entity Group Tag
-2. 在 Configuration 選單下新增這兩個項目
-
-```xml
-<!-- Configuration 選單新增 -->
-<menuitem name="Entity Tag"
-          id="odoo_ha_addon.config_entity_tag_menu"
-          action="odoo_ha_addon.ha_entity_tag_action"
-          parent="odoo_ha_addon.configuration_top_menu"
-          sequence="10"/>
-<menuitem name="Entity Group Tag"
-          id="odoo_ha_addon.config_entity_group_tag_menu"
-          action="odoo_ha_addon.ha_entity_group_tag_action"
-          parent="odoo_ha_addon.configuration_top_menu"
-          sequence="11"/>
-```
-
-### Phase 2: Device Tag 模型
-**新增檔案**：`src/models/ha_device_tag.py`
-
-**參照**：`src/models/ha_entity_tag.py`
-
-**核心實作**：
-```python
-class HADeviceTag(models.Model):
-    _name = 'ha.device.tag'
-    _description = 'HA Device Tag'
-    _inherit = ['ha.current.instance.filter.mixin']
-    _order = 'sequence, name'
-
-    ha_instance_id = fields.Many2one(
-        'ha.instance',
-        string='HA Instance',
-        required=True,
-        index=True,
-        ondelete='cascade'
-    )
-    name = fields.Char(string='Tag Name', required=True, index=True)
-    color = fields.Integer(string='Color', default=0)
-    description = fields.Text(string='Description')
-    sequence = fields.Integer(string='Sequence', default=10)
-    active = fields.Boolean(string='Active', default=True)
-
-    device_ids = fields.Many2many(
-        'ha.device',
-        'ha_device_tag_rel',
-        'tag_id',
-        'device_id',
-        string='Devices'
-    )
-
-    device_count = fields.Integer(
-        string='Device Count',
-        compute='_compute_device_count',
-        store=True
-    )
-```
-
-### Phase 3: Device Tag 視圖
-**新增檔案**：`src/views/ha_device_tag_views.xml`
-
-**參照**：`src/views/ha_entity_tag_views.xml`
-
-**視圖類型**：
-- List View（可編輯，支援拖曳排序）
-- Form View（含 Devices 頁籤）
-- Kanban View
-- Search View
-
-### Phase 4: 更新 Device 模型
-**檔案**：`src/models/ha_device.py`
-
-**新增**：
-1. `tag_ids` Many2many 欄位
-2. `tag_count` 計算欄位
-3. `_compute_tag_count()` 方法
-4. `action_view_tags()` 方法
-5. 更新 `_check_instance_consistency()` 約束
-
-### Phase 5: 更新 Device 視圖
-**檔案**：`src/views/ha_device_views.xml`
-
-**新增**：
-1. Button Box 中的 Tags 按鈕
-2. Tags 欄位區塊
-
-```xml
-<!-- Button Box -->
-<button name="action_view_tags"
-        type="object"
-        class="oe_stat_button"
-        icon="fa-tags"
-        invisible="tag_count == 0">
-    <field name="tag_count" widget="statinfo" string="Tags"/>
-</button>
-
-<!-- Tags 區塊 -->
-<group string="Tags">
-    <field name="tag_ids" widget="many2many_tags"
-           domain="[('ha_instance_id', '=', ha_instance_id)]"
-           options="{'color_field': 'color', 'no_create': False}"
-           context="{'default_ha_instance_id': ha_instance_id}"/>
-</group>
-```
-
-### Phase 6: 選單新增 Device Tag
-**檔案**：`src/views/dashboard_menu.xml`
-
-```xml
-<menuitem name="Device Tag"
-          id="odoo_ha_addon.config_device_tag_menu"
-          action="odoo_ha_addon.ha_device_tag_action"
-          parent="odoo_ha_addon.configuration_top_menu"
-          sequence="12"/>
-```
-
-### Phase 7: 模組註冊
-**檔案**：`src/models/__init__.py`
-
-新增：
-```python
-from . import ha_device_tag
-```
-
-### Phase 8: 翻譯更新
-**檔案**：`src/i18n/zh_TW.po`
-
-新增 Device Tag 相關翻譯。
+2. Editable Fields 區塊新增 `tag_ids` 欄位
+3. Search View 新增 `tag_ids` 欄位
 
 ---
 
@@ -258,15 +144,50 @@ from . import ha_device_tag
 | `src/views/ha_device_views.xml` | 修改 | 新增 Tags 區塊 |
 | `src/views/dashboard_menu.xml` | 修改 | 選單重組 |
 | `src/security/ir.model.access.csv` | 修改 | 新增權限 |
-| `src/i18n/zh_TW.po` | 修改 | 新增翻譯 |
+| `src/__manifest__.py` | 修改 | 新增視圖檔案 |
+
+---
+
+## 測試計畫
+
+### 功能測試
+
+| 測試項目 | 步驟 | 預期結果 |
+|----------|------|----------|
+| 選單重組 - Entity Tag | 點擊 Configuration 選單 | 看到 Entity Tag 選項 |
+| 選單重組 - Entity Group Tag | 點擊 Configuration 選單 | 看到 Entity Group Tag 選項 |
+| 選單重組 - Model 選單 | 點擊 Model 選單 | 不再看到 Entity Tag 和 Entity Group Tag |
+| Device Tag 頁面 | 點擊 Configuration > Device Tag | 正常顯示 Kanban 視圖 |
+| Device Tag 新增 | 建立新的 Device Tag | 成功建立，顯示在列表中 |
+| Device Tag 編輯 | 修改 Device Tag | 成功儲存修改 |
+| Device Tag 刪除 | 刪除 Device Tag | 成功刪除 |
+| Device 表單 Tags | 開啟 Device 表單 | 看到 Tags 欄位在 Editable Fields 區塊 |
+| Device 新增 Tag | 在 Device 表單新增 Tag | Tag 成功關聯 |
+| Device 移除 Tag | 在 Device 表單移除 Tag | Tag 成功移除 |
+| Tags 統計按鈕 | Device 有 Tag 時 | 顯示 Tags 統計按鈕 |
+| Tags 搜尋 | 使用 tag_ids 搜尋 Device | 正確篩選結果 |
+
+### 資料驗證測試
+
+| 測試項目 | 步驟 | 預期結果 |
+|----------|------|----------|
+| Tag 名稱唯一性 | 建立同名 Tag | 顯示驗證錯誤 |
+| Instance 一致性 | 關聯不同 Instance 的 Device | 顯示驗證錯誤 |
+
+### 權限測試
+
+| 角色 | 預期權限 |
+|------|----------|
+| ha_manager | 完整 CRUD |
+| ha_user | 完整 CRUD |
 
 ---
 
 ## 驗收標準
 
 ### 功能驗收
-- [ ] Entity Tag 和 Entity Group Tag 出現在 Configuration 選單下
-- [ ] Entity Tag 和 Entity Group Tag 不再出現在 Model 選單下
+- [x] Entity Tag 和 Entity Group Tag 出現在 Configuration 選單下
+- [x] Entity Tag 和 Entity Group Tag 不再出現在 Model 選單下
 - [ ] Device Tag 頁面可正常存取
 - [ ] Device Tag 的 CRUD 操作正常
 - [ ] Device 表單顯示 Tags 區塊
@@ -279,8 +200,19 @@ from . import ha_device_tag
 - [ ] 同一 Instance 內 Tag 名稱唯一
 
 ### 權限驗證
-- [ ] ha_admin 群組可完整操作 Device Tag
-- [ ] ha_user 群組可查看 Device Tag
+- [ ] ha_user 群組可完整操作 Device Tag
+
+---
+
+## 部署指南
+
+```bash
+# 重啟 Odoo 服務
+docker compose restart web
+
+# 升級模組
+docker compose exec web odoo -c /etc/odoo/odoo.conf -d odoo -u odoo_ha_addon --stop-after-init
+```
 
 ---
 
@@ -288,4 +220,4 @@ from . import ha_device_tag
 
 - Entity Tag 實作：`src/models/ha_entity_tag.py`
 - Entity Tag 視圖：`src/views/ha_entity_tag_views.xml`
-- Entity 表單 Tags：`src/views/ha_entity_views.xml` (行 105-116)
+- Entity 表單 Tags：`src/views/ha_entity_views.xml`

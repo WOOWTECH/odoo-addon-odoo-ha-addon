@@ -64,7 +64,7 @@
                                    domain="[('ha_instance_id', '=', ha_instance_id)]">
                                 <list string="Devices">
                                     <field name="name"/>
-                                    <field name="custom_name"/>
+                                    <field name="name_by_user"/>
                                     <field name="manufacturer"/>
                                     <field name="model"/>
                                     <field name="area_id"/>
