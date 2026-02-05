@@ -118,6 +118,23 @@ class HADevice(models.Model):
         help='Device labels for categorization (synced with HA)'
     )
 
+    # Device Tags (Odoo-only, not synced with HA)
+    tag_ids = fields.Many2many(
+        'ha.device.tag',
+        'ha_device_tag_rel',
+        'device_id',
+        'tag_id',
+        string='Tags',
+        domain="[('ha_instance_id', '=', ha_instance_id)]",
+        help='Tags for this device (Odoo-only, not synced with HA)'
+    )
+    tag_count = fields.Integer(
+        string='Tag Count',
+        compute='_compute_tag_count',
+        store=True,
+        help='Number of tags assigned to this device'
+    )
+
     # Timestamps (read-only)
     created_at = fields.Float(
         string='Created At',
@@ -258,8 +275,9 @@ class HADevice(models.Model):
     # - area_id: Device 所屬區域（雙向同步到 HA）
     # - name_by_user: 使用者自訂名稱（雙向同步到 HA Device Registry）
     # - label_ids: Device 標籤（雙向同步到 HA Device Registry）
+    # - tag_ids: Device Tags（Odoo 內部使用，不同步到 HA）
     # - properties: 自訂屬性（Odoo 內部使用，不同步到 HA）
-    _USER_EDITABLE_FIELDS = {'area_id', 'name_by_user', 'label_ids', 'properties'}
+    _USER_EDITABLE_FIELDS = {'area_id', 'name_by_user', 'label_ids', 'tag_ids', 'properties'}
 
     # ========== Computed Fields ==========
 
@@ -267,6 +285,12 @@ class HADevice(models.Model):
     def _compute_entity_count(self):
         for device in self:
             device.entity_count = len(device.entity_ids)
+
+    @api.depends('tag_ids')
+    def _compute_tag_count(self):
+        """Calculate the number of tags assigned to this device"""
+        for device in self:
+            device.tag_count = len(device.tag_ids)
 
     @api.depends('related_automation_ids', 'related_script_ids', 'related_scene_ids')
     def _compute_related_counts(self):
@@ -759,6 +783,25 @@ class HADevice(models.Model):
             'domain': [('device_id', '=', self.id)],
             'context': {
                 'default_device_id': self.id,
+                'default_ha_instance_id': self.ha_instance_id.id,
+            },
+        }
+
+    def action_view_tags(self):
+        """
+        Navigate to the tag list filtered by this device's tags.
+
+        Returns an action to open ha.device.tag list view with
+        domain filtered to show only tags assigned to this device.
+        """
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Device Tags'),
+            'res_model': 'ha.device.tag',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', self.tag_ids.ids)],
+            'context': {
                 'default_ha_instance_id': self.ha_instance_id.id,
             },
         }

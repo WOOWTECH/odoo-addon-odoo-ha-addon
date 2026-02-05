@@ -47,6 +47,13 @@
                                 icon="fa-cube">
                             <field name="entity_count" widget="statinfo" string="Entities"/>
                         </button>
+                        <button name="action_view_tags"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-tags"
+                                invisible="tag_count == 0">
+                            <field name="tag_count" widget="statinfo" string="Tags"/>
+                        </button>
                     </div>
                     <div class="oe_title">
                         <label for="name" string="Device Name"/>
@@ -59,6 +66,9 @@
                             <field name="name_by_user" placeholder="Custom name..."/>
                             <field name="area_id" options="{'no_create': True}"/>
                             <field name="label_ids" widget="many2many_tags" options="{'color_field': 'color'}" context="{'default_ha_instance_id': ha_instance_id}"/>
+                            <field name="tag_ids" widget="many2many_tags"
+                                   options="{'color_field': 'color', 'no_create_edit': False}"
+                                   context="{'default_ha_instance_id': ha_instance_id}"/>
                         </group>
                         <group string="Device Info">
                             <field name="device_id" readonly="1"/>
@@ -183,6 +193,7 @@
                 <field name="manufacturer"/>
                 <field name="model"/>
                 <field name="area_id"/>
+                <field name="tag_ids"/>
                 <field name="ha_instance_id"/>
                 <filter name="filter_disabled" string="Disabled" domain="[('disabled_by', '!=', False)]"/>
                 <separator/>

@@ -13,12 +13,13 @@
             <menuitem name="Entity" id="odoo_ha_addon.model_entity_menu" action="odoo_ha_addon.entity_action" sequence="4"/>
             <menuitem name="History" id="odoo_ha_addon.model_entity_history_menu" action="odoo_ha_addon.entity_history_action" sequence="4"/>
             <menuitem name="Entity Group" id="odoo_ha_addon.model_entity_group_menu" action="odoo_ha_addon.ha_entity_group_action" sequence="10"/>
-            <menuitem name="Entity Group Tag" id="odoo_ha_addon.model_entity_group_tag_menu" action="odoo_ha_addon.ha_entity_group_tag_action" sequence="11"/>
-            <menuitem name="Entity Tag" id="odoo_ha_addon.model_entity_tag_menu" action="odoo_ha_addon.ha_entity_tag_action" sequence="12"/>
         </menuitem>
-        <menuitem name="Configuration" id="odoo_ha_addon.configuration_top_menu" sequence="5">
-            <menuitem name="HA Instances" id="odoo_ha_addon.menu_ha_instance" action="odoo_ha_addon.action_ha_instance" sequence="9"/>
-            <menuitem name="Setting" id="odoo_ha_addon.ha_settings_menu" action="odoo_ha_addon.ha_settings_action" sequence="12"/>
+        <menuitem name="Configuration" id="odoo_ha_addon.configuration_top_menu" sequence="6">
+            <menuitem name="HA Instances" id="odoo_ha_addon.menu_ha_instance" action="odoo_ha_addon.action_ha_instance" sequence="1"/>
+            <menuitem name="Entity Tag" id="odoo_ha_addon.config_entity_tag_menu" action="odoo_ha_addon.ha_entity_tag_action" sequence="10"/>
+            <menuitem name="Entity Group Tag" id="odoo_ha_addon.config_entity_group_tag_menu" action="odoo_ha_addon.ha_entity_group_tag_action" sequence="11"/>
+            <menuitem name="Device Tag" id="odoo_ha_addon.config_device_tag_menu" action="odoo_ha_addon.ha_device_tag_action" sequence="12"/>
+            <menuitem name="Setting" id="odoo_ha_addon.ha_settings_menu" action="odoo_ha_addon.ha_settings_action" sequence="20"/>
         </menuitem>
     </menuitem>
 </odoo>
