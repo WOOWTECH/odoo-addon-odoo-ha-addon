@@ -30,6 +30,7 @@
 | 問題 | 檔案 | 修復 |
 |------|------|------|
 | `custom_name` 欄位名稱錯誤 | `ha_device_tag_views.xml:67` | 改為 `name_by_user` |
+| mixin 載入順序錯誤 | `src/models/__init__.py` | 新增 `from . import common` 在最上方 |
 
 ---
 
@@ -188,15 +189,15 @@ tag_count = fields.Integer(
 ### 功能驗收
 - [x] Entity Tag 和 Entity Group Tag 出現在 Configuration 選單下
 - [x] Entity Tag 和 Entity Group Tag 不再出現在 Model 選單下
-- [ ] Device Tag 頁面可正常存取
-- [ ] Device Tag 的 CRUD 操作正常
-- [ ] Device 表單顯示 Tags 區塊
-- [ ] Device 表單可新增/移除 Tags
-- [ ] Tags 統計按鈕正確顯示數量
+- [x] Device Tag 頁面可正常存取
+- [x] Device Tag 的 CRUD 操作正常（新增測試通過）
+- [x] Device 表單顯示 Tags 區塊
+- [x] Device 表單可新增/移除 Tags
+- [x] Tags 統計按鈕正確顯示數量（顯示 "1 Tags"）
 - [ ] Tags 顏色正確顯示
 
 ### 資料驗證
-- [ ] Tag 與 Device 必須屬於同一 HA Instance
+- [x] Tag 與 Device 必須屬於同一 HA Instance（domain 過濾已設定）
 - [ ] 同一 Instance 內 Tag 名稱唯一
 
 ### 權限驗證
