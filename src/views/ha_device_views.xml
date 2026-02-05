@@ -30,7 +30,31 @@
         <field name="model">ha.device</field>
         <field name="arch" type="xml">
             <form string="Device">
+                <header>
+                    <button name="action_share" type="object" string="Share with Users"
+                            class="btn-secondary"
+                            groups="odoo_ha_addon.group_ha_manager"
+                            title="Share this device with specific users"/>
+                    <button name="action_view_entities" type="object" string="View Entities"
+                            class="btn-primary"
+                            title="View all entities belonging to this device"/>
+                </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_entities"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-cube">
+                            <field name="entity_count" widget="statinfo" string="Entities"/>
+                        </button>
+                        <button name="action_view_tags"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-tags"
+                                invisible="tag_count == 0">
+                            <field name="tag_count" widget="statinfo" string="Tags"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <label for="name" string="Device Name"/>
                         <h1>
@@ -42,6 +66,9 @@
                             <field name="name_by_user" placeholder="Custom name..."/>
                             <field name="area_id" options="{'no_create': True}"/>
                             <field name="label_ids" widget="many2many_tags" options="{'color_field': 'color'}" context="{'default_ha_instance_id': ha_instance_id}"/>
+                            <field name="tag_ids" widget="many2many_tags"
+                                   options="{'color_field': 'color', 'no_create_edit': False}"
+                                   context="{'default_ha_instance_id': ha_instance_id}"/>
                         </group>
                         <group string="Device Info">
                             <field name="device_id" readonly="1"/>
@@ -63,6 +90,9 @@
                             <field name="disabled_by" readonly="1"/>
                             <field name="via_device_id" readonly="1"/>
                         </group>
+                    </group>
+                    <group string="Custom Properties">
+                        <field name="properties" columns="2"/>
                     </group>
                     <notebook>
                         <page string="Entities" name="entities">
@@ -121,6 +151,30 @@
                                 <field name="modified_at" readonly="1"/>
                             </group>
                         </page>
+                        <page string="Sharing" name="sharing" groups="odoo_ha_addon.group_ha_manager">
+                            <field name="share_ids">
+                                <list string="Shares" editable="bottom" create="false">
+                                    <field name="user_id" readonly="1"/>
+                                    <field name="permission"/>
+                                    <field name="expiry_date"/>
+                                    <field name="is_expired" widget="boolean"/>
+                                    <button name="action_extend_expiry" type="object"
+                                            string="Extend 30 days" icon="fa-calendar-plus-o"
+                                            title="Extend expiry date by 30 days"
+                                            invisible="not expiry_date"/>
+                                    <button name="unlink" type="object"
+                                            string="Revoke" icon="fa-trash"
+                                            title="Remove this share"
+                                            confirm="Are you sure you want to revoke this share?"/>
+                                </list>
+                            </field>
+                            <div class="alert alert-info mt-3" role="status"
+                                 invisible="share_ids">
+                                <i class="fa fa-info-circle me-2"/>
+                                This device has not been shared with any users yet.
+                                Click "Share with Users" to share it.
+                            </div>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
@@ -139,6 +193,7 @@
                 <field name="manufacturer"/>
                 <field name="model"/>
                 <field name="area_id"/>
+                <field name="tag_ids"/>
                 <field name="ha_instance_id"/>
                 <filter name="filter_disabled" string="Disabled" domain="[('disabled_by', '!=', False)]"/>
                 <separator/>

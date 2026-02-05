@@ -1212,3 +1212,133 @@ msgstr "場景"
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
 msgid "Last Triggered"
 msgstr "上次觸發"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Share with Users"
+msgstr "分享給用戶"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Share this device with specific users"
+msgstr "將此設備分享給指定用戶"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "View Entities"
+msgstr "查看實體"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "View all entities belonging to this device"
+msgstr "查看屬於此設備的所有實體"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Custom Properties"
+msgstr "自訂屬性"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Sharing"
+msgstr "分享"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Shares"
+msgstr "分享記錄"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Extend 30 days"
+msgstr "延長 30 天"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Extend expiry date by 30 days"
+msgstr "延長到期日 30 天"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Revoke"
+msgstr "撤銷"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Remove this share"
+msgstr "移除此分享"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Are you sure you want to revoke this share?"
+msgstr "確定要撤銷此分享嗎？"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "This device has not been shared with any users yet."
+msgstr "此設備尚未分享給任何用戶。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
+msgid "Click \"Share with Users\" to share it."
+msgstr "點擊「分享給用戶」以分享。"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/models/ha_device.py
+msgid "Share Device"
+msgstr "分享設備"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/models/ha_device.py
+msgid "Device Entities"
+msgstr "設備實體"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__properties
+msgid "Properties"
+msgstr "屬性"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,help:odoo_ha_addon.field_ha_device__properties
+msgid "Custom properties for this device (defined at instance level)"
+msgstr "此設備的自訂屬性（於實例層級定義）"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_instance__device_properties_definition
+msgid "Device Properties Definition"
+msgstr "設備屬性定義"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,help:odoo_ha_addon.field_ha_instance__device_properties_definition
+msgid "Define custom properties available for all devices in this instance"
+msgstr "定義此實例中所有設備可用的自訂屬性"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__share_ids
+msgid "Shares"
+msgstr "分享記錄"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,help:odoo_ha_addon.field_ha_device__share_ids
+msgid "Users this device has been shared with"
+msgstr "已分享此設備的用戶"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__share_count
+msgid "Share Count"
+msgstr "分享數量"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,help:odoo_ha_addon.field_ha_device__share_count
+msgid "Number of active shares for this device"
+msgstr "此設備的有效分享數量"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity_share__device_id
+msgid "Device"
+msgstr "設備"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,help:odoo_ha_addon.field_ha_entity_share__device_id
+msgid "The device being shared. Only one of entity_id, group_id, or device_id must be set."
+msgstr "被分享的設備。entity_id、group_id 或 device_id 只能設定其中一個。"

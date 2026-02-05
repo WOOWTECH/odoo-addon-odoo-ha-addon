@@ -34,6 +34,11 @@ class HAEntityShareWizard(models.TransientModel):
         string='Entity Group',
         help='The entity group to share (set automatically from context)'
     )
+    device_id = fields.Many2one(
+        'ha.device',
+        string='Device',
+        help='The device to share (set automatically from context)'
+    )
 
     # Computed field for display
     target_name = fields.Char(
@@ -90,7 +95,7 @@ class HAEntityShareWizard(models.TransientModel):
         help='Shows how many internal and portal users are selected'
     )
 
-    @api.depends('entity_id', 'group_id')
+    @api.depends('entity_id', 'group_id', 'device_id')
     def _compute_target_name(self):
         """Compute display name for the share target."""
         for wizard in self:
@@ -98,18 +103,22 @@ class HAEntityShareWizard(models.TransientModel):
                 wizard.target_name = wizard.entity_id.name or wizard.entity_id.entity_id
             elif wizard.group_id:
                 wizard.target_name = wizard.group_id.name
+            elif wizard.device_id:
+                wizard.target_name = wizard.device_id.name_by_user or wizard.device_id.name
             else:
                 wizard.target_name = _('Unknown')
 
-    @api.depends('entity_id', 'group_id')
+    @api.depends('entity_id', 'group_id', 'device_id')
     def _compute_existing_shares(self):
-        """Compute existing share records for the entity/group."""
+        """Compute existing share records for the entity/group/device."""
         for wizard in self:
             ShareModel = self.env['ha.entity.share']
             if wizard.entity_id:
                 shares = ShareModel.search([('entity_id', '=', wizard.entity_id.id)])
             elif wizard.group_id:
                 shares = ShareModel.search([('group_id', '=', wizard.group_id.id)])
+            elif wizard.device_id:
+                shares = ShareModel.search([('device_id', '=', wizard.device_id.id)])
             else:
                 shares = ShareModel.browse()
 
@@ -145,11 +154,12 @@ class HAEntityShareWizard(models.TransientModel):
     @api.model
     def default_get(self, fields_list):
         """
-        Populate entity_id or group_id from context.
+        Populate entity_id, group_id, or device_id from context.
 
         Context keys:
         - default_entity_id: Entity ID to share
         - default_group_id: Entity Group ID to share
+        - default_device_id: Device ID to share
         - active_model: Model name of the active record
         - active_id: ID of the active record
 
@@ -173,6 +183,8 @@ class HAEntityShareWizard(models.TransientModel):
             res['entity_id'] = context['default_entity_id']
         elif context.get('default_group_id'):
             res['group_id'] = context['default_group_id']
+        elif context.get('default_device_id'):
+            res['device_id'] = context['default_device_id']
         # Fallback to active_model/active_id
         elif context.get('active_model') and context.get('active_id'):
             active_model = context['active_model']
@@ -181,21 +193,28 @@ class HAEntityShareWizard(models.TransientModel):
                 res['entity_id'] = active_id
             elif active_model == 'ha.entity.group':
                 res['group_id'] = active_id
+            elif active_model == 'ha.device':
+                res['device_id'] = active_id
 
         return res
 
-    @api.constrains('entity_id', 'group_id')
-    def _check_entity_or_group(self):
-        """Ensure exactly one of entity_id or group_id is set."""
+    @api.constrains('entity_id', 'group_id', 'device_id')
+    def _check_entity_group_or_device(self):
+        """Ensure exactly one of entity_id, group_id, or device_id is set."""
         for wizard in self:
-            if wizard.entity_id and wizard.group_id:
+            set_count = sum([
+                bool(wizard.entity_id),
+                bool(wizard.group_id),
+                bool(wizard.device_id)
+            ])
+            if set_count > 1:
                 raise ValidationError(
-                    _('Cannot share both an entity and a group at the same time. '
-                      'Please select only one.')
+                    _('Cannot share multiple targets at once. '
+                      'Please select only one: entity, group, or device.')
                 )
-            if not wizard.entity_id and not wizard.group_id:
+            if set_count == 0:
                 raise ValidationError(
-                    _('Please specify an entity or entity group to share.')
+                    _('Please specify an entity, entity group, or device to share.')
                 )
 
     @api.constrains('user_ids')
@@ -227,8 +246,10 @@ class HAEntityShareWizard(models.TransientModel):
             domain = [('user_id', '=', user.id)]
             if self.entity_id:
                 domain.append(('entity_id', '=', self.entity_id.id))
-            else:
+            elif self.group_id:
                 domain.append(('group_id', '=', self.group_id.id))
+            else:
+                domain.append(('device_id', '=', self.device_id.id))
 
             existing = ShareModel.search(domain, limit=1)
             if existing:
@@ -253,14 +274,19 @@ class HAEntityShareWizard(models.TransientModel):
                 }
                 if self.entity_id:
                     vals['entity_id'] = self.entity_id.id
-                else:
+                    target_type = 'entity'
+                elif self.group_id:
                     vals['group_id'] = self.group_id.id
+                    target_type = 'group'
+                else:
+                    vals['device_id'] = self.device_id.id
+                    target_type = 'device'
 
                 ShareModel.create(vals)
                 created_count += 1
                 _logger.info(
                     f"Created share for user {user.name}: "
-                    f"target={'entity' if self.entity_id else 'group'}, "
+                    f"target={target_type}, "
                     f"permission={self.permission}, expiry={self.expiry_date}"
                 )
 

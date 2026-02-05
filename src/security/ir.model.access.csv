@@ -14,6 +14,7 @@ access_ha_label_user,HA Label (User Read-Only),odoo_ha_addon.model_ha_label,odoo
 access_ha_entity_group,HA Entity Group (User),odoo_ha_addon.model_ha_entity_group,odoo_ha_addon.group_ha_user,1,1,1,1
 access_ha_entity_group_tag,HA Entity Group Tag (User),odoo_ha_addon.model_ha_entity_group_tag,odoo_ha_addon.group_ha_user,1,1,1,1
 access_ha_entity_tag,HA Entity Tag (User),odoo_ha_addon.model_ha_entity_tag,odoo_ha_addon.group_ha_user,1,1,1,1
+access_ha_device_tag,HA Device Tag (User),odoo_ha_addon.model_ha_device_tag,odoo_ha_addon.group_ha_user,1,1,1,1
 access_ha_ws_request_queue_system,HA WebSocket Queue (System),odoo_ha_addon.model_ha_ws_request_queue,base.group_system,1,1,1,1
 access_ha_realtime_update,HA Realtime Update (User Read-Only),odoo_ha_addon.model_ha_realtime_update,odoo_ha_addon.group_ha_user,1,0,0,0
 access_ha_instance_clear_wizard_manager,HA Instance Clear Wizard (Manager Only),odoo_ha_addon.model_ha_instance_clear_wizard,odoo_ha_addon.group_ha_manager,1,1,1,1
