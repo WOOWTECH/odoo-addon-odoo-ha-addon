@@ -233,6 +233,19 @@ class HADevice(models.Model):
         readonly=True
     )
 
+    # Share records - for tracking who this device is shared with
+    share_ids = fields.One2many(
+        'ha.entity.share',
+        'device_id',
+        string='Shares',
+        help='Users this device has been shared with'
+    )
+    share_count = fields.Integer(
+        string='Share Count',
+        compute='_compute_share_count',
+        help='Number of active shares for this device'
+    )
+
     # 允許用戶修改的欄位（其他欄位只能由系統 sudo() 修改）
     # - area_id: Device 所屬區域（雙向同步到 HA）
     # - name_by_user: 使用者自訂名稱（雙向同步到 HA Device Registry）

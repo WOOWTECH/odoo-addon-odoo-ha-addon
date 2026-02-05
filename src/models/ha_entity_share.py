@@ -27,20 +27,27 @@ class HAEntityShare(models.Model):
     _rec_name = 'display_name'
     _order = 'create_date desc'
 
-    # Target: either entity or group (mutually exclusive)
+    # Target: entity, group, or device (mutually exclusive)
     entity_id = fields.Many2one(
         'ha.entity',
         string='Entity',
         ondelete='cascade',
         index=True,
-        help='The entity being shared. Either entity_id or group_id must be set, not both.'
+        help='The entity being shared. Only one of entity_id, group_id, or device_id must be set.'
     )
     group_id = fields.Many2one(
         'ha.entity.group',
         string='Entity Group',
         ondelete='cascade',
         index=True,
-        help='The entity group being shared. Either entity_id or group_id must be set, not both.'
+        help='The entity group being shared. Only one of entity_id, group_id, or device_id must be set.'
+    )
+    device_id = fields.Many2one(
+        'ha.device',
+        string='Device',
+        ondelete='cascade',
+        index=True,
+        help='The device being shared. Only one of entity_id, group_id, or device_id must be set.'
     )
 
     # Shared with
@@ -100,11 +107,14 @@ class HAEntityShare(models.Model):
 
     # SQL Constraints
     _sql_constraints = [
-        # entity_id and group_id are mutually exclusive
-        ('entity_or_group_required',
-         'CHECK((entity_id IS NOT NULL AND group_id IS NULL) OR '
-         '(entity_id IS NULL AND group_id IS NOT NULL))',
-         'Must specify either entity_id or group_id, not both'),
+        # entity_id, group_id, and device_id are mutually exclusive (exactly one must be set)
+        ('entity_group_device_exclusive',
+         'CHECK('
+         '(entity_id IS NOT NULL AND group_id IS NULL AND device_id IS NULL) OR '
+         '(entity_id IS NULL AND group_id IS NOT NULL AND device_id IS NULL) OR '
+         '(entity_id IS NULL AND group_id IS NULL AND device_id IS NOT NULL)'
+         ')',
+         'Must specify exactly one of entity_id, group_id, or device_id'),
         # Unique constraint: same entity + user combination
         ('unique_entity_user',
          'UNIQUE(entity_id, user_id)',
@@ -113,16 +123,24 @@ class HAEntityShare(models.Model):
         ('unique_group_user',
          'UNIQUE(group_id, user_id)',
          'Group already shared with this user'),
+        # Unique constraint: same device + user combination
+        ('unique_device_user',
+         'UNIQUE(device_id, user_id)',
+         'Device already shared with this user'),
     ]
 
-    @api.depends('entity_id', 'entity_id.ha_instance_id', 'group_id', 'group_id.ha_instance_id')
+    @api.depends('entity_id', 'entity_id.ha_instance_id',
+                 'group_id', 'group_id.ha_instance_id',
+                 'device_id', 'device_id.ha_instance_id')
     def _compute_ha_instance_id(self):
-        """Compute ha_instance_id from entity or group."""
+        """Compute ha_instance_id from entity, group, or device."""
         for record in self:
             if record.entity_id:
                 record.ha_instance_id = record.entity_id.ha_instance_id
             elif record.group_id:
                 record.ha_instance_id = record.group_id.ha_instance_id
+            elif record.device_id:
+                record.ha_instance_id = record.device_id.ha_instance_id
             else:
                 record.ha_instance_id = False
 
@@ -154,7 +172,9 @@ class HAEntityShare(models.Model):
         return []
 
     @api.depends('entity_id', 'entity_id.name', 'entity_id.entity_id',
-                 'group_id', 'group_id.name', 'user_id', 'user_id.name')
+                 'group_id', 'group_id.name',
+                 'device_id', 'device_id.name', 'device_id.name_by_user',
+                 'user_id', 'user_id.name')
     def _compute_display_name(self):
         """Compute display name for the share record."""
         for record in self:
@@ -164,6 +184,9 @@ class HAEntityShare(models.Model):
             elif record.group_id:
                 target_name = record.group_id.name
                 target_type = _('Group')
+            elif record.device_id:
+                target_name = record.device_id.name_by_user or record.device_id.name
+                target_type = _('Device')
             else:
                 target_name = _('Unknown')
                 target_type = ''
@@ -179,34 +202,39 @@ class HAEntityShare(models.Model):
             else:
                 record.display_name = _('Share with %(user)s') % {'user': user_name}
 
-    @api.constrains('entity_id', 'group_id')
-    def _check_entity_or_group(self):
-        """Ensure exactly one of entity_id or group_id is set."""
+    @api.constrains('entity_id', 'group_id', 'device_id')
+    def _check_entity_group_or_device(self):
+        """Ensure exactly one of entity_id, group_id, or device_id is set."""
         for record in self:
-            if record.entity_id and record.group_id:
+            set_count = sum([
+                bool(record.entity_id),
+                bool(record.group_id),
+                bool(record.device_id)
+            ])
+            if set_count > 1:
                 raise ValidationError(
-                    _('Cannot specify both entity and group. Please choose one.')
+                    _('Cannot specify multiple targets. Please choose only one of: entity, group, or device.')
                 )
-            if not record.entity_id and not record.group_id:
+            if set_count == 0:
                 raise ValidationError(
-                    _('Must specify either an entity or a group to share.')
+                    _('Must specify an entity, group, or device to share.')
                 )
 
-    @api.constrains('user_id', 'entity_id', 'group_id')
+    @api.constrains('user_id', 'entity_id', 'group_id', 'device_id')
     def _check_not_share_to_owner(self):
         """Prevent sharing to the record owner (optional business rule)."""
         for record in self:
-            # Get the owner (creator) of the entity/group
-            target = record.entity_id or record.group_id
+            # Get the owner (creator) of the entity/group/device
+            target = record.entity_id or record.group_id or record.device_id
             if target and target.create_uid == record.user_id:
                 _logger.warning(
-                    f"Share created for entity/group owner: "
+                    f"Share created for entity/group/device owner: "
                     f"user={record.user_id.name}, target={target._name}:{target.id}"
                 )
                 # Note: This is just a warning, not a hard constraint
                 # Uncomment below to enforce:
                 # raise ValidationError(
-                #     _('Cannot share with the owner of the entity/group.')
+                #     _('Cannot share with the owner of the entity/group/device.')
                 # )
 
     def action_extend_expiry(self, days=30):
@@ -296,6 +324,25 @@ class HAEntityShare(models.Model):
         return shares.mapped('group_id').filtered(lambda g: g)
 
     @api.model
+    def get_shared_devices_for_user(self, user_id=None, permission=None):
+        """
+        Get all devices shared with a specific user.
+
+        Args:
+            user_id: User ID (default: current user)
+            permission: Filter by permission level ('view' or 'control')
+
+        Returns:
+            Recordset of ha.device records
+        """
+        domain = [('user_id', '=', user_id or self.env.uid), ('is_expired', '=', False)]
+        if permission:
+            domain.append(('permission', '=', permission))
+
+        shares = self.search(domain)
+        return shares.mapped('device_id').filtered(lambda d: d)
+
+    @api.model
     def cleanup_expired_shares(self, delete=False, notify=True):
         """
         Cleanup expired shares.
@@ -364,14 +411,14 @@ class HAEntityShare(models.Model):
         """
         Send an expiry reminder notification to the share creator.
 
-        Creates a mail.activity on the shared entity/group to notify
+        Creates a mail.activity on the shared entity/group/device to notify
         the creator that the share will expire soon.
 
         Args:
             share: The ha.entity.share record to send notification for.
         """
-        # Get the shared target (entity or group)
-        target = share.entity_id or share.group_id
+        # Get the shared target (entity, group, or device)
+        target = share.entity_id or share.group_id or share.device_id
         if not target:
             _logger.warning(f"Cannot send notification for share {share.id}: no target")
             return
@@ -381,10 +428,14 @@ class HAEntityShare(models.Model):
             target_name = share.entity_id.name or share.entity_id.entity_id
             target_type = _('Entity')
             target_model = 'ha.entity'
-        else:
+        elif share.group_id:
             target_name = share.group_id.name
             target_type = _('Entity Group')
             target_model = 'ha.entity.group'
+        else:
+            target_name = share.device_id.name_by_user or share.device_id.name
+            target_type = _('Device')
+            target_model = 'ha.device'
 
         # Get the share creator (who should receive the notification)
         creator = share.create_uid
