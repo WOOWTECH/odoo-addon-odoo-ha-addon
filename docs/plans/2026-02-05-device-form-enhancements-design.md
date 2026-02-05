@@ -5,7 +5,7 @@
 在 Device（設備）表單中增加與 Entity Groups 相同的功能，包括：分享功能、自訂屬性、查看實體按鈕。
 
 **Created:** 2026-02-05T03:46:30Z
-**Status:** In Progress (部分實作已完成)
+**Status:** Completed
 
 ---
 
@@ -187,25 +187,25 @@ _USER_EDITABLE_FIELDS = {'area_id', 'name_by_user', 'label_ids', 'properties'}
 
 ## 3. Implementation Tasks
 
-### Phase 1: Model Layer (部分已完成)
+### Phase 1: Model Layer ✅
 - [x] ha.entity.share: 新增 device_id 支援
 - [x] ha.entity.share.wizard: 新增 device_id 支援
 - [x] ha.device: 新增 share_ids, share_count 欄位
-- [ ] ha.device: 實作 `_compute_share_count` 方法
-- [ ] ha.device: 實作 `action_share` 方法
-- [ ] ha.device: 實作 `action_view_entities` 方法
-- [ ] ha.instance: 新增 `device_properties_definition` 欄位
-- [ ] ha.device: 新增 `properties` 欄位
-- [ ] ha.device: 更新 `_USER_EDITABLE_FIELDS`
+- [x] ha.device: 實作 `_compute_share_count` 方法
+- [x] ha.device: 實作 `action_share` 方法
+- [x] ha.device: 實作 `action_view_entities` 方法
+- [x] ha.instance: 新增 `device_properties_definition` 欄位
+- [x] ha.device: 新增 `properties` 欄位
+- [x] ha.device: 更新 `_USER_EDITABLE_FIELDS`
 
-### Phase 2: View Layer
-- [ ] ha_device_views.xml: 新增 header 按鈕
-- [ ] ha_device_views.xml: 新增 stat button
-- [ ] ha_device_views.xml: 新增 Custom Properties 區塊
-- [ ] ha_device_views.xml: 新增 Sharing 分頁
+### Phase 2: View Layer ✅
+- [x] ha_device_views.xml: 新增 header 按鈕
+- [x] ha_device_views.xml: 新增 stat button
+- [x] ha_device_views.xml: 新增 Custom Properties 區塊
+- [x] ha_device_views.xml: 新增 Sharing 分頁
 
-### Phase 3: Translations
-- [ ] i18n/zh_TW.po: 新增繁體中文翻譯
+### Phase 3: Translations ✅
+- [x] i18n/zh_TW.po: 新增繁體中文翻譯
 
 ---
 

@@ -246,11 +246,20 @@ class HADevice(models.Model):
         help='Number of active shares for this device'
     )
 
+    # Custom Properties - allows users to add custom attributes to devices
+    properties = fields.Properties(
+        'Properties',
+        definition='ha_instance_id.device_properties_definition',
+        copy=True,
+        help='Custom properties for this device (defined at instance level)'
+    )
+
     # 允許用戶修改的欄位（其他欄位只能由系統 sudo() 修改）
     # - area_id: Device 所屬區域（雙向同步到 HA）
     # - name_by_user: 使用者自訂名稱（雙向同步到 HA Device Registry）
     # - label_ids: Device 標籤（雙向同步到 HA Device Registry）
-    _USER_EDITABLE_FIELDS = {'area_id', 'name_by_user', 'label_ids'}
+    # - properties: 自訂屬性（Odoo 內部使用，不同步到 HA）
+    _USER_EDITABLE_FIELDS = {'area_id', 'name_by_user', 'label_ids', 'properties'}
 
     # ========== Computed Fields ==========
 
@@ -293,6 +302,12 @@ class HADevice(models.Model):
             scenes = device.entity_ids.filtered(lambda e: e.domain == 'scene')
             device.scene_ids = scenes
             device.scene_count = len(scenes)
+
+    @api.depends('share_ids', 'share_ids.is_expired')
+    def _compute_share_count(self):
+        """Compute number of active (non-expired) shares for this device"""
+        for device in self:
+            device.share_count = len(device.share_ids.filtered(lambda s: not s.is_expired))
 
     # ========== Bidirectional Sync: Odoo → HA ==========
 
@@ -706,3 +721,44 @@ class HADevice(models.Model):
 
         except Exception as e:
             _logger.error(f"Cron failed: Sync Device Related Items - {e}", exc_info=True)
+
+    # ========== Action Methods ==========
+
+    def action_share(self):
+        """
+        Open the device share wizard.
+
+        Returns an action to open the ha.entity.share.wizard form
+        with this device pre-selected as the target.
+        """
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Share Device'),
+            'res_model': 'ha.entity.share.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_device_id': self.id,
+            },
+        }
+
+    def action_view_entities(self):
+        """
+        Navigate to the entity list filtered by this device.
+
+        Returns an action to open ha.entity list view with
+        domain filtered to show only entities belonging to this device.
+        """
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Device Entities'),
+            'res_model': 'ha.entity',
+            'view_mode': 'list,form,kanban',
+            'domain': [('device_id', '=', self.id)],
+            'context': {
+                'default_device_id': self.id,
+                'default_ha_instance_id': self.ha_instance_id.id,
+            },
+        }

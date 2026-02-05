@@ -111,6 +111,11 @@ class HAInstance(models.Model):
         help='Define custom properties available for all entity groups in this instance'
     )
 
+    device_properties_definition = fields.PropertiesDefinition(
+        'Device Properties Definition',
+        help='Define custom properties available for all devices in this instance'
+    )
+
     # ==================== 實例識別欄位 ====================
 
     ha_instance_uuid = fields.Char(
