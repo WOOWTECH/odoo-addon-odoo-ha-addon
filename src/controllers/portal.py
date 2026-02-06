@@ -571,7 +571,7 @@ class HAPortalController(http.Controller):
             user_id: res.users record ID
 
         Returns:
-            dict: {instance: {'entity_shares': [...], 'group_shares': [...], 'total_count': int}}
+            dict: {instance: {'entity_shares': [...], 'group_shares': [...], 'device_shares': [...], 'total_count': int}}
         """
         shares = self._get_user_shares(user_id)
         instance_data = {}
@@ -586,6 +586,7 @@ class HAPortalController(http.Controller):
                     'instance': instance,
                     'entity_shares': [],
                     'group_shares': [],
+                    'device_shares': [],
                     'total_count': 0,
                 }
 
@@ -593,6 +594,8 @@ class HAPortalController(http.Controller):
                 instance_data[instance.id]['entity_shares'].append(share)
             elif share.group_id:
                 instance_data[instance.id]['group_shares'].append(share)
+            elif share.device_id:
+                instance_data[instance.id]['device_shares'].append(share)
             instance_data[instance.id]['total_count'] += 1
 
         return instance_data
@@ -621,6 +624,7 @@ class HAPortalController(http.Controller):
                 'instance': data['instance'],
                 'entity_count': len(data['entity_shares']),
                 'group_count': len(data['group_shares']),
+                'device_count': len(data['device_shares']),
                 'total_count': data['total_count'],
             })
 
@@ -641,14 +645,14 @@ class HAPortalController(http.Controller):
     )
     def portal_my_ha_instance(self, instance_id, tab='entities', **kw):
         """
-        Portal page showing entities and groups shared from a specific HA instance.
+        Portal page showing entities, groups and devices shared from a specific HA instance.
 
         Args:
             instance_id: ha.instance record ID
-            tab: Active tab ('entities' or 'groups')
+            tab: Active tab ('entities', 'groups', or 'devices')
 
         Returns:
-            Rendered template with Entity/Group tabs or 403 if no access
+            Rendered template with Entity/Group/Device tabs or 403 if no access
         """
         user = request.env.user
 
@@ -674,20 +678,170 @@ class HAPortalController(http.Controller):
             ('is_expired', '=', False),
         ])
 
+        # Get device shares for this instance
+        device_shares = request.env['ha.entity.share'].sudo().search([
+            ('user_id', '=', user.id),
+            ('device_id', '!=', False),
+            ('device_id.ha_instance_id', '=', instance_id),
+            ('is_expired', '=', False),
+        ])
+
         # If user has no shares for this instance, return 403
-        if not entity_shares and not group_shares:
+        if not entity_shares and not group_shares and not device_shares:
             _logger.warning(f"Portal /my/ha/{instance_id} access denied: user {user.id} has no shares")
             return request.render('odoo_ha_addon.portal_error_403', status=403)
 
         _logger.info(
             f"Portal /my/ha/{instance_id} access granted for user {user.login}: "
-            f"{len(entity_shares)} entities, {len(group_shares)} groups"
+            f"{len(entity_shares)} entities, {len(group_shares)} groups, {len(device_shares)} devices"
         )
 
         return request.render('odoo_ha_addon.portal_my_ha_instance', {
             'instance': instance,
             'entity_shares': entity_shares,
             'group_shares': group_shares,
+            'device_shares': device_shares,
             'active_tab': tab,
             'page_name': 'portal_my_ha_instance',
         })
+
+    # ========================================
+    # Device Portal Routes
+    # ========================================
+
+    def _check_device_share_access(self, device_id, user_id, required_permission='view'):
+        """
+        Check if user has access to device via ha.entity.share.
+
+        Args:
+            device_id: ha.device record ID
+            user_id: res.users record ID
+            required_permission: 'view' or 'control'
+
+        Returns:
+            ha.entity.share record if access granted, False otherwise
+        """
+        share = request.env['ha.entity.share'].sudo().search([
+            ('device_id', '=', device_id),
+            ('user_id', '=', user_id),
+            ('is_expired', '=', False),
+        ], limit=1)
+
+        if not share:
+            return False
+
+        if required_permission == 'control' and share.permission != 'control':
+            return False
+
+        return share
+
+    @http.route(
+        '/portal/device/<int:device_id>',
+        type='http',
+        auth='user',
+        website=True,
+        sitemap=False
+    )
+    def portal_device(self, device_id, **kw):
+        """
+        Render the portal view for a shared device.
+
+        This route displays a page showing device information and its
+        associated entities for users with a valid share record.
+
+        Args:
+            device_id: The Odoo record ID of the device
+
+        Returns:
+            Rendered template or 403/404 error page
+        """
+        user = request.env.user
+        device = request.env['ha.device'].sudo().browse(device_id)
+
+        if not device.exists():
+            _logger.warning(f"Portal access attempt for non-existent device: {device_id}")
+            return request.render('odoo_ha_addon.portal_error_404', status=404)
+
+        share = self._check_device_share_access(device_id, user.id)
+        if not share:
+            _logger.warning(f"Portal access denied for device {device_id}: user {user.id} has no share")
+            return request.render('odoo_ha_addon.portal_error_403', status=403)
+
+        _logger.info(f"Portal access granted for device: {device.name} (user: {user.login})")
+
+        # Only show controllable domains if user has control permission
+        controllable_domains = []
+        if share.permission == 'control':
+            controllable_domains = list(PORTAL_CONTROL_SERVICES.keys())
+
+        # Get entities belonging to this device
+        entities = device.entity_ids
+
+        return request.render('odoo_ha_addon.portal_device', {
+            'device': device,
+            'instance': device.ha_instance_id,
+            'entities': entities,
+            'permission': share.permission,
+            'page_name': 'portal_device',
+            'controllable_domains': controllable_domains,
+        })
+
+    @http.route(
+        '/portal/device/<int:device_id>/state',
+        type='json',
+        auth='user',
+    )
+    def portal_device_state(self, device_id, **kw):
+        """
+        JSON polling endpoint for device state updates.
+
+        This endpoint returns the current state of all entities
+        in the device and can be polled by the frontend.
+
+        Args:
+            device_id: The Odoo record ID of the device
+
+        Returns:
+            dict: Device data with entity states or error message
+        """
+        user = request.env.user
+        share = self._check_device_share_access(device_id, user.id)
+
+        if not share:
+            _logger.warning(f"Portal device state access denied for device {device_id}: user {user.id}")
+            return {
+                'success': False,
+                'error': _('Access denied'),
+                'error_code': 'access_denied'
+            }
+
+        device = request.env['ha.device'].sudo().browse(device_id)
+        if not device.exists():
+            return {
+                'success': False,
+                'error': _('Device not found'),
+                'error_code': 'not_found'
+            }
+
+        # Get device info
+        device_data = {
+            'id': device.id,
+            'name': device.name_by_user or device.name,
+            'manufacturer': device.manufacturer,
+            'model': device.model,
+            'area_id': {
+                'id': device.area_id.id,
+                'name': device.area_id.name,
+            } if device.area_id else None,
+        }
+
+        # Get detailed state for each entity
+        entities_with_state = []
+        for entity in device.entity_ids:
+            entities_with_state.append(self._get_safe_entity_data(entity))
+        device_data['entities'] = entities_with_state
+
+        return {
+            'success': True,
+            'data': device_data,
+        }

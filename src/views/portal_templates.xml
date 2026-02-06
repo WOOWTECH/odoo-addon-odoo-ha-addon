@@ -63,13 +63,13 @@
               inherit_id="portal.portal_breadcrumbs" priority="40">
         <xpath expr="//li[hasclass('breadcrumb-item')][last()]" position="after">
             <!-- HA Instances List Link (for all HA pages) -->
-            <li t-if="page_name in ['portal_my_ha', 'portal_my_ha_instance', 'portal_entity', 'portal_entity_group']"
+            <li t-if="page_name in ['portal_my_ha', 'portal_my_ha_instance', 'portal_entity', 'portal_entity_group', 'portal_device']"
                 class="breadcrumb-item">
                 <a href="/my/ha">Home Assistant</a>
             </li>
 
             <!-- HA Instance Detail Link -->
-            <li t-if="page_name in ['portal_my_ha_instance', 'portal_entity', 'portal_entity_group'] and instance"
+            <li t-if="page_name in ['portal_my_ha_instance', 'portal_entity', 'portal_entity_group', 'portal_device'] and instance"
                 class="breadcrumb-item">
                 <a t-attf-href="/my/ha/#{instance.id}" t-out="instance.name"/>
             </li>
@@ -86,6 +86,9 @@
             </li>
             <li t-if="page_name == 'portal_entity_group'" class="breadcrumb-item active">
                 <t t-out="group.name"/>
+            </li>
+            <li t-if="page_name == 'portal_device'" class="breadcrumb-item active">
+                <t t-out="device.name_by_user or device.name"/>
             </li>
         </xpath>
     </template>
@@ -192,9 +195,13 @@
                                         <i class="fa fa-plug me-1"></i>
                                         <t t-out="len(entity_shares)"/> Entity<t t-if="len(entity_shares) != 1">s</t>
                                     </span>
-                                    <span>
+                                    <span class="me-3">
                                         <i class="fa fa-object-group me-1"></i>
                                         <t t-out="len(group_shares)"/> Group<t t-if="len(group_shares) != 1">s</t>
+                                    </span>
+                                    <span>
+                                        <i class="fa fa-puzzle-piece me-1"></i>
+                                        <t t-out="len(device_shares)"/> Device<t t-if="len(device_shares) != 1">s</t>
                                     </span>
                                 </p>
                             </div>
@@ -220,6 +227,15 @@
                             <i class="fa fa-object-group me-2"></i>
                             Groups
                             <span class="badge bg-primary ms-2"><t t-out="len(group_shares)"/></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a t-attf-class="nav-link #{'active' if active_tab == 'devices' else ''}"
+                           t-attf-href="/my/ha/{{ instance.id }}?tab=devices"
+                           role="tab">
+                            <i class="fa fa-puzzle-piece me-2"></i>
+                            Devices
+                            <span class="badge bg-primary ms-2"><t t-out="len(device_shares)"/></span>
                         </a>
                     </li>
                 </ul>
@@ -476,6 +492,153 @@
                                     <h5 class="text-muted">No Groups</h5>
                                     <p class="text-muted mb-0">
                                         No entity groups shared from this instance.
+                                    </p>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- Devices Tab -->
+                    <div t-attf-class="tab-pane fade #{'show active' if active_tab == 'devices' else ''}"
+                         id="devices-tab" role="tabpanel">
+                        <t t-if="device_shares">
+                            <!-- Devices Table (Desktop) -->
+                            <div class="card shadow-sm border-0 d-none d-md-block">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">Manufacturer</th>
+                                                <th scope="col">Area</th>
+                                                <th scope="col">Entities</th>
+                                                <th scope="col">Permission</th>
+                                                <th scope="col">Expiry</th>
+                                                <th scope="col" class="text-end">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="device_shares" t-as="share">
+                                                <tr class="portal-ha-device-row">
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="fa fa-puzzle-piece me-2 text-muted"></i>
+                                                            <div>
+                                                                <strong><t t-out="share.device_id.name_by_user or share.device_id.name"/></strong>
+                                                                <t t-if="share.device_id.model">
+                                                                    <br/>
+                                                                    <small class="text-muted">
+                                                                        <t t-out="share.device_id.model"/>
+                                                                    </small>
+                                                                </t>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <t t-out="share.device_id.manufacturer or '-'"/>
+                                                    </td>
+                                                    <td>
+                                                        <t t-out="share.device_id.area_id.name if share.device_id.area_id else '-'"/>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-info">
+                                                            <t t-out="len(share.device_id.entity_ids)"/> entities
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span t-attf-class="badge bg-{{ share.permission == 'control' and 'success' or 'secondary' }}">
+                                                            <i t-attf-class="fa fa-{{ share.permission == 'control' and 'unlock' or 'eye' }} me-1"></i>
+                                                            <t t-out="share.permission == 'control' and 'Control' or 'View'"/>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <t t-if="share.expiry_date">
+                                                            <span class="text-muted small">
+                                                                <i class="fa fa-clock-o me-1"></i>
+                                                                <t t-out="share.expiry_date" t-options="{'widget': 'date'}"/>
+                                                            </span>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span class="text-success small">
+                                                                <i class="fa fa-infinity me-1"></i>No expiry
+                                                            </span>
+                                                        </t>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <a t-attf-href="/portal/device/{{ share.device_id.id }}"
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            <i class="fa fa-external-link me-1"></i>View
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Devices Cards (Mobile) -->
+                            <div class="d-md-none">
+                                <t t-foreach="device_shares" t-as="share">
+                                    <div class="card shadow-sm border-0 mb-3 portal-ha-device-card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <h6 class="mb-0">
+                                                        <i class="fa fa-puzzle-piece me-2 text-muted"></i>
+                                                        <t t-out="share.device_id.name_by_user or share.device_id.name"/>
+                                                    </h6>
+                                                    <t t-if="share.device_id.manufacturer">
+                                                        <small class="text-muted">
+                                                            <t t-out="share.device_id.manufacturer"/>
+                                                            <t t-if="share.device_id.model"> - <t t-out="share.device_id.model"/></t>
+                                                        </small>
+                                                    </t>
+                                                </div>
+                                                <span class="badge bg-info">
+                                                    <t t-out="len(share.device_id.entity_ids)"/>
+                                                </span>
+                                            </div>
+
+                                            <div class="mb-2">
+                                                <t t-if="share.device_id.area_id">
+                                                    <small class="text-muted">
+                                                        <i class="fa fa-map-marker me-1"></i>
+                                                        <t t-out="share.device_id.area_id.name"/>
+                                                    </small>
+                                                </t>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span t-attf-class="badge bg-{{ share.permission == 'control' and 'success' or 'secondary' }} me-2">
+                                                        <i t-attf-class="fa fa-{{ share.permission == 'control' and 'unlock' or 'eye' }} me-1"></i>
+                                                        <t t-out="share.permission == 'control' and 'Control' or 'View'"/>
+                                                    </span>
+                                                    <t t-if="share.expiry_date">
+                                                        <small class="text-muted">
+                                                            <i class="fa fa-clock-o me-1"></i>
+                                                            <t t-out="share.expiry_date" t-options="{'widget': 'date'}"/>
+                                                        </small>
+                                                    </t>
+                                                </div>
+                                                <a t-attf-href="/portal/device/{{ share.device_id.id }}"
+                                                   class="btn btn-sm btn-primary">
+                                                    View
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-body text-center py-5">
+                                    <i class="fa fa-puzzle-piece fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">No Devices</h5>
+                                    <p class="text-muted mb-0">
+                                        No devices shared from this instance.
                                     </p>
                                 </div>
                             </div>
@@ -756,6 +919,264 @@
                 </div>
             </div>
             <!-- No inline JavaScript - polling handled by OWL Component -->
+        </t>
+    </template>
+
+    <!-- ========================================
+         Device Portal Page
+         ======================================== -->
+
+    <template id="portal_device" name="Portal Device View">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title" t-value="device.name_by_user or device.name"/>
+            </t>
+            <t t-set="o_portal_fullwidth_alert" groups=""/>
+
+            <div id="wrap" class="o_portal_wrap portal-page">
+                <div class="container py-4">
+                    <!-- Permission Banner -->
+                    <div t-attf-class="alert alert-#{permission == 'control' and 'success' or 'info'} mb-4">
+                        <i t-attf-class="fa fa-#{permission == 'control' and 'unlock' or 'eye'} mr-2"></i>
+                        <t t-if="permission == 'control'">
+                            You have <strong>control</strong> permission. You can view and control entities in this device.
+                        </t>
+                        <t t-else="">
+                            You have <strong>view-only</strong> permission. Contact the owner to request control access.
+                        </t>
+                    </div>
+
+                    <div class="row">
+                        <!-- Main Content Column -->
+                        <div class="col-lg-8">
+                            <!-- Device Info Card -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-puzzle-piece me-2"></i>
+                                        <t t-out="device.name_by_user or device.name"/>
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-4">Manufacturer</dt>
+                                        <dd class="col-sm-8"><t t-out="device.manufacturer or '-'"/></dd>
+
+                                        <dt class="col-sm-4">Model</dt>
+                                        <dd class="col-sm-8"><t t-out="device.model or '-'"/></dd>
+
+                                        <dt class="col-sm-4">Area</dt>
+                                        <dd class="col-sm-8"><t t-out="device.area_id.name if device.area_id else '-'"/></dd>
+
+                                        <t t-if="device.sw_version">
+                                            <dt class="col-sm-4">Software Version</dt>
+                                            <dd class="col-sm-8"><t t-out="device.sw_version"/></dd>
+                                        </t>
+
+                                        <t t-if="device.hw_version">
+                                            <dt class="col-sm-4">Hardware Version</dt>
+                                            <dd class="col-sm-8"><t t-out="device.hw_version"/></dd>
+                                        </t>
+                                    </dl>
+                                </div>
+                            </div>
+
+                            <!-- Entities List -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-plug me-2"></i>
+                                        Entities
+                                    </h5>
+                                    <span class="badge bg-primary"><t t-out="len(entities)"/></span>
+                                </div>
+                                <div class="card-body p-0">
+                                    <t t-if="entities">
+                                        <!-- Entities Table (Desktop) -->
+                                        <div class="table-responsive d-none d-md-block">
+                                            <table class="table table-hover mb-0">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th scope="col">Name</th>
+                                                        <th scope="col">Domain</th>
+                                                        <th scope="col">State</th>
+                                                        <th scope="col" class="text-end">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-foreach="entities" t-as="entity">
+                                                        <tr>
+                                                            <td>
+                                                                <div class="d-flex align-items-center">
+                                                                    <i t-attf-class="fa fa-{{ entity.domain == 'light' and 'lightbulb-o' or entity.domain == 'switch' and 'toggle-on' or entity.domain == 'sensor' and 'thermometer-half' or entity.domain == 'climate' and 'snowflake-o' or 'plug' }} me-2 text-muted"></i>
+                                                                    <div>
+                                                                        <strong><t t-out="entity.name or entity.entity_id"/></strong>
+                                                                        <br/>
+                                                                        <small class="text-muted">
+                                                                            <t t-out="entity.entity_id"/>
+                                                                        </small>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <span class="badge bg-secondary">
+                                                                    <t t-out="entity.domain"/>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <span t-attf-class="badge bg-{{ entity.entity_state in ['on', 'open', 'active', 'home'] and 'success' or entity.entity_state in ['off', 'closed', 'inactive'] and 'secondary' or 'info' }}">
+                                                                    <t t-out="entity.entity_state"/>
+                                                                </span>
+                                                            </td>
+                                                            <td class="text-end">
+                                                                <!-- Control button for controllable domains with control permission -->
+                                                                <t t-if="permission == 'control' and entity.domain in controllable_domains">
+                                                                    <owl-component
+                                                                        name="odoo_ha_addon.PortalEntityController"
+                                                                        t-att-props="json.dumps({
+                                                                            'entity': {
+                                                                                'id': entity.id,
+                                                                                'entity_id': entity.entity_id,
+                                                                                'name': entity.name,
+                                                                                'domain': entity.domain,
+                                                                                'entity_state': entity.entity_state,
+                                                                                'attributes': entity.attributes or {},
+                                                                            },
+                                                                            'permission': permission,
+                                                                            'compact': True,
+                                                                        })"/>
+                                                                </t>
+                                                            </td>
+                                                        </tr>
+                                                    </t>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Entities Cards (Mobile) -->
+                                        <div class="d-md-none p-3">
+                                            <t t-foreach="entities" t-as="entity">
+                                                <div class="card border mb-2">
+                                                    <div class="card-body py-2">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <h6 class="mb-0">
+                                                                    <i t-attf-class="fa fa-{{ entity.domain == 'light' and 'lightbulb-o' or entity.domain == 'switch' and 'toggle-on' or entity.domain == 'sensor' and 'thermometer-half' or entity.domain == 'climate' and 'snowflake-o' or 'plug' }} me-2 text-muted"></i>
+                                                                    <t t-out="entity.name or entity.entity_id"/>
+                                                                </h6>
+                                                                <small class="text-muted">
+                                                                    <t t-out="entity.domain"/>
+                                                                </small>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <span t-attf-class="badge bg-{{ entity.entity_state in ['on', 'open', 'active', 'home'] and 'success' or entity.entity_state in ['off', 'closed', 'inactive'] and 'secondary' or 'info' }}">
+                                                                    <t t-out="entity.entity_state"/>
+                                                                </span>
+                                                                <t t-if="permission == 'control' and entity.domain in controllable_domains">
+                                                                    <owl-component
+                                                                        name="odoo_ha_addon.PortalEntityController"
+                                                                        t-att-props="json.dumps({
+                                                                            'entity': {
+                                                                                'id': entity.id,
+                                                                                'entity_id': entity.entity_id,
+                                                                                'name': entity.name,
+                                                                                'domain': entity.domain,
+                                                                                'entity_state': entity.entity_state,
+                                                                                'attributes': entity.attributes or {},
+                                                                            },
+                                                                            'permission': permission,
+                                                                            'compact': True,
+                                                                        })"/>
+                                                                </t>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </t>
+                                        </div>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="text-center py-4 text-muted">
+                                            <i class="fa fa-plug fa-2x mb-2"></i>
+                                            <p class="mb-0">No entities in this device.</p>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- Message Thread / Chatter -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-comments mr-2"></i>Discussion
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <t t-call="portal.message_thread">
+                                        <t t-set="object" t-value="device"/>
+                                        <t t-set="pid" t-value="0"/>
+                                        <t t-set="hash" t-value="''"/>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sidebar Column -->
+                        <div class="col-lg-4">
+                            <!-- Quick Info Card -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-info me-2"></i>Quick Info
+                                    </h5>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Entities</span>
+                                        <span class="badge bg-primary"><t t-out="len(entities)"/></span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Permission</span>
+                                        <span t-attf-class="badge bg-#{permission == 'control' and 'success' or 'secondary'}">
+                                            <t t-out="permission"/>
+                                        </span>
+                                    </li>
+                                    <t t-if="device.area_id">
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Area</span>
+                                            <span><t t-out="device.area_id.name"/></span>
+                                        </li>
+                                    </t>
+                                    <t t-if="device.manufacturer">
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Manufacturer</span>
+                                            <span><t t-out="device.manufacturer"/></span>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+
+                            <!-- View-only notice for view permission -->
+                            <t t-if="permission == 'view'">
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fa fa-eye mr-2"></i>View Only
+                                        </h5>
+                                    </div>
+                                    <div class="card-body text-center text-muted">
+                                        <p class="mb-0">
+                                            You have view-only access to this device.
+                                            Contact the owner to request control permission.
+                                        </p>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </t>
     </template>
 

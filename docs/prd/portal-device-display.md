@@ -19,9 +19,9 @@
 
 | Phase | 說明 | 狀態 | 檔案 |
 |-------|------|------|------|
-| 1 | 更新 Portal 控制器 | ⬜ 待開始 | `src/controllers/portal.py` |
-| 2 | 新增 Devices 標籤頁模板 | ⬜ 待開始 | `src/views/portal_templates.xml` |
-| 3 | 新增 Device 詳細頁面 | ⬜ 待開始 | `src/controllers/portal.py`, `src/views/portal_templates.xml` |
+| 1 | 更新 Portal 控制器 | ✅ 完成 | `src/controllers/portal.py` |
+| 2 | 新增 Devices 標籤頁模板 | ✅ 完成 | `src/views/portal_templates.xml` |
+| 3 | 新增 Device 詳細頁面 | ✅ 完成 | `src/controllers/portal.py`, `src/views/portal_templates.xml` |
 
 ---
 
