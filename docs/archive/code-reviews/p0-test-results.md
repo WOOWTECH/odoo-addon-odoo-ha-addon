@@ -30,7 +30,7 @@
 
 **測試命令**:
 ```bash
-docker compose -f docker-compose-18.yml exec web python3 -c "
+docker compose exec web python3 -c "
 import websockets
 print(f'Version: {websockets.__version__}')
 "

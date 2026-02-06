@@ -62,7 +62,7 @@
 ### 步驟 2：查看日誌
 
 ```bash
-docker compose -f docker-compose-18.yml logs web | grep -i "configuration incomplete"
+docker compose logs web | grep -i "configuration incomplete"
 ```
 
 ### 步驟 3：測試連接

@@ -287,13 +287,13 @@ entity.write({
 
 ```bash
 # 1. 重啟 Odoo 服務（加載新權限）
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 
 # 2. 檢查日誌確認無錯誤
-docker compose -f docker-compose-18.yml logs web --tail=50
+docker compose logs web --tail=50
 
 # 3. （可選）手動觸發權限更新
-docker compose -f docker-compose-18.yml exec -e PGHOST=db -e PGUSER=odoo -e PGPASSWORD=odoo web \
+docker compose exec -e PGHOST=db -e PGUSER=odoo -e PGPASSWORD=odoo web \
   odoo -d odoo -u odoo_ha_addon --stop-after-init
 ```
 
@@ -317,10 +317,10 @@ git checkout HEAD~1 -- security/ir.model.access.csv
 git checkout HEAD~1 -- docs/tech/security-architecture.md
 
 # 2. 重啟服務
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 
 # 3. 更新模組
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon --stop-after-init
+docker compose exec web odoo -d odoo -u odoo_ha_addon --stop-after-init
 ```
 
 ---

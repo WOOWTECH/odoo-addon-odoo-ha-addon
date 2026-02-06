@@ -36,21 +36,21 @@ created: 2026-01-02T17:48:00Z
 ```bash
 # From main project directory
 MAIN_PROJECT="/Users/eugene/Documents/woow/AREA-odoo/odoo-server"
-cd "$MAIN_PROJECT" && docker compose -f docker-compose-18.yml exec web \
+cd "$MAIN_PROJECT" && docker compose exec web \
   odoo-bin -d odoo -u odoo_ha_addon --test-enable --stop-after-init \
   --log-handler odoo.addons.odoo_ha_addon:DEBUG
 ```
 
 ### Run Specific Test Module
 ```bash
-docker compose -f docker-compose-18.yml exec web \
+docker compose exec web \
   odoo-bin -d odoo -u odoo_ha_addon --test-enable --test-tags odoo_ha_addon \
   --stop-after-init
 ```
 
 ### Run with Debug Output
 ```bash
-docker compose -f docker-compose-18.yml exec web \
+docker compose exec web \
   odoo-bin -d odoo -u odoo_ha_addon --test-enable --stop-after-init \
   --log-handler odoo.addons.odoo_ha_addon:DEBUG \
   --log-level=debug

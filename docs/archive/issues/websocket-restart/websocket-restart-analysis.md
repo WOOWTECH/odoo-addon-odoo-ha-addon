@@ -225,7 +225,7 @@ start_websocket_service(env) 再次執行
 
 ```bash
 # 在容器中執行
-docker compose -f docker-compose-18.yml logs web | grep -E "(post_load_hook|start_websocket|WebSocket|instance)"
+docker compose logs web | grep -E "(post_load_hook|start_websocket|WebSocket|instance)"
 ```
 
 **預期看到的日誌：**

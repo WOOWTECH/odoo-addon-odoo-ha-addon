@@ -1205,15 +1205,15 @@ def _get_pending_requests(self):
 ```bash
 # 在 Docker 容器中安裝 WebSocket 依賴
 cd /Users/eugene/Documents/woow/AREA-odoo/odoo-server
-docker compose -f docker-compose-18.yml exec web pip install websockets
+docker compose exec web pip install websockets
 ```
 
 ### 2. 更新 Addon
 
 ```bash
 # 重啟並更新 addon
-docker compose -f docker-compose-18.yml restart web
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon --dev xml --log-handler odoo.tools.convert:DEBUG
+docker compose restart web
+docker compose exec web odoo -d odoo -u odoo_ha_addon --dev xml --log-handler odoo.tools.convert:DEBUG
 ```
 
 ### 3. 配置 Home Assistant
@@ -1227,7 +1227,7 @@ docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon -
 
 ```bash
 # 方法 1: 重啟 Odoo（post_load_hook 自動啟動）
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 
 # 方法 2: 手動觸發 Cron Job
 # 在 Odoo shell 中執行
@@ -1246,7 +1246,7 @@ is_websocket_service_running()  # 回傳 True 表示運行中
 
 ```bash
 # 查看 Odoo 日誌
-docker compose -f docker-compose-18.yml logs web | grep -i websocket
+docker compose logs web | grep -i websocket
 ```
 
 ### 7. 測試前端即時更新

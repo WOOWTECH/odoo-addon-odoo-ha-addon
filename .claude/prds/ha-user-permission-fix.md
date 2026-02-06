@@ -307,7 +307,7 @@ ADDON_PATH="data/18/addons/odoo_ha_addon"
 
 # 同步 git 追蹤的檔案到主專案並重啟
 cd "$WORKTREE" && git ls-files "$ADDON_PATH" | rsync -av --files-from=- "$WORKTREE/" "$MAIN_PROJECT/" && \
-cd "$MAIN_PROJECT" && docker compose -f docker-compose-18.yml restart web
+cd "$MAIN_PROJECT" && docker compose restart web
 ```
 
 **注意**：

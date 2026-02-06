@@ -224,7 +224,7 @@ def _check_python_dependencies():
 
 ```bash
 # 檢查 websockets 是否已安裝
-docker compose -f docker-compose-18.yml exec web python3 -c "import websockets; print(f'websockets version: {websockets.__version__}')"
+docker compose exec web python3 -c "import websockets; print(f'websockets version: {websockets.__version__}')"
 
 # 預期輸出:
 # websockets version: 15.0.1
@@ -237,10 +237,10 @@ docker compose -f docker-compose-18.yml exec web python3 -c "import websockets; 
 ```bash
 # 重啟 Odoo 服務
 cd /Users/eugene/Documents/woow/AREA-odoo/odoo-server
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 
 # 檢查日誌
-docker compose -f docker-compose-18.yml logs web --tail=100 | grep -E "ERROR|WARNING|Traceback"
+docker compose logs web --tail=100 | grep -E "ERROR|WARNING|Traceback"
 ```
 
 **結果**: ✅ 通過（沒有嚴重錯誤）
@@ -291,7 +291,7 @@ docker compose -f docker-compose-18.yml logs web --tail=100 | grep -E "ERROR|WAR
 
 ```bash
 # 檢查 post_load_hook 是否正常執行
-docker compose -f docker-compose-18.yml logs web | grep "post_load_hook"
+docker compose logs web | grep "post_load_hook"
 
 # 預期輸出:
 # Post-load hook: Initializing Home Assistant WebSocket integration
@@ -327,17 +327,17 @@ RUN pip install websockets>=10.0
 
 ```bash
 # 1. 確認依賴已安裝
-docker compose -f docker-compose-18.yml exec web python3 -c "import websockets"
+docker compose exec web python3 -c "import websockets"
 
 # 2. 升級模組
-docker compose -f docker-compose-18.yml exec web odoo -d <database> -u odoo_ha_addon --stop-after-init
+docker compose exec web odoo -d <database> -u odoo_ha_addon --stop-after-init
 
 # 3. 分配 Manager 權限給管理員
 #    在 Odoo UI 中：Settings > Users & Companies > Users
 #    編輯用戶，添加 "Home Assistant Manager" 群組
 
 # 4. 重啟服務
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 ```
 
 ---
@@ -357,7 +357,7 @@ git checkout HEAD~1 -- security/
 git checkout HEAD~1 -- __manifest__.py
 
 # 4. 重啟服務
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 ```
 
 ---

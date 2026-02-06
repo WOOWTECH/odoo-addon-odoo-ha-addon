@@ -215,10 +215,10 @@ msgstr ""
 **執行命令**:
 ```bash
 # 重啟服務
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 
 # 更新模組
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon --stop-after-init
+docker compose exec web odoo -d odoo -u odoo_ha_addon --stop-after-init
 ```
 
 **完成內容**:

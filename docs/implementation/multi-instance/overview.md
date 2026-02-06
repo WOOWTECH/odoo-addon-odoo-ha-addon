@@ -1139,7 +1139,7 @@ class ResUsers(models.Model):
 - **Odoo 版本**: 18.0
 - **資料庫**: odoo (PostgreSQL 15)
 - **測試方式**: 模組升級測試（18.0.2.2 → 18.0.3.0）
-- **Docker 環境**: docker-compose-18.yml
+- **Docker 環境**: docker-compose.yml（或透過 `./scripts/start-dev.sh` 啟動）
 
 ### 遇到的問題與解決方案
 

@@ -16,7 +16,7 @@ Odoo 重啟後，WebSocket 連接沒有自動重新建立：
 
 **檢查方法：**
 ```bash
-docker compose -f docker-compose-18.yml logs --tail=100 web | grep -i "configuration incomplete"
+docker compose logs --tail=100 web | grep -i "configuration incomplete"
 ```
 
 ### 2. 實例未標記為活躍（其次可能）
@@ -51,7 +51,7 @@ docker compose -f docker-compose-18.yml logs --tail=100 web | grep -i "configura
 
 ```bash
 # 查看 post_load_hook 相關日誌
-docker compose -f docker-compose-18.yml logs web | grep -E "(post_load_hook|WebSocket|start_websocket)"
+docker compose logs web | grep -E "(post_load_hook|WebSocket|start_websocket)"
 ```
 
 預期看到：
@@ -69,7 +69,7 @@ docker compose -f docker-compose-18.yml logs web | grep -E "(post_load_hook|WebS
 4. 重啟 Odoo：
 
 ```bash
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 ```
 
 ### 修復方案 2：檢查實例是否活躍（2 分鐘）
@@ -101,7 +101,7 @@ docker compose -f docker-compose-18.yml restart web
 ### 1. 查看日誌確認啟動
 
 ```bash
-docker compose -f docker-compose-18.yml logs web | tail -50 | grep "WebSocket thread started"
+docker compose logs web | tail -50 | grep "WebSocket thread started"
 ```
 
 應該看到類似信息：
@@ -133,7 +133,7 @@ A: 最可能是實例配置不完整。檢查 API URL 和 Token 是否都已填�
 A: 重啟 Odoo 服務。Post-load hook 只在啟動時執行。
 
 ```bash
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 ```
 
 ### Q3: 如何手動重啟 WebSocket 服務？

@@ -23,10 +23,10 @@ This test verifies that admin gets HA Manager permissions automatically on fresh
 cd /Users/eugene/Documents/woow/AREA-odoo/odoo-server
 
 # Stop Odoo if running
-docker compose -f docker-compose-18.yml down
+docker compose down
 
 # Start Odoo
-docker compose -f docker-compose-18.yml up -d
+docker compose up -d
 ```
 
 ### Step 2: Access Odoo Web Interface
@@ -52,7 +52,7 @@ docker compose -f docker-compose-18.yml up -d
 
 ```bash
 # Monitor Odoo logs in real-time
-docker compose -f docker-compose-18.yml logs -f web
+docker compose logs -f web
 ```
 
 **Expected Log Output:**
@@ -216,7 +216,7 @@ For advanced users who want to verify permissions programmatically.
 ### Step 1: Access Odoo Shell
 
 ```bash
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo
+docker compose exec web odoo shell -d odoo
 ```
 
 ### Step 2: Check Admin Permissions
@@ -307,11 +307,11 @@ This test verifies that permission enforcement still works after auto-grant.
 **Possible Causes:**
 
 1. **Installation Failed Silently**
-   - Check logs: `docker compose -f docker-compose-18.yml logs web | grep "post_init_hook"`
+   - Check logs: `docker compose logs web | grep "post_init_hook"`
    - Look for errors or warnings
 
 2. **Cache Issue**
-   - Restart Odoo: `docker compose -f docker-compose-18.yml restart web`
+   - Restart Odoo: `docker compose restart web`
    - Clear browser cache and re-login
 
 3. **Database Already Had Addon**
@@ -332,7 +332,7 @@ This test verifies that permission enforcement still works after auto-grant.
 
 ```bash
 # Access shell
-docker compose -f docker-compose-18.yml exec web odoo shell -d odoo
+docker compose exec web odoo shell -d odoo
 
 # Grant permission
 env['res.users'].browse(2).write({
@@ -379,13 +379,13 @@ For CI/CD pipelines or automated testing:
 echo "=== Testing HA Permission Auto-Grant ==="
 
 # Start Odoo
-docker compose -f docker-compose-18.yml up -d web
+docker compose up -d web
 
 # Wait for Odoo to start
 sleep 10
 
 # Install addon and check permissions via shell
-docker compose -f docker-compose-18.yml exec -T web odoo shell -d odoo <<EOF
+docker compose exec -T web odoo shell -d odoo <<EOF
 # Check if admin has HA Manager permission
 admin = env.ref('base.user_admin')
 ha_manager = env.ref('odoo_ha_addon.group_ha_manager')

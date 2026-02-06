@@ -53,8 +53,8 @@ asyncio
 ## Development Environment
 
 ### Docker Configuration
-- **Docker Compose File:** `docker-compose-18.yml`
-- **Web Port:** 8069
+- **Docker Compose File:** `docker-compose.yml` (預設) 或透過 `./scripts/start-dev.sh` 啟動
+- **Web Port:** 8069（Worktree 會自動分配不同 port）
 - **Database Admin:** 8080 (Adminer)
 - **Entry URL:** http://localhost (via Nginx)
 
@@ -66,20 +66,22 @@ asyncio
 
 ### Development Commands
 ```bash
-# Start environment
-docker compose -f docker-compose-18.yml up
+# Start environment (推薦使用腳本)
+./scripts/start-dev.sh
+# 或標準 docker compose
+docker compose up
 
 # Restart web container
-docker compose -f docker-compose-18.yml restart web
+docker compose restart web
 
 # Update addon
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon --dev xml
+docker compose exec web odoo -d odoo -u odoo_ha_addon --dev xml
 
 # Access shell
-docker compose -f docker-compose-18.yml exec web bash
+docker compose exec web bash
 
 # View logs
-docker compose -f docker-compose-18.yml logs -f web
+docker compose logs -f web
 ```
 
 ## External Integrations
@@ -122,10 +124,10 @@ docker compose -f docker-compose-18.yml logs -f web
 ### Test Commands
 ```bash
 # Run tests in container
-docker compose -f docker-compose-18.yml exec web odoo -d odoo -u odoo_ha_addon --test-enable
+docker compose exec web odoo -d odoo -u odoo_ha_addon --test-enable
 
 # Run specific test
-docker compose -f docker-compose-18.yml exec web odoo -d odoo --test-tags=/odoo_ha_addon
+docker compose exec web odoo -d odoo --test-tags=/odoo_ha_addon
 ```
 
 ## Build & Deploy
