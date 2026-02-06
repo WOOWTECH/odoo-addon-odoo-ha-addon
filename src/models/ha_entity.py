@@ -10,7 +10,7 @@ _logger = logging.getLogger(__name__)
 
 class HAEntity(models.Model):
     _name = 'ha.entity'
-    _inherit = ['ha.current.instance.filter.mixin', 'mail.thread', 'mail.activity.mixin']
+    _inherit = ['ha.current.instance.filter.mixin', 'mail.thread', 'mail.activity.mixin', 'portal.mixin']
     _description = 'Home Assistant Entity'
 
     # SQL Constraints

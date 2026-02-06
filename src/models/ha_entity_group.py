@@ -8,7 +8,7 @@ _logger = logging.getLogger(__name__)
 
 class HAEntityGroup(models.Model):
     _name = 'ha.entity.group'
-    _inherit = ['ha.current.instance.filter.mixin', 'mail.thread', 'mail.activity.mixin']
+    _inherit = ['ha.current.instance.filter.mixin', 'mail.thread', 'mail.activity.mixin', 'portal.mixin']
     _description = 'Home Assistant Entity Group'
     _order = 'sequence, name'
 

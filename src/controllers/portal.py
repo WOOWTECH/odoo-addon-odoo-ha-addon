@@ -234,12 +234,16 @@ class HAPortalController(http.Controller):
         if share.permission == 'control':
             controllable_domains = list(PORTAL_CONTROL_SERVICES.keys())
 
+        # Ensure access token for portal chatter attachment upload
+        entity._portal_ensure_token()
+
         return request.render('odoo_ha_addon.portal_entity', {
             'entity': entity,
             'instance': entity.ha_instance_id,
             'permission': share.permission,
             'page_name': 'portal_entity',
             'controllable_domains': controllable_domains,
+            'token': entity.access_token,
         })
 
     @http.route(
@@ -468,12 +472,16 @@ class HAPortalController(http.Controller):
         if share.permission == 'control':
             controllable_domains = list(PORTAL_CONTROL_SERVICES.keys())
 
+        # Ensure access token for portal chatter attachment upload
+        group._portal_ensure_token()
+
         return request.render('odoo_ha_addon.portal_entity_group', {
             'group': group,
             'instance': group.ha_instance_id,
             'permission': share.permission,
             'page_name': 'portal_entity_group',
             'controllable_domains': controllable_domains,
+            'token': group.access_token,
         })
 
     @http.route(
@@ -777,6 +785,9 @@ class HAPortalController(http.Controller):
         # Get entities belonging to this device
         entities = device.entity_ids
 
+        # Ensure access token for portal chatter attachment upload
+        device._portal_ensure_token()
+
         return request.render('odoo_ha_addon.portal_device', {
             'device': device,
             'instance': device.ha_instance_id,
@@ -784,6 +795,7 @@ class HAPortalController(http.Controller):
             'permission': share.permission,
             'page_name': 'portal_device',
             'controllable_domains': controllable_domains,
+            'token': device.access_token,
         })
 
     @http.route(

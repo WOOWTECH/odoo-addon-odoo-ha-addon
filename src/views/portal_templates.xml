@@ -756,8 +756,7 @@
                                 <div class="card-body">
                                     <t t-call="portal.message_thread">
                                         <t t-set="object" t-value="entity"/>
-                                        <t t-set="pid" t-value="0"/>
-                                        <t t-set="hash" t-value="''"/>
+                                        <t t-set="token" t-value="entity.access_token"/>
                                     </t>
                                 </div>
                             </div>
@@ -915,8 +914,7 @@
                         <div class="card-body">
                             <t t-call="portal.message_thread">
                                 <t t-set="object" t-value="group"/>
-                                <t t-set="pid" t-value="0"/>
-                                <t t-set="hash" t-value="''"/>
+                                <t t-set="token" t-value="group.access_token"/>
                             </t>
                         </div>
                     </div>
@@ -1119,8 +1117,7 @@
                                 <div class="card-body">
                                     <t t-call="portal.message_thread">
                                         <t t-set="object" t-value="device"/>
-                                        <t t-set="pid" t-value="0"/>
-                                        <t t-set="hash" t-value="''"/>
+                                        <t t-set="token" t-value="device.access_token"/>
                                     </t>
                                 </div>
                             </div>

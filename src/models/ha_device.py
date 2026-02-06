@@ -13,6 +13,7 @@ class HADevice(models.Model):
     Only certain fields can be updated: area_id, name_by_user, disabled_by, labels
     """
     _name = 'ha.device'
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'portal.mixin']
     _description = 'Home Assistant Device'
 
     # SQL Constraints
