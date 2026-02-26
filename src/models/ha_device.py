@@ -440,6 +440,7 @@ class HADevice(models.Model):
             return None, None
 
         # Resolve area_id to Odoo area record
+        # If area doesn't exist, auto-create it to ensure device sync doesn't lose area info
         area_odoo_id = None
         ha_area_id = device_data.get('area_id')
         if ha_area_id:
@@ -450,7 +451,16 @@ class HADevice(models.Model):
             if area_record:
                 area_odoo_id = area_record.id
             else:
-                _logger.warning(f"Area {ha_area_id} not found in Odoo for device {device_id}")
+                # Auto-create area if it doesn't exist
+                # This ensures device sync doesn't lose area information
+                # The area name will be updated when area sync runs
+                _logger.info(f"Auto-creating area {ha_area_id} for device {device_id}")
+                area_record = self.env['ha.area'].sudo().create({
+                    'area_id': ha_area_id,
+                    'name': ha_area_id,  # Temporary name, will be updated by area sync
+                    'ha_instance_id': instance_id,
+                })
+                area_odoo_id = area_record.id
 
         # Convert HA labels (string array) to Odoo label_ids (Many2many)
         ha_labels = device_data.get('labels', [])

@@ -590,9 +590,21 @@ class HAEntity(models.Model):
 
                 # 更新 area_id 和 follows_device_area
                 # 當 HA 的 area_id 為 null 且有 device_id 時，表示實體跟隨裝置分區
-                if ha_area_id and ha_area_id in area_map:
+                if ha_area_id:
                     # 實體有自己的分區
-                    odoo_area_id = area_map[ha_area_id]
+                    if ha_area_id in area_map:
+                        odoo_area_id = area_map[ha_area_id]
+                    else:
+                        # Auto-create area if it doesn't exist
+                        _logger.info(f"Auto-creating area {ha_area_id} for entity {entity_id}")
+                        area_record = env['ha.area'].sudo().create({
+                            'area_id': ha_area_id,
+                            'name': ha_area_id,  # Temporary name, will be updated by area sync
+                            'ha_instance_id': instance_id,
+                        })
+                        odoo_area_id = area_record.id
+                        area_map[ha_area_id] = odoo_area_id  # Update map for future entities
+
                     if entity.area_id.id != odoo_area_id:
                         update_vals['area_id'] = odoo_area_id
                         area_updated_count += 1
