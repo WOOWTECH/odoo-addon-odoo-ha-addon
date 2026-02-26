@@ -1,7 +1,7 @@
 # History Module Optimization - PRD
 
 **Created:** 2026-02-26T08:12:36Z
-**Updated:** 2026-02-26T08:43:32Z
+**Updated:** 2026-02-26T09:09:25Z
 **Status:** Completed
 **Author:** Claude Code Assistant
 
@@ -81,6 +81,30 @@ function ensureStringLabel(label) {
 
 **Fix Applied:** Added \`datalabels: { display: false }\` to all line chart configurations in \`hahistory_renderer.js\`.
 
+### Issue 5: SearchBar and CogMenu Not Visible
+
+**Root Cause:** The template used incorrect slot names. \`control-panel-bottom-right\` doesn't exist in Odoo's Layout component.
+
+**Investigation:**
+- Compared with Odoo standard views (list_controller.xml, graph_controller.xml)
+- Found correct slot names: \`layout-actions\` for SearchBar, \`control-panel-additional-actions\` for CogMenu
+
+**Fix Applied:** Updated \`hahistory_controller.xml\`:
+\`\`\`xml
+<!-- Before (incorrect) -->
+<t t-set-slot="control-panel-bottom-right">
+    <SearchBar toggler="searchBarToggler"/>
+</t>
+
+<!-- After (correct) -->
+<t t-set-slot="layout-actions">
+    <SearchBar toggler="searchBarToggler"/>
+</t>
+<t t-set-slot="control-panel-navigation-additional">
+    <t t-component="searchBarToggler.component" t-props="searchBarToggler.props"/>
+</t>
+\`\`\`
+
 ## Architecture Overview
 
 \`\`\`
@@ -147,6 +171,7 @@ function ensureStringLabel(label) {
 | \`src/static/src/views/hahistory/hahistory_renderer.js\` | Added \`ensureStringLabel()\`, disabled datalabels on line charts |
 | \`src/static/src/util/color.js\` | Added HSL color support in \`isLightColor()\` |
 | \`src/static/src/components/charts/unified_chart/unified_chart.js\` | Fixed datalabels config |
+| \`src/static/src/views/hahistory/hahistory_controller.xml\` | Fixed slot names for SearchBar and CogMenu |
 
 ## Database Fixes Applied
 
@@ -191,6 +216,7 @@ All issues have been successfully resolved:
 | `[object Object]` in charts | **Fixed** | Added `ensureStringLabel()` function |
 | Coordinate numbers on line charts | **Fixed** | Disabled datalabels plugin for line charts |
 | Inconsistent legend display | **Fixed** | Added explicit legend config to `parseNumericChartData()` |
+| SearchBar/CogMenu not visible | **Fixed** | Changed slot names from `control-panel-bottom-right` to `layout-actions` |
 
 ## Lessons Learned
 
