@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="odoo_ha_addon.HaHistoryController">
-        <Layout display="props.display">
+        <Layout display="props.display" className="'o_hahistory_view'">
             <t t-set-slot="control-panel-additional-actions">
                 <CogMenu/>
             </t>
-            <t t-set-slot="layout-actions">
-                <SearchBar toggler="searchBarToggler" autofocus="firstLoad"/>
+            <t t-set-slot="control-panel-bottom-right">
+                <SearchBar toggler="searchBarToggler"/>
             </t>
             <t t-component="props.Renderer"
                model="model"
