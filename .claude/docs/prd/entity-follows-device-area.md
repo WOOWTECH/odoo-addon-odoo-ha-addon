@@ -1,9 +1,9 @@
 ---
 name: entity-follows-device-area
 description: 實體分區跟隨裝置分區功能
-status: in-progress
+status: complete
 created: 2026-02-26T02:11:09Z
-updated: 2026-02-26T02:15:29Z
+updated: 2026-02-26T02:39:50Z
 ---
 
 # Entity Follows Device Area
