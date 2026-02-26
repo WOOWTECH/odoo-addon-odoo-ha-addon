@@ -27,7 +27,7 @@
           - binary: binary_sensor, switch, light, input_boolean
           - categorical: climate, fan, cover, lock, media_player, vacuum
         -->
-        <hahistory domain="sensor,input_number,number,counter,binary_sensor,switch,light,input_boolean,climate,fan,cover,lock,media_player,vacuum">
+        <hahistory domain="sensor,input_number,number,counter,binary_sensor,switch,light,input_boolean,climate,fan,cover,lock,media_player,vacuum" limit="5000">
         </hahistory>
       </field>
     </record>
