@@ -408,7 +408,8 @@ function getTimelineChartOptions(minTime, maxTime, segmentCount = 1) {
           label: (ctx) => {
             if (!ctx.raw || !Array.isArray(ctx.raw)) return '';
             const duration = ctx.raw[1] - ctx.raw[0];
-            return `${ctx.dataset.label}: ${formatDuration(duration)}`;
+            const label = ensureStringLabel(ctx.dataset.label);
+            return `${label}: ${formatDuration(duration)}`;
           },
         },
       },
@@ -670,7 +671,8 @@ function getCombinedTimelineChartOptions(minTime, maxTime, entityCount = 1) {
           label: (ctx) => {
             if (!ctx.raw || !Array.isArray(ctx.raw)) return '';
             const duration = ctx.raw[1] - ctx.raw[0];
-            return `${ctx.dataset.label}: ${formatDuration(duration)}`;
+            const label = ensureStringLabel(ctx.dataset.label);
+            return `${label}: ${formatDuration(duration)}`;
           },
         },
       },

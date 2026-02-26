@@ -4,7 +4,32 @@ import { Component, useRef, onMounted, onWillUpdateProps, onPatched, onWillUnmou
 import { useService } from "@web/core/utils/hooks";
 import { debug } from "../../../util/debug";
 import { isLightColor } from "../../../util/color";
-import { TIMELINE_LABEL_FONT_SIZE } from "../../../constants";
+import { TIMELINE_LABEL_FONT_SIZE, MIN_BAR_WIDTH_FOR_LABEL } from "../../../constants";
+
+/**
+ * 截斷過長的狀態文字
+ * @param {string} text - 原始文字
+ * @param {number} maxLength - 最大長度（預設 4）
+ * @returns {string} 截斷後的文字
+ */
+function truncateStateText(text, maxLength = 4) {
+  if (!text || typeof text !== 'string') return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength - 1) + '...';
+}
+
+/**
+ * 確保 label 是字串格式
+ * @param {*} label - 可能是字串、物件或其他類型
+ * @returns {string}
+ */
+function ensureStringLabel(label) {
+  if (label === null || label === undefined) return '';
+  if (typeof label === 'object') {
+    return label.name || label.display_name || String(label);
+  }
+  return String(label);
+}
 
 /**
  * 生成 Timeline 圖表的 datalabels 配置
@@ -12,21 +37,26 @@ import { TIMELINE_LABEL_FONT_SIZE } from "../../../constants";
  */
 function getTimelineDataLabelsConfig() {
   return {
-    // 先用 'auto' 讓 plugin 自動決定是否顯示
-    // 'auto' 會在空間不足時自動隱藏標籤
-    display: 'auto',
+    display: (ctx) => {
+      // 計算區塊寬度（像素），只在足夠寬時顯示文字
+      const chart = ctx.chart;
+      const xScale = chart.scales.x;
+      if (!ctx.raw || !Array.isArray(ctx.raw)) return false;
+      const barStart = ctx.raw[0];
+      const barEnd = ctx.raw[1];
+      const startPixel = xScale.getPixelForValue(barStart);
+      const endPixel = xScale.getPixelForValue(barEnd);
+      const barWidth = Math.abs(endPixel - startPixel);
+      return barWidth > MIN_BAR_WIDTH_FOR_LABEL;
+    },
     formatter: (value, ctx) => {
-      const label = ctx.dataset.label;
-      // 確保 label 是字串，避免顯示 [object Object]
-      if (label === null || label === undefined) return '';
-      if (typeof label === 'object') {
-        // 如果是物件，嘗試取得 name 或 display_name
-        return label.name || label.display_name || String(label);
-      }
-      return String(label);
+      const label = ensureStringLabel(ctx.dataset.label);
+      // 截斷過長的文字（超過 4 字顯示前 3 字 + ...）
+      return truncateStateText(label, 4);
     },
     color: (ctx) => {
       const bgColor = ctx.dataset.backgroundColor;
+      if (typeof bgColor !== 'string') return '#fff';
       return isLightColor(bgColor) ? '#000' : '#fff';
     },
     anchor: 'center',
