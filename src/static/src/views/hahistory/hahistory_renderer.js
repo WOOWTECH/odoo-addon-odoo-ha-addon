@@ -919,6 +919,7 @@ function parseCombinedChartData(records, stateType) {
       },
     };
     chartOptions.plugins = {
+      datalabels: { display: false },  // 停用 datalabels（line chart 不需要）
       tooltip: {
         callbacks: {
           label: (context) => {
@@ -958,6 +959,7 @@ function parseCombinedChartData(records, stateType) {
       },
     };
     chartOptions.plugins = {
+      datalabels: { display: false },  // 停用 datalabels（line chart 不需要）
       tooltip: {
         callbacks: {
           label: (context) => {
@@ -972,6 +974,7 @@ function parseCombinedChartData(records, stateType) {
   } else if (stateType === "numeric") {
     // Numeric 類型添加 tooltip 處理
     chartOptions.plugins = {
+      datalabels: { display: false },  // 停用 datalabels（line chart 不需要）
       tooltip: {
         callbacks: {
           label: (context) => {
@@ -1052,6 +1055,7 @@ function parseNumericChartData(records, entityLabel) {
         x: getTimeScaleConfig(),
       },
       plugins: {
+        datalabels: { display: false },  // 停用 datalabels（line chart 不需要）
         tooltip: {
           callbacks: {
             label: function (context) {
@@ -1133,6 +1137,7 @@ function parseBinaryChartData(records, entityLabel) {
         },
       },
       plugins: {
+        datalabels: { display: false },  // 停用 datalabels（line chart 不需要）
         tooltip: {
           callbacks: {
             label: function (context) {
@@ -1242,6 +1247,7 @@ function parseCategoricalChartData(records, entityLabel, domain) {
         },
       },
       plugins: {
+        datalabels: { display: false },  // 停用 datalabels（line chart 不需要）
         tooltip: {
           callbacks: {
             label: function (context) {
