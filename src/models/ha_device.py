@@ -13,6 +13,7 @@ class HADevice(models.Model):
     Only certain fields can be updated: area_id, name_by_user, disabled_by, labels
     """
     _name = 'ha.device'
+    _inherit = ['portal.mixin']
     _description = 'Home Assistant Device'
 
     # SQL Constraints
@@ -280,6 +281,11 @@ class HADevice(models.Model):
     _USER_EDITABLE_FIELDS = {'area_id', 'name_by_user', 'label_ids', 'tag_ids', 'properties'}
 
     # ========== Computed Fields ==========
+
+    def _compute_access_url(self):
+        """Compute the portal access URL for each device."""
+        for record in self:
+            record.access_url = f'/portal/device/{record.id}'
 
     @api.depends('entity_ids')
     def _compute_entity_count(self):
