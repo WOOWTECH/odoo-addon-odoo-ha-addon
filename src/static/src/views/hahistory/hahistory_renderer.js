@@ -1055,6 +1055,14 @@ function parseNumericChartData(records, entityLabel) {
         x: getTimeScaleConfig(),
       },
       plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            usePointStyle: true,
+            boxWidth: 10,
+          },
+        },
         datalabels: { display: false },  // 停用 datalabels（line chart 不需要）
         tooltip: {
           callbacks: {
