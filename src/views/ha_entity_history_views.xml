@@ -38,17 +38,51 @@
         <field name="model">ha.entity.history</field>
         <field name="arch" type="xml">
             <search string="Entity History Search">
-                <field name="entity_name"/>
-                <field name="entity_id_string"/>
-                <field name="domain"/>
-                <field name="ha_instance_id"/>
+                <!-- 搜尋欄位 -->
+                <field name="entity_name" string="Entity Name"/>
+                <field name="entity_id_string" string="Entity ID"/>
+                <field name="domain" string="Domain"/>
+                <field name="entity_state" string="State"/>
+                <field name="ha_instance_id" string="Instance"/>
+
+                <!-- 時間範圍過濾 -->
+                <separator/>
+                <filter name="filter_today" string="Today"
+                        domain="[('last_changed', '&gt;=', (context_today()).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="filter_yesterday" string="Yesterday"
+                        domain="[('last_changed', '&gt;=', (context_today() - datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')),
+                                 ('last_changed', '&lt;', (context_today()).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="filter_week" string="Last 7 Days"
+                        domain="[('last_changed', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="filter_month" string="Last 30 Days"
+                        domain="[('last_changed', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d 00:00:00'))]"/>
+
+                <!-- 狀態過濾 -->
+                <separator/>
                 <filter name="available" string="Available" domain="[('entity_state', '!=', 'unavailable')]"/>
+                <filter name="unavailable" string="Unavailable" domain="[('entity_state', '=', 'unavailable')]"/>
+
+                <!-- Domain 類型過濾 -->
+                <separator/>
+                <filter name="domain_sensor" string="Sensor" domain="[('domain', '=', 'sensor')]"/>
+                <filter name="domain_binary_sensor" string="Binary Sensor" domain="[('domain', '=', 'binary_sensor')]"/>
+                <filter name="domain_switch" string="Switch" domain="[('domain', '=', 'switch')]"/>
+                <filter name="domain_light" string="Light" domain="[('domain', '=', 'light')]"/>
+                <filter name="domain_climate" string="Climate" domain="[('domain', '=', 'climate')]"/>
+                <filter name="domain_cover" string="Cover" domain="[('domain', '=', 'cover')]"/>
+                <filter name="domain_fan" string="Fan" domain="[('domain', '=', 'fan')]"/>
+
+                <!-- 實例過濾 -->
                 <separator/>
                 <filter name="current_instance" string="Current Instance"
                         domain="[('is_current_user_instance', '=', True)]"/>
-                <group expand="0" string="Group By">
-                    <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
+
+                <!-- 分組 -->
+                <group expand="1" string="Group By">
+                    <filter name="group_by_entity" string="Entity" context="{'group_by': 'entity_id'}"/>
                     <filter name="group_by_domain" string="Domain" context="{'group_by': 'domain'}"/>
+                    <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
+                    <filter name="group_by_date" string="Date" context="{'group_by': 'last_changed:day'}"/>
                 </group>
             </search>
         </field>
@@ -58,7 +92,8 @@
         <field name="name">HA Entity History</field>
         <field name="res_model">ha.entity.history</field>
         <field name="view_mode">hahistory,list,form</field>
-        <field name="context">{'search_default_available': 1}</field>
+        <field name="search_view_id" ref="ha_entity_history_view_search"/>
+        <field name="context">{'search_default_available': 1, 'search_default_filter_today': 1}</field>
     </record>
     <record id="entity_history_action_view_hahistory" model="ir.actions.act_window.view">
         <field name="sequence" eval="1"/>
