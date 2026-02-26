@@ -11,9 +11,13 @@ class HADevice(models.Model):
 
     Note: Devices are managed by HA integrations and CANNOT be created or deleted from Odoo.
     Only certain fields can be updated: area_id, name_by_user, disabled_by, labels
+
+    Inherits:
+        - portal.mixin: Provides portal access token and URL functionality
+        - mail.thread: Provides chatter/discussion functionality for portal pages
     """
     _name = 'ha.device'
-    _inherit = ['portal.mixin']
+    _inherit = ['portal.mixin', 'mail.thread']
     _description = 'Home Assistant Device'
 
     # SQL Constraints
