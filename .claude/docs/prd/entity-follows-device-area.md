@@ -3,7 +3,7 @@ name: entity-follows-device-area
 description: 實體分區跟隨裝置分區功能
 status: complete
 created: 2026-02-26T02:11:09Z
-updated: 2026-02-26T02:39:50Z
+updated: 2026-02-26T02:52:30Z
 ---
 
 # Entity Follows Device Area
@@ -65,14 +65,34 @@ updated: 2026-02-26T02:39:50Z
 
 ## 驗收標準
 
-1. [ ] 同步有 `area_id = null` 且有 `device_id` 的實體時，`follows_device_area = True`
-2. [ ] 同步有 `area_id` 的實體時，`follows_device_area = False`
-3. [ ] 勾選「跟隨裝置分區」後，同步 `area_id = null` 至 HA
-4. [ ] 取消勾選並選擇分區後，同步選擇的分區至 HA
-5. [ ] 裝置分區變更時，跟隨的實體 `display_area_id` 自動更新
-6. [ ] 當 `follows_device_area = True` 時，分區欄位為唯讀
-7. [ ] 當實體無關聯裝置時，勾選框隱藏
-8. [ ] 繁體中文翻譯正確顯示
+1. [x] 同步有 `area_id = null` 且有 `device_id` 的實體時，`follows_device_area = True`
+2. [x] 同步有 `area_id` 的實體時，`follows_device_area = False`
+3. [x] 勾選「跟隨裝置分區」後，同步 `area_id = null` 至 HA
+4. [x] 取消勾選並選擇分區後，同步選擇的分區至 HA
+5. [x] 裝置分區變更時，跟隨的實體 `display_area_id` 自動更新
+6. [x] 當 `follows_device_area = True` 時，分區欄位為唯讀
+7. [x] 當實體無關聯裝置時，勾選框隱藏
+8. [x] 繁體中文翻譯正確顯示
+
+## 測試結果
+
+### 2026-02-26 測試通過
+
+**單元測試**: 8/8 通過
+- `test_follows_device_area_default`
+- `test_display_area_id_when_following`
+- `test_display_area_id_when_not_following`
+- `test_display_area_id_with_own_area`
+- `test_display_area_id_no_device`
+- `test_display_area_id_device_no_area`
+- `test_sync_follows_device_area_from_ha`
+- `test_sync_own_area_from_ha`
+
+**整合測試**: 手動驗證通過
+- 觸發同步後：573 個實體正確設定 `follows_device_area=True`
+- 測試實體 `light.jie_dai_qu_ci_xi_gui_2`:
+  - `follows_device_area: True`
+  - `display_area_id: [2, '接待區']` (正確繼承裝置分區)
 
 ## 優先順序
 
