@@ -57,7 +57,7 @@ class HAEntity(models.Model):
         'ha.area',
         string='Display Area',
         compute='_compute_display_area_id',
-        store=False,
+        store=True,  # Store for grouping in kanban/list views
         help='Actual area shown: own area or device area if follows_device_area is True'
     )
     device_id = fields.Many2one(

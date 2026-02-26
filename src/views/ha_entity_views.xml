@@ -212,7 +212,7 @@
                 <group expand="0" string="Group By">
                     <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
                     <filter name="group_by_domain" string="Domain" context="{'group_by': 'domain'}"/>
-                    <filter name="group_by_area" string="Area" context="{'group_by': 'area_id'}"/>
+                    <filter name="group_by_area" string="Area" context="{'group_by': 'display_area_id'}"/>
                     <filter name="group_by_device" string="Device" context="{'group_by': 'device_id'}"/>
                 </group>
             </search>
