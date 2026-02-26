@@ -15,7 +15,16 @@ function getTimelineDataLabelsConfig() {
     // 先用 'auto' 讓 plugin 自動決定是否顯示
     // 'auto' 會在空間不足時自動隱藏標籤
     display: 'auto',
-    formatter: (value, ctx) => ctx.dataset.label,
+    formatter: (value, ctx) => {
+      const label = ctx.dataset.label;
+      // 確保 label 是字串，避免顯示 [object Object]
+      if (label === null || label === undefined) return '';
+      if (typeof label === 'object') {
+        // 如果是物件，嘗試取得 name 或 display_name
+        return label.name || label.display_name || String(label);
+      }
+      return String(label);
+    },
     color: (ctx) => {
       const bgColor = ctx.dataset.backgroundColor;
       return isLightColor(bgColor) ? '#000' : '#fff';

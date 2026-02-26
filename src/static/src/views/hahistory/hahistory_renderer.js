@@ -80,51 +80,51 @@ const CATEGORICAL_STATE_MAPS = {
   vacuum: { docked: 0, idle: 1, returning: 2, cleaning: 3, error: 4, paused: 5 },
 };
 
-// 分類狀態顏色映射
+// 分類狀態顏色映射 (Material Design 風格)
 const CATEGORICAL_COLOR_MAPS = {
   climate: {
-    0: "#808080", // off - gray
-    1: "#54A9FF", // cool - blue
-    2: "#FF6B6B", // heat - red
-    3: "#9B59B6", // auto - purple
-    4: "#F39C12", // dry - orange
-    5: "#1ABC9C", // fan_only - teal
-    6: "#E91E63", // heat_cool - pink
+    0: "#9E9E9E", // off - 灰色
+    1: "#2196F3", // cool - 藍色
+    2: "#FF9800", // heat - 橙色
+    3: "#4CAF50", // auto - 綠色
+    4: "#FFC107", // dry - 黃色
+    5: "#00BCD4", // fan_only - 青色
+    6: "#4CAF50", // heat_cool - 綠色
   },
   fan: {
-    0: "#95a5a6", // off
-    1: "#3498db", // low
-    2: "#2ecc71", // medium
-    3: "#e74c3c", // high
-    4: "#9b59b6", // auto
+    0: "#9E9E9E", // off - 灰色
+    1: "#81C784", // low - 淺綠
+    2: "#4CAF50", // medium - 綠色
+    3: "#2E7D32", // high - 深綠
+    4: "#9C27B0", // auto - 紫色
   },
   cover: {
-    0: "#95a5a6", // closed
-    1: "#f39c12", // closing
-    2: "#3498db", // opening
-    3: "#2ecc71", // open
+    0: "#9E9E9E", // closed - 灰色
+    1: "#BDBDBD", // closing - 淺灰
+    2: "#81C784", // opening - 淺綠
+    3: "#4CAF50", // open - 綠色
   },
   lock: {
-    0: "#e74c3c", // unlocked
-    1: "#f39c12", // unlocking
-    2: "#3498db", // locking
-    3: "#2ecc71", // locked
+    0: "#F44336", // unlocked - 紅色
+    1: "#FF9800", // unlocking - 橙色
+    2: "#2196F3", // locking - 藍色
+    3: "#4CAF50", // locked - 綠色
   },
   media_player: {
-    0: "#95a5a6", // off
-    1: "#bdc3c7", // idle
-    2: "#f39c12", // paused
-    3: "#2ecc71", // playing
-    4: "#3498db", // standby
-    5: "#9b59b6", // on
+    0: "#9E9E9E", // off - 灰色
+    1: "#BDBDBD", // idle - 淺灰
+    2: "#FF9800", // paused - 橙色
+    3: "#4CAF50", // playing - 綠色
+    4: "#2196F3", // standby - 藍色
+    5: "#9C27B0", // on - 紫色
   },
   vacuum: {
-    0: "#2ecc71", // docked
-    1: "#95a5a6", // idle
-    2: "#3498db", // returning
-    3: "#e74c3c", // cleaning
-    4: "#c0392b", // error
-    5: "#f39c12", // paused
+    0: "#4CAF50", // docked - 綠色
+    1: "#9E9E9E", // idle - 灰色
+    2: "#2196F3", // returning - 藍色
+    3: "#F44336", // cleaning - 紅色
+    4: "#D32F2F", // error - 深紅
+    5: "#FF9800", // paused - 橙色
   },
 };
 
@@ -309,6 +309,32 @@ function formatDuration(ms) {
  * 生成 Timeline 圖表的 datalabels 配置
  * @returns {object}
  */
+/**
+ * 截斷過長的狀態文字
+ * @param {string} text - 原始文字
+ * @param {number} maxLength - 最大長度（預設 4）
+ * @returns {string} 截斷後的文字
+ */
+function truncateStateText(text, maxLength = 4) {
+  if (!text || typeof text !== 'string') return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength - 1) + '...';
+}
+
+/**
+ * 確保 label 是字串格式
+ * @param {*} label - 可能是字串、物件或其他類型
+ * @returns {string}
+ */
+function ensureStringLabel(label) {
+  if (label === null || label === undefined) return '';
+  if (typeof label === 'object') {
+    // 如果是物件，嘗試取得 name 或 display_name
+    return label.name || label.display_name || String(label);
+  }
+  return String(label);
+}
+
 function getTimelineDataLabelsConfig() {
   return {
     display: (ctx) => {
@@ -323,7 +349,11 @@ function getTimelineDataLabelsConfig() {
       const barWidth = Math.abs(endPixel - startPixel);
       return barWidth > MIN_BAR_WIDTH_FOR_LABEL;
     },
-    formatter: (value, ctx) => ctx.dataset.label,
+    formatter: (value, ctx) => {
+      const label = ensureStringLabel(ctx.dataset.label);
+      // 截斷過長的文字（超過 4 字顯示前 3 字 + ...）
+      return truncateStateText(label, 4);
+    },
     color: (ctx) => {
       const bgColor = ctx.dataset.backgroundColor;
       if (typeof bgColor !== 'string') return '#fff';
@@ -391,10 +421,25 @@ function getTimelineChartOptions(minTime, maxTime, segmentCount = 1) {
  * Binary 狀態顏色
  */
 const BINARY_COLORS = {
-  on: '#2ecc71',   // 綠色
-  off: '#95a5a6',  // 灰色
+  on: '#4CAF50',   // 綠色 (Material Design)
+  off: '#9E9E9E',  // 灰色 (Material Design)
   unavailable: UNAVAILABLE_COLOR,
 };
+
+/**
+ * 根據字串生成穩定的顏色（用於文字狀態）
+ * @param {string} str - 狀態文字
+ * @returns {string} HSL 顏色字串
+ */
+function stringToColor(str) {
+  if (!str) return '#9E9E9E';
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash % 360);
+  return `hsl(${hue}, 70%, 50%)`;
+}
 
 /**
  * 將單一 entity 的 records 轉為 Binary Timeline 圖表資料
@@ -497,6 +542,63 @@ function parseCategoricalTimelineData(records, entityLabel, domain) {
       const stateValue = stateMap[state];
       color = colorMap[stateValue] || '#95a5a6';
       label = stateLabels[stateValue] || state;
+    }
+
+    return {
+      label: label,
+      data: [[seg.start, seg.end]],
+      backgroundColor: color,
+    };
+  });
+
+  return {
+    type: 'bar',
+    data: {
+      labels: [entityLabel],
+      datasets,
+    },
+    options: getTimelineChartOptions(minTime, maxTime, segments.length),
+  };
+}
+
+/**
+ * 將單一 entity 的 records 轉為文字狀態 Timeline 圖表資料
+ * 使用動態顏色（根據狀態文字生成）
+ * @param {object[]} records
+ * @param {string} entityLabel
+ * @returns {object}
+ */
+function parseTextTimelineData(records, entityLabel) {
+  // 1. 排序
+  records.sort(
+    (a, b) =>
+      new Date(a.last_changed).getTime() - new Date(b.last_changed).getTime()
+  );
+
+  // 2. 轉換為區段
+  const segments = recordsToTimelineSegments(records);
+
+  // 3. 計算時間範圍
+  let minTime = Infinity;
+  let maxTime = -Infinity;
+  for (const seg of segments) {
+    if (seg.start < minTime) minTime = seg.start;
+    if (seg.end > maxTime) maxTime = seg.end;
+  }
+
+  // 4. 每個 segment 創建一個 dataset，使用動態顏色
+  const datasets = segments.map((seg) => {
+    const state = seg.state;
+    const stateKey = state?.toLowerCase?.() || state;
+
+    let color, label;
+    if (isUnavailableState(stateKey)) {
+      color = UNAVAILABLE_COLOR;
+      label = 'N/A';
+    } else {
+      // 使用狀態文字生成顏色
+      color = stringToColor(state);
+      label = state || '';
     }
 
     return {
@@ -1218,6 +1320,8 @@ function parseRecordToSingleChartData(records, entityLabel) {
       return parseBinaryTimelineData(records, entityLabel);  // 使用 Timeline 區塊風格
     case "categorical":
       return parseCategoricalTimelineData(records, entityLabel, domain);  // 使用 Timeline 區塊風格
+    case "text":
+      return parseTextTimelineData(records, entityLabel);  // 文字狀態使用動態顏色 Timeline
     case "numeric":
     default:
       return parseNumericChartData(records, entityLabel);  // 保持 Line Chart
