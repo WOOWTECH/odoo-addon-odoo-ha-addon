@@ -48,6 +48,18 @@ class HAEntity(models.Model):
         help='The Home Assistant instance this entity belongs to'
     )
     area_id = fields.Many2one('ha.area', string='Area', index=True, ondelete='set null')
+    follows_device_area = fields.Boolean(
+        string='Follows Device Area',
+        default=False,
+        help='If checked, entity area follows its device area (synced from HA)'
+    )
+    display_area_id = fields.Many2one(
+        'ha.area',
+        string='Display Area',
+        compute='_compute_display_area_id',
+        store=True,  # Store for grouping in kanban/list views
+        help='Actual area shown: own area or device area if follows_device_area is True'
+    )
     device_id = fields.Many2one(
         'ha.device',
         string='Device',
@@ -110,6 +122,19 @@ class HAEntity(models.Model):
         for entity in self:
             entity.tag_count = len(entity.tag_ids)
 
+    @api.depends('area_id', 'follows_device_area', 'device_id.area_id')
+    def _compute_display_area_id(self):
+        """
+        Compute the actual area to display.
+        If follows_device_area is True and entity has a device, use device's area.
+        Otherwise, use entity's own area_id.
+        """
+        for entity in self:
+            if entity.follows_device_area and entity.device_id:
+                entity.display_area_id = entity.device_id.area_id
+            else:
+                entity.display_area_id = entity.area_id
+
     # Text field for user notes
     note = fields.Text(
         string='Note',
@@ -134,7 +159,7 @@ class HAEntity(models.Model):
     # - label_ids: Entity 標籤（雙向同步到 HA Entity Registry）
     # - tag_ids: Entity 標籤（Odoo 內部分類，不同步到 HA）
     # - note: 使用者備註
-    _USER_EDITABLE_FIELDS = {'enable_record', 'area_id', 'name', 'label_ids', 'tag_ids', 'note', 'properties'}
+    _USER_EDITABLE_FIELDS = {'enable_record', 'area_id', 'follows_device_area', 'name', 'label_ids', 'tag_ids', 'note', 'properties'}
 
     @api.constrains('ha_instance_id', 'group_ids', 'tag_ids')
     def _check_instance_consistency(self):
@@ -199,6 +224,7 @@ class HAEntity(models.Model):
 
         # 檢查是否有需要同步到 HA 的欄位變更
         area_id_changed = 'area_id' in vals
+        follows_device_area_changed = 'follows_device_area' in vals
         name_changed = 'name' in vals
         label_ids_changed = 'label_ids' in vals
 
@@ -207,7 +233,14 @@ class HAEntity(models.Model):
         # 若是從 HA 同步過來的，不再回傳給 HA（防止循環）
         if not self.env.context.get('from_ha_sync'):
             for record in self:
-                if area_id_changed:
+                # 當 follows_device_area 變更時，需要同步 area_id 到 HA
+                # 勾選時發送 null，取消勾選時發送當前 area_id
+                if follows_device_area_changed:
+                    try:
+                        record._update_entity_area_in_ha()
+                    except Exception as e:
+                        _logger.error(f"Failed to sync entity area {record.entity_id} to HA: {e}")
+                elif area_id_changed:
                     try:
                         record._update_entity_area_in_ha()
                     except Exception as e:
@@ -233,6 +266,9 @@ class HAEntity(models.Model):
 
         使用 WebSocket API: config/entity_registry/update
         參考: docs/homeassistant-api/websocket-message-logs/config_entity_registry_update.md
+
+        當 follows_device_area = True 時，發送 area_id = null 給 HA，
+        這會讓 HA 中的實體設定為「跟隨裝置分區」。
         """
         self.ensure_one()
 
@@ -244,15 +280,19 @@ class HAEntity(models.Model):
             from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
             client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
 
-            # HA 的 area_id 是字串（ha.area 的 area_id 欄位），如果沒有關聯則為 None
-            ha_area_id = self.area_id.area_id if self.area_id else None
+            # 當 follows_device_area = True 時，發送 null 給 HA（跟隨裝置分區）
+            # 否則發送實體的 area_id
+            if self.follows_device_area:
+                ha_area_id = None
+            else:
+                ha_area_id = self.area_id.area_id if self.area_id else None
 
             payload = {
                 'entity_id': self.entity_id,
                 'area_id': ha_area_id,
             }
 
-            _logger.info(f"Updating entity area in HA: {self.entity_id} -> area_id={ha_area_id}")
+            _logger.info(f"Updating entity area in HA: {self.entity_id} -> area_id={ha_area_id} (follows_device_area={self.follows_device_area})")
             result = client.call_websocket_api_sync('config/entity_registry/update', payload)
 
             if result and isinstance(result, dict):
@@ -548,17 +588,45 @@ class HAEntity(models.Model):
 
                 update_vals = {}
 
-                # 更新 area_id
-                if ha_area_id and ha_area_id in area_map:
-                    odoo_area_id = area_map[ha_area_id]
+                # 更新 area_id 和 follows_device_area
+                # 當 HA 的 area_id 為 null 且有 device_id 時，表示實體跟隨裝置分區
+                if ha_area_id:
+                    # 實體有自己的分區
+                    if ha_area_id in area_map:
+                        odoo_area_id = area_map[ha_area_id]
+                    else:
+                        # Auto-create area if it doesn't exist
+                        _logger.info(f"Auto-creating area {ha_area_id} for entity {entity_id}")
+                        area_record = env['ha.area'].sudo().create({
+                            'area_id': ha_area_id,
+                            'name': ha_area_id,  # Temporary name, will be updated by area sync
+                            'ha_instance_id': instance_id,
+                        })
+                        odoo_area_id = area_record.id
+                        area_map[ha_area_id] = odoo_area_id  # Update map for future entities
+
                     if entity.area_id.id != odoo_area_id:
                         update_vals['area_id'] = odoo_area_id
                         area_updated_count += 1
                         _logger.debug(f"Updated entity {entity_id} -> area {ha_area_id}")
-                elif not ha_area_id and entity.area_id:
-                    # HA 中沒有 area，清空 Odoo 的 area_id
-                    update_vals['area_id'] = False
-                    area_updated_count += 1
+                    # 有自己的 area_id，不跟隨裝置
+                    if entity.follows_device_area:
+                        update_vals['follows_device_area'] = False
+                elif not ha_area_id and ha_device_id:
+                    # HA 中沒有 area 但有 device，表示跟隨裝置分區
+                    if entity.area_id:
+                        update_vals['area_id'] = False
+                        area_updated_count += 1
+                    if not entity.follows_device_area:
+                        update_vals['follows_device_area'] = True
+                        _logger.debug(f"Entity {entity_id} follows device area")
+                elif not ha_area_id and not ha_device_id:
+                    # HA 中沒有 area 也沒有 device
+                    if entity.area_id:
+                        update_vals['area_id'] = False
+                        area_updated_count += 1
+                    if entity.follows_device_area:
+                        update_vals['follows_device_area'] = False
 
                 # 更新 label_ids
                 if ha_labels:

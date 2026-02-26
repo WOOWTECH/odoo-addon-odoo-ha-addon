@@ -39,6 +39,8 @@
                 <field name="entity_state" string="State" readonly="1"/>
                 <field name="domain" readonly="1"/>
                 <field name="ha_instance_id" readonly="1"/>
+                <field name="display_area_id" readonly="1" string="Area"/>
+                <field name="follows_device_area" readonly="1" optional="hide" widget="boolean"/>
                 <field name="device_id" readonly="1" optional="hide"/>
                 <field name="group_ids" widget="many2many_tags" readonly="1"
                        domain="[('ha_instance_id', '=', ha_instance_id)]"
@@ -96,7 +98,25 @@
                         </group>
                         <group>
                             <field name="ha_instance_id" readonly="1"/>
-                            <field name="area_id" domain="[('ha_instance_id', '=', ha_instance_id)]"/>
+                            <label for="area_id"/>
+                            <div class="o_row">
+                                <field name="area_id"
+                                       domain="[('ha_instance_id', '=', ha_instance_id)]"
+                                       readonly="follows_device_area"
+                                       class="oe_inline"/>
+                                <field name="follows_device_area"
+                                       widget="boolean_toggle"
+                                       invisible="not device_id"
+                                       class="ms-2"/>
+                                <label for="follows_device_area"
+                                       string="Follows Device"
+                                       invisible="not device_id"
+                                       class="ms-1"/>
+                            </div>
+                            <field name="display_area_id"
+                                   readonly="1"
+                                   invisible="not follows_device_area or not device_id"
+                                   string="Effective Area"/>
                             <field name="device_id" readonly="1" options="{'no_open': True}"/>
                             <field name="enable_record"/>
                             <field name="last_changed" readonly="1"/>
@@ -192,7 +212,7 @@
                 <group expand="0" string="Group By">
                     <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
                     <filter name="group_by_domain" string="Domain" context="{'group_by': 'domain'}"/>
-                    <filter name="group_by_area" string="Area" context="{'group_by': 'area_id'}"/>
+                    <filter name="group_by_area" string="Area" context="{'group_by': 'display_area_id'}"/>
                     <filter name="group_by_device" string="Device" context="{'group_by': 'device_id'}"/>
                 </group>
             </search>

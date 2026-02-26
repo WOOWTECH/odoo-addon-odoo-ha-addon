@@ -1342,3 +1342,33 @@ msgstr "設備"
 #: model:ir.model.fields,help:odoo_ha_addon.field_ha_entity_share__device_id
 msgid "The device being shared. Only one of entity_id, group_id, or device_id must be set."
 msgstr "被分享的設備。entity_id、group_id 或 device_id 只能設定其中一個。"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__follows_device_area
+msgid "Follows Device Area"
+msgstr "跟隨裝置分區"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,help:odoo_ha_addon.field_ha_entity__follows_device_area
+msgid "If checked, entity area follows its device area (synced from HA)"
+msgstr "若勾選，實體分區將跟隨其裝置分區（從 HA 同步）"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__display_area_id
+msgid "Display Area"
+msgstr "顯示分區"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,help:odoo_ha_addon.field_ha_entity__display_area_id
+msgid "Actual area shown: own area or device area if follows_device_area is True"
+msgstr "實際顯示的分區：自己的分區或裝置分區（若跟隨裝置分區啟用）"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_view_form
+msgid "Follows Device"
+msgstr "跟隨裝置"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_view_form
+msgid "Effective Area"
+msgstr "實際分區"
