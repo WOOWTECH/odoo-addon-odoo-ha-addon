@@ -1,7 +1,8 @@
-# History Module Optimization - Design Document
+# History Module Optimization - PRD
 
 **Created:** 2026-02-26T08:12:36Z
-**Status:** In Progress
+**Updated:** 2026-02-26T08:43:32Z
+**Status:** Completed
 **Author:** Claude Code Assistant
 
 ## Problem Statement
@@ -179,8 +180,21 @@ After applying fixes:
   - Binary states → Timeline bars with On/Off colors
 - No \`[object Object]\` or coordinate numbers visible
 
-## Next Steps
+## Resolution Summary
 
-1. **User verification** - User needs to refresh browser and verify fixes
-2. **If still one chart** - Check browser console for JS errors
-3. **If search bar still missing** - Module may need manual upgrade in Odoo Apps
+All issues have been successfully resolved:
+
+| Issue | Status | Solution |
+|-------|--------|----------|
+| Search filter bar not appearing | **Fixed** | Updated `ir_act_window.search_view_id` and search view arch in database |
+| Only one entity chart displayed | **Fixed** | Increased limit from 80 to 5000 in hahistory view |
+| `[object Object]` in charts | **Fixed** | Added `ensureStringLabel()` function |
+| Coordinate numbers on line charts | **Fixed** | Disabled datalabels plugin for line charts |
+| Inconsistent legend display | **Fixed** | Added explicit legend config to `parseNumericChartData()` |
+
+## Lessons Learned
+
+1. **XML view changes require module upgrade** - Simply deploying files is not enough; Odoo caches view definitions in `ir_ui_view` table
+2. **Database sync is critical** - Action configurations (`ir_act_window`) must have correct references
+3. **Asset cache must be cleared** - After JS changes, delete `ir_attachment` records with `name LIKE 'web.assets%'`
+4. **Browser cache** - Users must hard refresh (Ctrl+Shift+R) after frontend changes
