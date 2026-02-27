@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- Lightweight Entity List View for Scene Entity Selector -->
+    <!-- This view is used by many2many field to reduce data transfer -->
+    <record id="ha_entity_scene_selector_list" model="ir.ui.view">
+        <field name="name">ha.entity.scene.selector.list</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <list string="Select Entities" create="0" edit="0" delete="0">
+                <field name="name"/>
+                <field name="entity_id"/>
+                <field name="domain"/>
+            </list>
+        </field>
+    </record>
+
     <!-- Scene List View -->
     <record id="ha_scene_view_list" model="ir.ui.view">
         <field name="name">ha.scene.list</field>
@@ -89,23 +104,23 @@
                     </group>
                     <notebook>
                         <page string="Scene Entities" name="scene_entities">
-                            <!-- Scene entity selection using standard list view with inline editing -->
-                            <!-- Avoid many2many_tags for large datasets - use list with limit -->
+                            <!-- Scene entity selection -->
+                            <!-- Using embedded list with pagination for better performance -->
                             <field name="scene_entity_ids"
                                    domain="[('ha_instance_id', '=', ha_instance_id), ('domain', 'in', ['light', 'switch', 'cover', 'fan', 'climate', 'input_boolean', 'input_number', 'media_player'])]"
                                    options="{'no_create': True, 'no_create_edit': True}"
-                                   context="{'default_ha_instance_id': ha_instance_id}">
-                                <list string="Scene Entities" create="0" limit="50">
-                                    <field name="name"/>
-                                    <field name="entity_id"/>
-                                    <field name="domain"/>
-                                    <field name="entity_state" string="Current State"/>
+                                   context="{'default_ha_instance_id': ha_instance_id, 'list_view_ref': 'odoo_ha_addon.ha_entity_scene_selector_list'}">
+                                <list string="Scene Entities" create="0" editable="bottom" limit="20">
+                                    <field name="name" readonly="1"/>
+                                    <field name="entity_id" readonly="1"/>
+                                    <field name="domain" readonly="1"/>
+                                    <field name="entity_state" string="Current State" readonly="1"/>
                                 </list>
                             </field>
                             <div class="alert alert-info mt-3" role="status">
                                 <i class="fa fa-info-circle me-2"/>
-                                <strong>Tip:</strong> When you save this scene, it will capture the current state of all selected entities.
-                                Make sure the entities are in the desired state before saving.
+                                <strong>Tip:</strong> Click "Add a line" to search and select entities.
+                                When you save this scene, it will capture the current state of all selected entities.
                             </div>
                         </page>
                         <page string="Attributes" name="attributes" invisible="not id">
