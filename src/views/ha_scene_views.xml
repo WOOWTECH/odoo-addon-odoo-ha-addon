@@ -90,16 +90,16 @@
                     <notebook>
                         <page string="Scene Entities" name="scene_entities">
                             <!-- Dynamic domain: filter by selected ha_instance_id -->
+                            <!-- Use ha_instance_id > 0 check to prevent loading all entities when empty -->
                             <field name="scene_entity_ids"
-                                   domain="[('ha_instance_id', '=', ha_instance_id), ('domain', '!=', 'scene')]"
-                                   options="{'no_create': True, 'no_create_edit': True}"
+                                   domain="[('ha_instance_id', '=', ha_instance_id), ('domain', 'not in', ['scene', 'automation', 'script'])]"
+                                   options="{'no_create': True, 'no_create_edit': True, 'limit': 100}"
                                    context="{'default_ha_instance_id': ha_instance_id}">
-                                <list string="Entities in this Scene" create="0">
+                                <list string="Entities in this Scene" create="0" limit="50">
                                     <field name="name"/>
                                     <field name="entity_id"/>
                                     <field name="domain"/>
                                     <field name="entity_state" string="Current State"/>
-                                    <field name="display_area_id" string="Area"/>
                                 </list>
                             </field>
                             <div class="alert alert-info mt-3" role="status">
