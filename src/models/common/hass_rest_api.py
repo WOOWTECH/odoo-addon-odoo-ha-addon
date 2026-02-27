@@ -188,24 +188,28 @@ class HassRestApi:
             else:
                 raise ConnectionError(f"HA service call failed: HTTP {response.status_code}")
 
-    def create_scene_config(self, scene_id: str, name: str, entities: dict, icon: str = None):
+    def create_scene_config(self, ha_scene_id: str, name: str, entities: dict, icon: str = None):
         """
         Create or update a scene in Home Assistant's scenes.yaml via config API.
 
         This creates a scene that is editable in the HA GUI, unlike scene.create service
         which creates dynamic/runtime scenes.
 
-        REST API endpoint: POST /api/config/scene/config/{scene_id}
+        REST API endpoint: POST /api/config/scene/config/{ha_scene_id}
+
+        IMPORTANT: The ha_scene_id must be a numeric timestamp string (e.g., '1578926818642')
+        to match how HA frontend creates scenes. This ensures scenes are editable in HA GUI.
 
         Args:
-            scene_id: Unique scene identifier (will be used in scenes.yaml)
+            ha_scene_id: Numeric timestamp ID for HA config (e.g., '1709123456789')
+                         This is NOT the entity_id, but a unique numeric identifier.
             name: Display name for the scene
             entities: Dict of entity_id -> state/attributes to set
                       e.g., {'light.bedroom': {'state': 'on', 'brightness': 128}}
             icon: Optional icon (e.g., 'mdi:lightbulb')
 
         Returns:
-            dict: Response from HA API
+            dict: Response from HA API containing the result
 
         Raises:
             ConnectionError: If API request fails
@@ -214,10 +218,10 @@ class HassRestApi:
         ha_url = ha_info["ha_url"]
         ha_token = ha_info["ha_token"]
 
-        api_endpoint = f"/api/config/scene/config/{scene_id}"
+        api_endpoint = f"/api/config/scene/config/{ha_scene_id}"
         url = f"{ha_url}{api_endpoint}"
 
-        _logger.info(f"Creating scene config: {scene_id} ({name})")
+        _logger.info(f"Creating scene config: ha_scene_id={ha_scene_id}, name={name}")
         _logger.debug(f"URL: {url}")
 
         headers = {
@@ -225,9 +229,10 @@ class HassRestApi:
             "Content-Type": "application/json",
         }
 
-        # Build scene config payload
+        # Build scene config payload matching HA frontend format
+        # The 'id' field in payload must match the URL parameter
         payload = {
-            "id": scene_id,
+            "id": ha_scene_id,
             "name": name,
             "entities": entities
         }
@@ -240,7 +245,7 @@ class HassRestApi:
 
         if response.status_code == 200:
             data = response.json()
-            _logger.info(f"Scene config {scene_id} created/updated successfully")
+            _logger.info(f"Scene config {ha_scene_id} ({name}) created/updated successfully")
             return data
         else:
             _logger.error(
@@ -256,14 +261,15 @@ class HassRestApi:
             else:
                 raise ConnectionError(f"HA scene config failed: HTTP {response.status_code}")
 
-    def delete_scene_config(self, scene_id: str):
+    def delete_scene_config(self, ha_scene_id: str):
         """
         Delete a scene from Home Assistant's scenes.yaml via config API.
 
-        REST API endpoint: DELETE /api/config/scene/config/{scene_id}
+        REST API endpoint: DELETE /api/config/scene/config/{ha_scene_id}
 
         Args:
-            scene_id: Scene identifier to delete
+            ha_scene_id: Numeric timestamp ID of the scene to delete
+                         (same ID used when creating the scene)
 
         Returns:
             dict: Response from HA API
@@ -275,10 +281,10 @@ class HassRestApi:
         ha_url = ha_info["ha_url"]
         ha_token = ha_info["ha_token"]
 
-        api_endpoint = f"/api/config/scene/config/{scene_id}"
+        api_endpoint = f"/api/config/scene/config/{ha_scene_id}"
         url = f"{ha_url}{api_endpoint}"
 
-        _logger.info(f"Deleting scene config: {scene_id}")
+        _logger.info(f"Deleting scene config: ha_scene_id={ha_scene_id}")
 
         headers = {
             "Authorization": f"Bearer {ha_token}",
@@ -288,7 +294,7 @@ class HassRestApi:
         response = requests.delete(url, headers=headers)
 
         if response.status_code == 200:
-            _logger.info(f"Scene config {scene_id} deleted successfully")
+            _logger.info(f"Scene config {ha_scene_id} deleted successfully")
             return response.json() if response.text else {}
         else:
             _logger.error(
@@ -349,6 +355,53 @@ class HassRestApi:
                 result[entity_id] = {"state": "on"}  # Default fallback
 
         return result
+
+    def get_scene_config_id(self, entity_id: str) -> Optional[str]:
+        """
+        Get the config ID (ha_scene_id) for a scene from HA.
+
+        This queries the scene's state to get the 'id' attribute which is
+        the numeric timestamp ID used by HA for scene configuration.
+
+        Note: The scene state contains an 'id' field in attributes only for
+        scenes created via the UI editor (stored in scenes.yaml).
+
+        Args:
+            entity_id: Scene entity ID (e.g., 'scene.movie_mode')
+
+        Returns:
+            str: The scene's config ID if found, None otherwise
+        """
+        ha_info = self.__refetch_ha_info()
+        ha_url = ha_info["ha_url"]
+        ha_token = ha_info["ha_token"]
+
+        # First, get the scene's state to check if it has an 'id' in attributes
+        url = f"{ha_url}/api/states/{entity_id}"
+        headers = {
+            "Authorization": f"Bearer {ha_token}",
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                data = response.json()
+                attributes = data.get('attributes', {})
+                # The 'id' field is only present for scenes created via UI editor
+                scene_id = attributes.get('id')
+                if scene_id:
+                    _logger.debug(f"Found scene config id for {entity_id}: {scene_id}")
+                    return str(scene_id)
+                else:
+                    _logger.debug(f"Scene {entity_id} has no 'id' attribute (may be YAML-only scene)")
+                    return None
+            else:
+                _logger.warning(f"Failed to get scene state for {entity_id}: HTTP {response.status_code}")
+                return None
+        except Exception as e:
+            _logger.warning(f"Error getting scene config id for {entity_id}: {e}")
+            return None
 
     def get_ha_history(self, entity_id: str, timestamp: Optional[datetime] = None, end_timestamp: Optional[datetime] = None):
         """

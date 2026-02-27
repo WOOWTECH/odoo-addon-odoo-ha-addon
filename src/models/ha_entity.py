@@ -179,6 +179,12 @@ class HAEntity(models.Model):
         compute='_compute_scene_entity_count',
         help='Number of entities in this scene'
     )
+    ha_scene_id = fields.Char(
+        string='HA Scene ID',
+        copy=False,
+        help='Numeric ID used by Home Assistant for scene config (timestamp format). '
+             'Required for scenes to be editable in HA GUI.'
+    )
 
     @api.depends('tag_ids')
     def _compute_tag_count(self):
@@ -885,9 +891,11 @@ class HAEntity(models.Model):
         """
         同步 Scene 的實體清單關聯
         從 Scene 的 attributes.entity_id 取得包含的實體清單並更新 scene_entity_ids
+        同時也同步 ha_scene_id（HA 場景的數字 ID）
 
         Home Assistant Scene 的 attributes 中包含 entity_id 欄位，
         這是一個包含 Scene 所控制的所有實體 ID 的列表。
+        attributes 中的 'id' 欄位是場景的配置 ID（用於 GUI 編輯）。
 
         Args:
             instance_id: HA 實例 ID
@@ -916,11 +924,14 @@ class HAEntity(models.Model):
             _logger.debug(f"Entity map size: {len(entity_map)} entities")
 
             updated_count = 0
+            ha_scene_id_updated_count = 0
             for scene in scenes:
                 try:
-                    # 從 Scene 的 attributes 中取得 entity_id 列表
+                    # 從 Scene 的 attributes 中取得資訊
                     attributes = scene.attributes or {}
                     ha_entity_ids = attributes.get('entity_id', [])
+                    # HA scene 的 'id' 欄位（數字時間戳，用於 GUI 編輯）
+                    ha_scene_id_from_attr = attributes.get('id')
 
                     if not isinstance(ha_entity_ids, list):
                         # 有時可能是單一字串
@@ -934,26 +945,38 @@ class HAEntity(models.Model):
                         else:
                             _logger.debug(f"Scene {scene.entity_id}: entity {ha_entity_id} not found in map")
 
+                    # 準備更新資料
+                    update_vals = {}
+
                     # 比較並更新 scene_entity_ids
                     current_ids = set(scene.scene_entity_ids.ids)
                     new_ids = set(odoo_entity_ids)
 
                     if current_ids != new_ids:
-                        scene.with_context(from_ha_sync=True).write({
-                            'scene_entity_ids': [(6, 0, odoo_entity_ids)]
-                        })
+                        update_vals['scene_entity_ids'] = [(6, 0, odoo_entity_ids)]
                         updated_count += 1
                         _logger.debug(
                             f"Updated scene {scene.entity_id}: "
                             f"{len(current_ids)} -> {len(new_ids)} entities"
                         )
 
+                    # 同步 ha_scene_id（如果 HA 有提供且 Odoo 尚未有）
+                    if ha_scene_id_from_attr and not scene.ha_scene_id:
+                        update_vals['ha_scene_id'] = str(ha_scene_id_from_attr)
+                        ha_scene_id_updated_count += 1
+                        _logger.debug(
+                            f"Synced ha_scene_id for {scene.entity_id}: {ha_scene_id_from_attr}"
+                        )
+
+                    if update_vals:
+                        scene.with_context(from_ha_sync=True).write(update_vals)
+
                 except Exception as e:
                     _logger.error(f"Error syncing scene {scene.entity_id} entities: {e}")
 
             _logger.info(
                 f"Scene entity relations sync completed (instance {instance_id}): "
-                f"{updated_count} scenes updated"
+                f"{updated_count} scene entity lists updated, {ha_scene_id_updated_count} ha_scene_ids synced"
             )
 
         except Exception as e:
@@ -1433,15 +1456,19 @@ class HAEntity(models.Model):
 
     def _create_scene_in_ha(self):
         """
-        Create a new scene in Home Assistant via config API.
+        Create or update a scene in Home Assistant via config API.
 
         Uses the /api/config/scene/config/{id} endpoint to create scenes
         that are editable in the HA GUI (stored in scenes.yaml).
 
+        IMPORTANT: HA requires a numeric timestamp ID (e.g., '1709123456789') for scenes
+        to be editable in the GUI. This is how the HA frontend creates scenes.
+
         This method:
-        1. Gets current states of all scene entities
-        2. Creates scene config via HA config API
-        3. Scene will be editable in HA Settings > Automations & Scenes
+        1. Generates or reuses a numeric ha_scene_id (timestamp format)
+        2. Gets current states of all scene entities
+        3. Creates/updates scene config via HA config API
+        4. Scene will be editable in HA Settings > Automations & Scenes
 
         Uses REST API to avoid WebSocket connection issues in async contexts.
         Only applicable for entities with domain='scene'.
@@ -1456,10 +1483,21 @@ class HAEntity(models.Model):
             return
 
         try:
+            import time
+
             rest_api = HassRestApi(self.env, self.ha_instance_id.id)
 
-            # Extract scene_id from entity_id (e.g., 'scene.movie_mode' -> 'movie_mode')
-            scene_id = self.entity_id.replace('scene.', '') if self.entity_id.startswith('scene.') else self.entity_id
+            # Generate or reuse numeric HA scene ID (timestamp in milliseconds)
+            # This format matches how HA frontend creates scenes
+            if not self.ha_scene_id:
+                # Generate new timestamp ID
+                ha_scene_id = str(int(time.time() * 1000))
+                # Save it for future updates
+                self.sudo().write({'ha_scene_id': ha_scene_id})
+                _logger.info(f"Generated new ha_scene_id for {self.entity_id}: {ha_scene_id}")
+            else:
+                ha_scene_id = self.ha_scene_id
+                _logger.info(f"Reusing existing ha_scene_id for {self.entity_id}: {ha_scene_id}")
 
             # Get entity_ids for the scene
             entity_ids = self.scene_entity_ids.mapped('entity_id')
@@ -1474,13 +1512,14 @@ class HAEntity(models.Model):
                 return
 
             # Create scene config via HA config API (editable in GUI)
-            _logger.info(f"Creating scene config in HA: {self.entity_id} ({self.name}) with {len(entity_states)} entities")
+            scene_name = self.name or self.entity_id.replace('scene.', '')
+            _logger.info(f"Creating scene config in HA: ha_scene_id={ha_scene_id}, name={scene_name}, entities={len(entity_states)}")
             result = rest_api.create_scene_config(
-                scene_id=scene_id,
-                name=self.name or scene_id,
+                ha_scene_id=ha_scene_id,
+                name=scene_name,
                 entities=entity_states
             )
-            _logger.info(f"Scene {self.entity_id} created in HA successfully (editable in GUI). Result: {result}")
+            _logger.info(f"Scene {self.entity_id} (ha_scene_id={ha_scene_id}) created in HA successfully. Result: {result}")
 
         except Exception as e:
             _logger.error(f"Failed to create scene {self.entity_id} in HA: {e}", exc_info=True)
@@ -1490,8 +1529,8 @@ class HAEntity(models.Model):
         """
         Delete a scene from Home Assistant via config API.
 
-        Uses the DELETE /api/config/scene/config/{id} endpoint.
-        Only applicable for entities with domain='scene'.
+        Uses the DELETE /api/config/scene/config/{ha_scene_id} endpoint.
+        Only applicable for entities with domain='scene' that have ha_scene_id set.
         """
         self.ensure_one()
 
@@ -1502,15 +1541,19 @@ class HAEntity(models.Model):
             _logger.warning(f"Cannot delete scene {self.entity_id}: missing instance")
             return
 
+        if not self.ha_scene_id:
+            _logger.warning(f"Cannot delete scene {self.entity_id}: no ha_scene_id (scene may not exist in HA)")
+            return
+
         try:
             rest_api = HassRestApi(self.env, self.ha_instance_id.id)
 
-            # Extract scene_id from entity_id
-            scene_id = self.entity_id.replace('scene.', '') if self.entity_id.startswith('scene.') else self.entity_id
+            _logger.info(f"Deleting scene config from HA: {self.entity_id} (ha_scene_id={self.ha_scene_id})")
+            rest_api.delete_scene_config(self.ha_scene_id)
+            _logger.info(f"Scene {self.entity_id} (ha_scene_id={self.ha_scene_id}) deleted from HA successfully")
 
-            _logger.info(f"Deleting scene config from HA: {self.entity_id}")
-            rest_api.delete_scene_config(scene_id)
-            _logger.info(f"Scene {self.entity_id} deleted from HA successfully")
+            # Clear ha_scene_id after successful deletion
+            self.sudo().write({'ha_scene_id': False})
 
         except Exception as e:
             _logger.error(f"Failed to delete scene {self.entity_id} from HA: {e}", exc_info=True)
