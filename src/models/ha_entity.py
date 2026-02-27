@@ -2,10 +2,57 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, AccessError
 import logging
 import json
+import re
+import unicodedata
 from .common.utils import parse_iso_datetime, parse_domain_from_entitiy_id
 from .common.hass_rest_api import HassRestApi
 
 _logger = logging.getLogger(__name__)
+
+
+def _name_to_entity_id(name, domain='scene'):
+    """
+    Convert a display name to a valid Home Assistant entity_id.
+
+    Uses pinyin conversion for Chinese characters (if pypinyin available),
+    otherwise falls back to unicode normalization.
+
+    Args:
+        name: Display name (e.g., "測試場景", "My Scene")
+        domain: Entity domain (default: 'scene')
+
+    Returns:
+        Valid entity_id (e.g., "scene.ce_shi_chang_jing", "scene.my_scene")
+    """
+    if not name:
+        return None
+
+    # Try to use pypinyin for Chinese character conversion
+    try:
+        from pypinyin import lazy_pinyin, Style
+        # Convert to pinyin (without tones)
+        pinyin_parts = lazy_pinyin(name, style=Style.NORMAL)
+        slug = '_'.join(pinyin_parts)
+    except ImportError:
+        # Fallback: Use unicode normalization and keep only ASCII
+        # This handles Latin characters well but Chinese will be removed
+        slug = unicodedata.normalize('NFKD', name)
+        slug = slug.encode('ascii', 'ignore').decode('ascii')
+        if not slug:
+            # If nothing left after normalization, use a hash-based ID
+            import hashlib
+            slug = 'scene_' + hashlib.md5(name.encode('utf-8')).hexdigest()[:8]
+
+    # Clean up the slug
+    slug = slug.lower()
+    slug = re.sub(r'[^a-z0-9]+', '_', slug)  # Replace non-alphanumeric with underscore
+    slug = re.sub(r'_+', '_', slug)  # Collapse multiple underscores
+    slug = slug.strip('_')  # Remove leading/trailing underscores
+
+    if not slug:
+        slug = 'unnamed'
+
+    return f"{domain}.{slug}"
 
 
 class HAEntity(models.Model):
@@ -186,6 +233,104 @@ class HAEntity(models.Model):
     # - note: 使用者備註
     # - scene_entity_ids: Scene 包含的實體（雙向同步到 HA，僅適用於 domain='scene'）
     _USER_EDITABLE_FIELDS = {'enable_record', 'area_id', 'follows_device_area', 'name', 'label_ids', 'tag_ids', 'note', 'properties', 'scene_entity_ids'}
+
+    @api.model
+    def default_get(self, fields_list):
+        """
+        Override default_get to auto-select HA instance when creating new entities.
+
+        If there's only one HA instance, automatically select it.
+        This improves UX for single-instance setups.
+        """
+        defaults = super().default_get(fields_list)
+
+        # Auto-select HA instance if creating a new entity
+        if 'ha_instance_id' in fields_list and not defaults.get('ha_instance_id'):
+            # Check context for default instance
+            if self.env.context.get('default_ha_instance_id'):
+                defaults['ha_instance_id'] = self.env.context['default_ha_instance_id']
+            else:
+                # Get all accessible instances
+                instances = self.env['ha.instance'].search([], limit=2)
+                if len(instances) == 1:
+                    # Only one instance - auto-select it
+                    defaults['ha_instance_id'] = instances.id
+
+        return defaults
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """
+        Override create to auto-generate entity_id for new scenes.
+
+        For entities with domain='scene':
+        - If entity_id is not provided, generate it from the name
+        - Auto-select ha_instance_id if only one instance exists
+        - Sync new scene to Home Assistant after creation
+        """
+        for vals in vals_list:
+            # Handle scene-specific logic
+            if vals.get('domain') == 'scene':
+                # Auto-generate entity_id from name if not provided
+                if not vals.get('entity_id') and vals.get('name'):
+                    base_entity_id = _name_to_entity_id(vals['name'], 'scene')
+
+                    # Ensure entity_id is unique within the instance
+                    instance_id = vals.get('ha_instance_id')
+                    if not instance_id:
+                        # Try to get from context or default
+                        instance_id = self.env.context.get('default_ha_instance_id')
+                        if not instance_id:
+                            instances = self.env['ha.instance'].search([], limit=1)
+                            if instances:
+                                instance_id = instances.id
+                                vals['ha_instance_id'] = instance_id
+
+                    if instance_id:
+                        entity_id = base_entity_id
+                        counter = 1
+                        while self.search([
+                            ('entity_id', '=', entity_id),
+                            ('ha_instance_id', '=', instance_id)
+                        ], limit=1):
+                            entity_id = f"{base_entity_id}_{counter}"
+                            counter += 1
+                        vals['entity_id'] = entity_id
+                    else:
+                        vals['entity_id'] = base_entity_id
+
+                # Set initial state
+                if not vals.get('entity_state'):
+                    vals['entity_state'] = 'unknown'
+
+        records = super().create(vals_list)
+
+        # Schedule HA sync for new scenes after transaction commits
+        # This ensures Many2many relations (scene_entity_ids) are fully persisted
+        scene_ids_to_sync = []
+        for record in records:
+            if record.domain == 'scene':
+                scene_ids_to_sync.append(record.id)
+
+        if scene_ids_to_sync:
+            # Use postcommit hook to sync after transaction completes
+            def sync_scenes_to_ha():
+                try:
+                    with self.env.registry.cursor() as new_cr:
+                        new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+                        scenes = new_env['ha.entity'].browse(scene_ids_to_sync)
+                        for scene in scenes:
+                            if scene.exists() and scene.scene_entity_ids:
+                                try:
+                                    scene._create_scene_in_ha()
+                                except Exception as e:
+                                    _logger.error(f"Failed to create scene {scene.entity_id} in HA: {e}")
+                except Exception as e:
+                    _logger.error(f"Failed to sync scenes to HA: {e}")
+
+            self.env.cr.postcommit.add(sync_scenes_to_ha)
+
+        return records
 
     @api.constrains('ha_instance_id', 'group_ids', 'tag_ids')
     def _check_instance_consistency(self):
@@ -1211,6 +1356,61 @@ class HAEntity(models.Model):
                 }
             }
 
+    def action_sync_scene_to_ha(self):
+        """
+        Public action to sync scene to Home Assistant.
+        This creates/updates the scene in HA with current entity states.
+
+        Can be called from UI button or programmatically.
+        """
+        self.ensure_one()
+
+        if self.domain != 'scene':
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Error'),
+                    'message': _('This action is only available for scenes.'),
+                    'type': 'warning',
+                }
+            }
+
+        if not self.scene_entity_ids:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('No Entities'),
+                    'message': _('Please add entities to the scene before syncing.'),
+                    'type': 'warning',
+                }
+            }
+
+        try:
+            self._create_scene_in_ha()
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Scene Synced'),
+                    'message': _('Scene "%s" has been synced to Home Assistant.') % (self.name or self.entity_id),
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+        except Exception as e:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Sync Failed'),
+                    'message': _('Failed to sync scene: %s') % str(e),
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
     def _create_scene_in_ha(self):
         """
         Create a new scene in Home Assistant using snapshot mode.
@@ -1218,6 +1418,7 @@ class HAEntity(models.Model):
         Calls HA service: scene.create with snapshot_entities
         The scene will capture the current state of all selected entities.
 
+        Uses REST API to avoid WebSocket connection issues in async contexts.
         Only applicable for entities with domain='scene'.
         """
         self.ensure_one()
@@ -1230,8 +1431,8 @@ class HAEntity(models.Model):
             return
 
         try:
-            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
-            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
+            # Use REST API instead of WebSocket for reliability in async contexts
+            rest_api = HassRestApi(self.env, self.ha_instance_id.id)
 
             # Extract scene_id from entity_id (e.g., 'scene.movie_mode' -> 'movie_mode')
             scene_id = self.entity_id.replace('scene.', '') if self.entity_id.startswith('scene.') else self.entity_id
@@ -1239,17 +1440,13 @@ class HAEntity(models.Model):
             # Get entity_ids for snapshot
             snapshot_entities = self.scene_entity_ids.mapped('entity_id')
 
-            payload = {
-                'domain': 'scene',
-                'service': 'create',
-                'service_data': {
-                    'scene_id': scene_id,
-                    'snapshot_entities': snapshot_entities
-                }
+            service_data = {
+                'scene_id': scene_id,
+                'snapshot_entities': snapshot_entities
             }
 
-            _logger.info(f"Creating scene in HA: {self.entity_id} with entities: {snapshot_entities}")
-            client.call_websocket_api_sync('call_service', payload)
+            _logger.info(f"Creating scene in HA via REST: {self.entity_id} with entities: {snapshot_entities}")
+            rest_api.call_service('scene', 'create', service_data=service_data)
             _logger.info(f"Scene {self.entity_id} created/updated in HA successfully")
 
         except Exception as e:

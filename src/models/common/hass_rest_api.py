@@ -126,6 +126,68 @@ class HassRestApi:
             else:
                 raise ConnectionError(f"HA API request failed: HTTP {response.status_code}")
 
+    def call_service(self, domain: str, service: str, service_data: dict = None, target: dict = None):
+        """
+        Call a Home Assistant service via REST API.
+
+        REST API endpoint: POST /api/services/<domain>/<service>
+
+        Args:
+            domain: Service domain (e.g., 'scene', 'light', 'switch')
+            service: Service name (e.g., 'create', 'turn_on', 'turn_off')
+            service_data: Optional service data dictionary
+            target: Optional target dict (e.g., {'entity_id': 'light.bedroom'})
+
+        Returns:
+            list: Array of state objects that changed as a result
+
+        Raises:
+            ConnectionError: If API request fails
+        """
+        ha_info = self.__refetch_ha_info()
+        ha_url = ha_info["ha_url"]
+        ha_token = ha_info["ha_token"]
+
+        api_endpoint = f"/api/services/{domain}/{service}"
+        url = f"{ha_url}{api_endpoint}"
+
+        _logger.info(f"Calling HA service: {domain}.{service}")
+        _logger.debug(f"URL: {url}")
+
+        headers = {
+            "Authorization": f"Bearer {ha_token}",
+            "Content-Type": "application/json",
+        }
+
+        # Build payload
+        payload = {}
+        if service_data:
+            payload.update(service_data)
+        if target:
+            payload.update(target)
+
+        _logger.debug(f"Service payload: {payload}")
+
+        response = requests.post(url, headers=headers, json=payload)
+
+        if response.status_code == 200:
+            data = response.json()
+            _logger.info(f"Service {domain}.{service} called successfully")
+            return data
+        else:
+            _logger.error(
+                f"HA service call failed: status={response.status_code}, "
+                f"url={url}, response={response.text[:500] if response.text else 'empty'}"
+            )
+            if response.status_code == 401:
+                raise ConnectionError(f"HA API authentication failed (401): Invalid or expired access token")
+            elif response.status_code == 403:
+                raise PermissionError(f"HA API access denied (403): Insufficient permissions")
+            elif response.status_code == 404:
+                raise ValueError(f"HA service not found (404): {domain}.{service}")
+            else:
+                raise ConnectionError(f"HA service call failed: HTTP {response.status_code}")
+
     def get_ha_history(self, entity_id: str, timestamp: Optional[datetime] = None, end_timestamp: Optional[datetime] = None):
         """
         若不提供 timestamp 和 end_timestamp, 預設就是抓一天的時間。
