@@ -261,9 +261,10 @@ class HAEntity(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         """
-        Override create to auto-generate entity_id for new scenes.
+        Override create to process entity_id for new scenes.
 
         For entities with domain='scene':
+        - Process user-provided entity_id: add scene. prefix, convert Chinese to pinyin
         - If entity_id is not provided, generate it from the name
         - Auto-select ha_instance_id if only one instance exists
         - Sync new scene to Home Assistant after creation
@@ -271,33 +272,46 @@ class HAEntity(models.Model):
         for vals in vals_list:
             # Handle scene-specific logic
             if vals.get('domain') == 'scene':
-                # Auto-generate entity_id from name if not provided
-                if not vals.get('entity_id') and vals.get('name'):
-                    base_entity_id = _name_to_entity_id(vals['name'], 'scene')
-
-                    # Ensure entity_id is unique within the instance
-                    instance_id = vals.get('ha_instance_id')
+                # Get instance_id for uniqueness check
+                instance_id = vals.get('ha_instance_id')
+                if not instance_id:
+                    instance_id = self.env.context.get('default_ha_instance_id')
                     if not instance_id:
-                        # Try to get from context or default
-                        instance_id = self.env.context.get('default_ha_instance_id')
-                        if not instance_id:
-                            instances = self.env['ha.instance'].search([], limit=1)
-                            if instances:
-                                instance_id = instances.id
-                                vals['ha_instance_id'] = instance_id
+                        instances = self.env['ha.instance'].search([], limit=1)
+                        if instances:
+                            instance_id = instances.id
+                            vals['ha_instance_id'] = instance_id
 
-                    if instance_id:
-                        entity_id = base_entity_id
-                        counter = 1
-                        while self.search([
-                            ('entity_id', '=', entity_id),
-                            ('ha_instance_id', '=', instance_id)
-                        ], limit=1):
-                            entity_id = f"{base_entity_id}_{counter}"
-                            counter += 1
-                        vals['entity_id'] = entity_id
-                    else:
-                        vals['entity_id'] = base_entity_id
+                # Process entity_id
+                if vals.get('entity_id'):
+                    # User provided entity_id - process it
+                    user_input = vals['entity_id'].strip()
+
+                    # Remove scene. prefix if user included it (we'll add it back)
+                    if user_input.startswith('scene.'):
+                        user_input = user_input[6:]
+
+                    # Convert to valid entity_id format (handles Chinese -> pinyin)
+                    base_entity_id = _name_to_entity_id(user_input, 'scene')
+                    vals['entity_id'] = base_entity_id
+
+                elif vals.get('name'):
+                    # No entity_id provided - generate from name
+                    base_entity_id = _name_to_entity_id(vals['name'], 'scene')
+                    vals['entity_id'] = base_entity_id
+
+                # Ensure entity_id is unique within the instance
+                if instance_id and vals.get('entity_id'):
+                    base_entity_id = vals['entity_id']
+                    entity_id = base_entity_id
+                    counter = 1
+                    while self.search([
+                        ('entity_id', '=', entity_id),
+                        ('ha_instance_id', '=', instance_id)
+                    ], limit=1):
+                        entity_id = f"{base_entity_id}_{counter}"
+                        counter += 1
+                    vals['entity_id'] = entity_id
 
                 # Set initial state
                 if not vals.get('entity_state'):

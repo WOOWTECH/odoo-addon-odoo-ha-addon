@@ -57,13 +57,14 @@
                     </div>
                     <group>
                         <group>
-                            <!-- entity_id: readonly for existing, auto-generated for new -->
-                            <!-- Override required=False for new records since create() auto-generates it -->
+                            <!-- entity_id: editable for new, readonly for existing -->
+                            <!-- User inputs scene name (e.g., my_scene), system adds scene. prefix -->
+                            <!-- Supports Chinese (auto-converts to pinyin) and English -->
                             <field name="entity_id" string="Scene ID"
                                    readonly="id"
-                                   invisible="not id"
-                                   required="id"
-                                   help="Auto-generated from scene name"/>
+                                   required="1"
+                                   placeholder="e.g., my_scene or 夜間模式"
+                                   help="Enter scene name (e.g., my_scene). System auto-adds 'scene.' prefix. Chinese is converted to pinyin."/>
                             <field name="domain" invisible="1"/>
                             <field name="entity_state" string="State" readonly="1"
                                    invisible="not id"/>
