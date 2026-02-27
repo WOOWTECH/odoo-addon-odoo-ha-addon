@@ -652,6 +652,16 @@ msgid "No entities in this device"
 msgstr "此裝置沒有實體"
 
 #. module: odoo_ha_addon
+#: model:ir.model,name:odoo_ha_addon.model_ha_device
+msgid "Home Assistant Device"
+msgstr "Home Assistant 裝置"
+
+#. module: odoo_ha_addon
+#: model:ir.model,name:odoo_ha_addon.model_ha_entity
+msgid "Home Assistant Entity"
+msgstr "Home Assistant 實體"
+
+#. module: odoo_ha_addon
 #: model:ir.model,name:odoo_ha_addon.model_ha_entity_tag
 msgid "Home Assistant Entity Tag"
 msgstr "Home Assistant 實體標籤"
