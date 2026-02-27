@@ -305,7 +305,10 @@ class HassRestApi:
 
     def get_entity_states(self, entity_ids: list):
         """
-        Get current states of multiple entities.
+        Get current states of multiple entities using a single API call.
+
+        Optimized to fetch all states at once and filter locally,
+        instead of making individual HTTP requests for each entity.
 
         Args:
             entity_ids: List of entity IDs to fetch
@@ -313,45 +316,48 @@ class HassRestApi:
         Returns:
             dict: entity_id -> state dict mapping
         """
-        ha_info = self.__refetch_ha_info()
-        ha_url = ha_info["ha_url"]
-        ha_token = ha_info["ha_token"]
+        if not entity_ids:
+            return {}
 
-        headers = {
-            "Authorization": f"Bearer {ha_token}",
-            "Content-Type": "application/json",
-        }
+        # Fetch all states with a single API call
+        try:
+            all_states = self.get_ha_state()
+        except Exception as e:
+            _logger.error(f"Failed to fetch all states from HA: {e}")
+            # Return defaults for all requested entities
+            return {eid: {"state": "on"} for eid in entity_ids}
 
+        # Build a lookup map from the fetched states
+        states_map = {state['entity_id']: state for state in all_states}
+
+        # Extract requested entity states
         result = {}
         for entity_id in entity_ids:
-            url = f"{ha_url}/api/states/{entity_id}"
-            try:
-                response = requests.get(url, headers=headers)
-                if response.status_code == 200:
-                    data = response.json()
-                    # Build entity state dict for scene
-                    state_dict = {"state": data.get("state", "on")}
-                    attrs = data.get("attributes", {})
-                    # Include relevant attributes based on domain
-                    domain = entity_id.split(".")[0]
-                    if domain == "light":
-                        for key in ["brightness", "color_temp", "rgb_color", "hs_color", "xy_color"]:
-                            if key in attrs:
-                                state_dict[key] = attrs[key]
-                    elif domain == "cover":
-                        if "current_position" in attrs:
-                            state_dict["position"] = attrs["current_position"]
-                    elif domain == "climate":
-                        for key in ["temperature", "target_temp_high", "target_temp_low", "hvac_mode"]:
-                            if key in attrs:
-                                state_dict[key] = attrs[key]
-                    elif domain == "fan":
-                        for key in ["percentage", "preset_mode", "oscillating"]:
-                            if key in attrs:
-                                state_dict[key] = attrs[key]
-                    result[entity_id] = state_dict
-            except Exception as e:
-                _logger.warning(f"Failed to get state for {entity_id}: {e}")
+            if entity_id in states_map:
+                data = states_map[entity_id]
+                # Build entity state dict for scene
+                state_dict = {"state": data.get("state", "on")}
+                attrs = data.get("attributes", {})
+                # Include relevant attributes based on domain
+                domain = entity_id.split(".")[0]
+                if domain == "light":
+                    for key in ["brightness", "color_temp", "rgb_color", "hs_color", "xy_color"]:
+                        if key in attrs:
+                            state_dict[key] = attrs[key]
+                elif domain == "cover":
+                    if "current_position" in attrs:
+                        state_dict["position"] = attrs["current_position"]
+                elif domain == "climate":
+                    for key in ["temperature", "target_temp_high", "target_temp_low", "hvac_mode"]:
+                        if key in attrs:
+                            state_dict[key] = attrs[key]
+                elif domain == "fan":
+                    for key in ["percentage", "preset_mode", "oscillating"]:
+                        if key in attrs:
+                            state_dict[key] = attrs[key]
+                result[entity_id] = state_dict
+            else:
+                _logger.warning(f"Entity {entity_id} not found in HA states, using default")
                 result[entity_id] = {"state": "on"}  # Default fallback
 
         return result

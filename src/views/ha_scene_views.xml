@@ -89,22 +89,17 @@
                     </group>
                     <notebook>
                         <page string="Scene Entities" name="scene_entities">
-                            <!-- Dynamic domain: filter by selected ha_instance_id -->
-                            <!-- Only show controllable entity domains (light, switch, cover, fan, climate) -->
-                            <!-- Use widget="many2many_tags" for better performance with large datasets -->
+                            <!-- Scene entity selection using standard list view with inline editing -->
+                            <!-- Avoid many2many_tags for large datasets - use list with limit -->
                             <field name="scene_entity_ids"
-                                   widget="many2many_tags"
                                    domain="[('ha_instance_id', '=', ha_instance_id), ('domain', 'in', ['light', 'switch', 'cover', 'fan', 'climate', 'input_boolean', 'input_number', 'media_player'])]"
-                                   options="{'no_create': True, 'no_create_edit': True, 'color_field': 'domain'}"
-                                   context="{'default_ha_instance_id': ha_instance_id}"
-                                   placeholder="Search and select entities..."/>
-                            <!-- Show selected entities in a simple list below -->
-                            <field name="scene_entity_ids" readonly="1" invisible="not scene_entity_ids">
-                                <list string="Selected Entities" create="0" limit="20" editable="bottom">
-                                    <field name="name" readonly="1"/>
-                                    <field name="entity_id" readonly="1"/>
-                                    <field name="domain" readonly="1"/>
-                                    <field name="entity_state" string="Current State" readonly="1"/>
+                                   options="{'no_create': True, 'no_create_edit': True}"
+                                   context="{'default_ha_instance_id': ha_instance_id}">
+                                <list string="Scene Entities" create="0" limit="50">
+                                    <field name="name"/>
+                                    <field name="entity_id"/>
+                                    <field name="domain"/>
+                                    <field name="entity_state" string="Current State"/>
                                 </list>
                             </field>
                             <div class="alert alert-info mt-3" role="status">
