@@ -58,9 +58,11 @@
                     <group>
                         <group>
                             <!-- entity_id: readonly for existing, auto-generated for new -->
+                            <!-- Override required=False for new records since create() auto-generates it -->
                             <field name="entity_id" string="Scene ID"
                                    readonly="id"
                                    invisible="not id"
+                                   required="id"
                                    help="Auto-generated from scene name"/>
                             <field name="domain" invisible="1"/>
                             <field name="entity_state" string="State" readonly="1"
