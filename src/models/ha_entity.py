@@ -117,10 +117,35 @@ class HAEntity(models.Model):
         help='Number of tags'
     )
 
+    # Scene-specific fields (only applicable when domain='scene')
+    scene_entity_ids = fields.Many2many(
+        'ha.entity',
+        'ha_scene_entity_rel',
+        'scene_id',
+        'entity_id',
+        string='Scene Entities',
+        domain="[('ha_instance_id', '=', ha_instance_id), ('domain', '!=', 'scene')]",
+        help='Entities included in this scene (only for domain=scene)'
+    )
+    scene_entity_count = fields.Integer(
+        string='Scene Entity Count',
+        compute='_compute_scene_entity_count',
+        help='Number of entities in this scene'
+    )
+
     @api.depends('tag_ids')
     def _compute_tag_count(self):
         for entity in self:
             entity.tag_count = len(entity.tag_ids)
+
+    @api.depends('scene_entity_ids')
+    def _compute_scene_entity_count(self):
+        """Compute the number of entities in this scene"""
+        for entity in self:
+            if entity.domain == 'scene':
+                entity.scene_entity_count = len(entity.scene_entity_ids)
+            else:
+                entity.scene_entity_count = 0
 
     @api.depends('area_id', 'follows_device_area', 'device_id.area_id')
     def _compute_display_area_id(self):
@@ -159,7 +184,8 @@ class HAEntity(models.Model):
     # - label_ids: Entity 標籤（雙向同步到 HA Entity Registry）
     # - tag_ids: Entity 標籤（Odoo 內部分類，不同步到 HA）
     # - note: 使用者備註
-    _USER_EDITABLE_FIELDS = {'enable_record', 'area_id', 'follows_device_area', 'name', 'label_ids', 'tag_ids', 'note', 'properties'}
+    # - scene_entity_ids: Scene 包含的實體（雙向同步到 HA，僅適用於 domain='scene'）
+    _USER_EDITABLE_FIELDS = {'enable_record', 'area_id', 'follows_device_area', 'name', 'label_ids', 'tag_ids', 'note', 'properties', 'scene_entity_ids'}
 
     @api.constrains('ha_instance_id', 'group_ids', 'tag_ids')
     def _check_instance_consistency(self):
@@ -227,6 +253,7 @@ class HAEntity(models.Model):
         follows_device_area_changed = 'follows_device_area' in vals
         name_changed = 'name' in vals
         label_ids_changed = 'label_ids' in vals
+        scene_entity_ids_changed = 'scene_entity_ids' in vals
 
         result = super().write(vals)
 
@@ -257,6 +284,13 @@ class HAEntity(models.Model):
                         record._update_entity_labels_in_ha()
                     except Exception as e:
                         _logger.error(f"Failed to sync entity labels {record.entity_id} to HA: {e}")
+
+                # 當 scene_entity_ids 變更時，更新 Scene 到 HA
+                if scene_entity_ids_changed and record.domain == 'scene':
+                    try:
+                        record._create_scene_in_ha()
+                    except Exception as e:
+                        _logger.error(f"Failed to sync scene {record.entity_id} to HA: {e}")
 
         return result
 
@@ -479,6 +513,9 @@ class HAEntity(models.Model):
 
                 self._sync_entity_registry_relations(instance_id)
 
+                # 同步 Scene 的實體清單（從 Scene attributes.entity_id 取得）
+                self._sync_scene_entity_relations(instance_id)
+
             # 更新實例的 last_sync_date（批量同步完成時間）
             try:
                 instance = self.env['ha.instance'].sudo().browse(instance_id)
@@ -678,6 +715,84 @@ class HAEntity(models.Model):
             f"{device_updated_count} device relations updated "
             f"(SET: {device_set_count}, CLEARED: {device_clear_count}, NOT_IN_MAP: {device_not_in_map_count})"
         )
+
+    def _sync_scene_entity_relations(self, instance_id):
+        """
+        同步 Scene 的實體清單關聯
+        從 Scene 的 attributes.entity_id 取得包含的實體清單並更新 scene_entity_ids
+
+        Home Assistant Scene 的 attributes 中包含 entity_id 欄位，
+        這是一個包含 Scene 所控制的所有實體 ID 的列表。
+
+        Args:
+            instance_id: HA 實例 ID
+        """
+        _logger.info(f"=== Starting sync scene entity relations (instance {instance_id}) ===")
+
+        try:
+            # 查找所有 Scene 實體
+            scenes = self.env['ha.entity'].sudo().search([
+                ('domain', '=', 'scene'),
+                ('ha_instance_id', '=', instance_id)
+            ])
+
+            if not scenes:
+                _logger.debug("No scene entities found to sync")
+                return
+
+            _logger.info(f"Found {len(scenes)} scene entities to sync")
+
+            # 建立 entity_id -> ha.entity record ID 的映射（只包含此實例的 entities）
+            all_entities = self.env['ha.entity'].sudo().search([
+                ('ha_instance_id', '=', instance_id),
+                ('domain', '!=', 'scene')  # Scene 不能包含其他 Scene
+            ])
+            entity_map = {entity.entity_id: entity.id for entity in all_entities}
+            _logger.debug(f"Entity map size: {len(entity_map)} entities")
+
+            updated_count = 0
+            for scene in scenes:
+                try:
+                    # 從 Scene 的 attributes 中取得 entity_id 列表
+                    attributes = scene.attributes or {}
+                    ha_entity_ids = attributes.get('entity_id', [])
+
+                    if not isinstance(ha_entity_ids, list):
+                        # 有時可能是單一字串
+                        ha_entity_ids = [ha_entity_ids] if ha_entity_ids else []
+
+                    # 將 HA entity_id 轉換為 Odoo record IDs
+                    odoo_entity_ids = []
+                    for ha_entity_id in ha_entity_ids:
+                        if ha_entity_id in entity_map:
+                            odoo_entity_ids.append(entity_map[ha_entity_id])
+                        else:
+                            _logger.debug(f"Scene {scene.entity_id}: entity {ha_entity_id} not found in map")
+
+                    # 比較並更新 scene_entity_ids
+                    current_ids = set(scene.scene_entity_ids.ids)
+                    new_ids = set(odoo_entity_ids)
+
+                    if current_ids != new_ids:
+                        scene.with_context(from_ha_sync=True).write({
+                            'scene_entity_ids': [(6, 0, odoo_entity_ids)]
+                        })
+                        updated_count += 1
+                        _logger.debug(
+                            f"Updated scene {scene.entity_id}: "
+                            f"{len(current_ids)} -> {len(new_ids)} entities"
+                        )
+
+                except Exception as e:
+                    _logger.error(f"Error syncing scene {scene.entity_id} entities: {e}")
+
+            _logger.info(
+                f"Scene entity relations sync completed (instance {instance_id}): "
+                f"{updated_count} scenes updated"
+            )
+
+        except Exception as e:
+            _logger.error(f"Failed to sync scene entity relations: {e}", exc_info=True)
 
     def fetch_states(self):
         """
@@ -1038,5 +1153,142 @@ class HAEntity(models.Model):
                 'default_entity_id': self.id,
             },
         }
+
+    # ========== Scene-specific Methods ==========
+
+    def action_activate_scene(self):
+        """
+        Activate a scene in Home Assistant.
+
+        Calls HA service: scene.turn_on
+        Only applicable for entities with domain='scene'.
+        """
+        self.ensure_one()
+
+        if self.domain != 'scene':
+            raise ValidationError(_('This action is only available for scene entities.'))
+
+        if not self.ha_instance_id:
+            raise ValidationError(_('No HA instance configured for this entity.'))
+
+        try:
+            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
+            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
+
+            payload = {
+                'domain': 'scene',
+                'service': 'turn_on',
+                'target': {
+                    'entity_id': self.entity_id
+                }
+            }
+
+            _logger.info(f"Activating scene: {self.entity_id}")
+            client.call_websocket_api_sync('call_service', payload)
+            _logger.info(f"Scene {self.entity_id} activated successfully")
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Scene Activated'),
+                    'message': _('Scene "%s" has been activated.') % (self.name or self.entity_id),
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f"Failed to activate scene {self.entity_id}: {e}", exc_info=True)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Activation Failed'),
+                    'message': _('Failed to activate scene: %s') % str(e),
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    def _create_scene_in_ha(self):
+        """
+        Create a new scene in Home Assistant using snapshot mode.
+
+        Calls HA service: scene.create with snapshot_entities
+        The scene will capture the current state of all selected entities.
+
+        Only applicable for entities with domain='scene'.
+        """
+        self.ensure_one()
+
+        if self.domain != 'scene':
+            return
+
+        if not self.ha_instance_id or not self.scene_entity_ids:
+            _logger.warning(f"Cannot create scene {self.entity_id}: missing instance or entities")
+            return
+
+        try:
+            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
+            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
+
+            # Extract scene_id from entity_id (e.g., 'scene.movie_mode' -> 'movie_mode')
+            scene_id = self.entity_id.replace('scene.', '') if self.entity_id.startswith('scene.') else self.entity_id
+
+            # Get entity_ids for snapshot
+            snapshot_entities = self.scene_entity_ids.mapped('entity_id')
+
+            payload = {
+                'domain': 'scene',
+                'service': 'create',
+                'service_data': {
+                    'scene_id': scene_id,
+                    'snapshot_entities': snapshot_entities
+                }
+            }
+
+            _logger.info(f"Creating scene in HA: {self.entity_id} with entities: {snapshot_entities}")
+            client.call_websocket_api_sync('call_service', payload)
+            _logger.info(f"Scene {self.entity_id} created/updated in HA successfully")
+
+        except Exception as e:
+            _logger.error(f"Failed to create scene {self.entity_id} in HA: {e}", exc_info=True)
+            raise
+
+    def _delete_scene_in_ha(self):
+        """
+        Delete a scene from Home Assistant.
+
+        Calls HA service: scene.delete
+        Only applicable for entities with domain='scene'.
+        """
+        self.ensure_one()
+
+        if self.domain != 'scene':
+            return
+
+        if not self.ha_instance_id:
+            _logger.warning(f"Cannot delete scene {self.entity_id}: missing instance")
+            return
+
+        try:
+            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
+            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
+
+            payload = {
+                'domain': 'scene',
+                'service': 'delete',
+                'target': {
+                    'entity_id': self.entity_id
+                }
+            }
+
+            _logger.info(f"Deleting scene from HA: {self.entity_id}")
+            client.call_websocket_api_sync('call_service', payload)
+            _logger.info(f"Scene {self.entity_id} deleted from HA successfully")
+
+        except Exception as e:
+            _logger.error(f"Failed to delete scene {self.entity_id} from HA: {e}", exc_info=True)
 
 

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Scene Action - Filtered to domain='scene' -->
+    <record id="ha_scene_action" model="ir.actions.act_window">
+        <field name="name">Scenes</field>
+        <field name="res_model">ha.entity</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('domain', '=', 'scene')]</field>
+        <field name="context">{'default_domain': 'scene'}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('ha_scene_view_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('ha_scene_view_form')})]"/>
+    </record>
+
+    <!-- Scene List View -->
+    <record id="ha_scene_view_list" model="ir.ui.view">
+        <field name="name">ha.scene.list</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <list string="Scenes">
+                <field name="name"/>
+                <field name="entity_id" string="Scene ID"/>
+                <field name="ha_instance_id" optional="hide"/>
+                <field name="display_area_id" string="Area"/>
+                <field name="scene_entity_count" string="Entities"/>
+                <field name="entity_state" string="State"/>
+                <field name="label_ids" widget="many2many_tags"
+                       options="{'color_field': 'color'}"/>
+                <field name="last_changed" string="Last Activated"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Scene Form View - Extends Entity Form with Scene Entities Tab -->
+    <record id="ha_scene_view_form" model="ir.ui.view">
+        <field name="name">ha.scene.form</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form string="Scene" class="o_ha_scene_form">
+                <header>
+                    <button name="action_activate_scene" type="object" string="Activate"
+                            class="btn-primary" icon="fa-play-circle"
+                            title="Activate this scene"/>
+                    <button name="action_share" type="object" string="Share"
+                            class="btn-secondary"
+                            groups="odoo_ha_addon.group_ha_manager"
+                            title="Share this scene with users"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-cubes"
+                                invisible="scene_entity_count == 0">
+                            <field name="scene_entity_count" widget="statinfo" string="Entities"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Scene Name"/>
+                        <h1>
+                            <field name="name" placeholder="Scene Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="entity_id" string="Scene ID" readonly="1"/>
+                            <field name="domain" invisible="1"/>
+                            <field name="entity_state" string="State" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="ha_instance_id" readonly="1"/>
+                            <field name="area_id"
+                                   domain="[('ha_instance_id', '=', ha_instance_id)]"/>
+                            <field name="last_changed" string="Last Activated" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Labels">
+                        <field name="label_ids" widget="many2many_tags" nolabel="1"
+                               options="{'color_field': 'color'}"
+                               context="{'default_ha_instance_id': ha_instance_id}"/>
+                    </group>
+                    <notebook>
+                        <page string="Scene Entities" name="scene_entities">
+                            <field name="scene_entity_ids" widget="many2many"
+                                   domain="[('ha_instance_id', '=', ha_instance_id), ('domain', '!=', 'scene')]"
+                                   context="{'default_ha_instance_id': ha_instance_id}">
+                                <list string="Entities in this Scene">
+                                    <field name="name"/>
+                                    <field name="entity_id"/>
+                                    <field name="domain"/>
+                                    <field name="entity_state" string="Current State"/>
+                                    <field name="display_area_id" string="Area"/>
+                                </list>
+                            </field>
+                            <div class="alert alert-info mt-3" role="status">
+                                <i class="fa fa-info-circle me-2"/>
+                                <strong>Tip:</strong> When you save this scene, it will capture the current state of all selected entities.
+                                Make sure the entities are in the desired state before saving.
+                            </div>
+                        </page>
+                        <page string="Attributes" name="attributes">
+                            <field name="attributes_str" widget="ace" readonly="1"/>
+                        </page>
+                        <page string="History" name="history">
+                            <field name="history_ids" readonly="1">
+                                <list string="Activation History">
+                                    <field name="entity_state" string="State"/>
+                                    <field name="last_changed" string="Activated At"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Scene Search View -->
+    <record id="ha_scene_view_search" model="ir.ui.view">
+        <field name="name">ha.scene.search</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <search string="Scene Search">
+                <field name="name"/>
+                <field name="entity_id"/>
+                <field name="ha_instance_id"/>
+                <field name="area_id"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
+                    <filter name="group_by_area" string="Area" context="{'group_by': 'display_area_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>
