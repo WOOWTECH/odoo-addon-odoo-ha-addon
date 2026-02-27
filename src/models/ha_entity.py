@@ -446,10 +446,16 @@ class HAEntity(models.Model):
 
                 # 當 scene_entity_ids 變更時，更新 Scene 到 HA
                 if scene_entity_ids_changed and record.domain == 'scene':
-                    try:
-                        record._create_scene_in_ha()
-                    except Exception as e:
-                        _logger.error(f"Failed to sync scene {record.entity_id} to HA: {e}")
+                    _logger.info(f"Scene entity_ids changed for {record.entity_id}, triggering sync to HA")
+                    _logger.debug(f"Scene {record.entity_id} has {len(record.scene_entity_ids)} entities: {record.scene_entity_ids.mapped('entity_id')}")
+                    if record.scene_entity_ids:
+                        try:
+                            record._create_scene_in_ha()
+                            _logger.info(f"Scene {record.entity_id} synced to HA successfully")
+                        except Exception as e:
+                            _logger.error(f"Failed to sync scene {record.entity_id} to HA: {e}", exc_info=True)
+                    else:
+                        _logger.info(f"Scene {record.entity_id} has no entities, skipping sync to HA")
 
         return result
 
@@ -1461,15 +1467,20 @@ class HAEntity(models.Model):
             # Get current states of all entities
             _logger.info(f"Getting current states for scene entities: {entity_ids}")
             entity_states = rest_api.get_entity_states(entity_ids)
+            _logger.debug(f"Entity states for scene {self.entity_id}: {entity_states}")
+
+            if not entity_states:
+                _logger.warning(f"No entity states retrieved for scene {self.entity_id}, skipping sync")
+                return
 
             # Create scene config via HA config API (editable in GUI)
-            _logger.info(f"Creating scene config in HA: {self.entity_id} ({self.name})")
-            rest_api.create_scene_config(
+            _logger.info(f"Creating scene config in HA: {self.entity_id} ({self.name}) with {len(entity_states)} entities")
+            result = rest_api.create_scene_config(
                 scene_id=scene_id,
                 name=self.name or scene_id,
                 entities=entity_states
             )
-            _logger.info(f"Scene {self.entity_id} created in HA successfully (editable in GUI)")
+            _logger.info(f"Scene {self.entity_id} created in HA successfully (editable in GUI). Result: {result}")
 
         except Exception as e:
             _logger.error(f"Failed to create scene {self.entity_id} in HA: {e}", exc_info=True)
