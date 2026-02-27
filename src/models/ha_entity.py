@@ -352,6 +352,40 @@ class HAEntity(models.Model):
 
         return records
 
+    def unlink(self):
+        """
+        Override unlink to delete scenes from Home Assistant when deleted in Odoo.
+        """
+        # Collect scene info before deletion
+        scenes_to_delete = []
+        for record in self:
+            if record.domain == 'scene' and record.ha_scene_id:
+                scenes_to_delete.append({
+                    'entity_id': record.entity_id,
+                    'ha_scene_id': record.ha_scene_id,
+                    'ha_instance_id': record.ha_instance_id.id if record.ha_instance_id else False,
+                })
+
+        # Perform the actual deletion in Odoo
+        result = super().unlink()
+
+        # Delete scenes from HA after successful Odoo deletion
+        for scene_info in scenes_to_delete:
+            try:
+                if scene_info['ha_instance_id']:
+                    rest_api = HassRestApi(self.env, scene_info['ha_instance_id'])
+                    rest_api.delete_scene_config(scene_info['ha_scene_id'])
+                    _logger.info(
+                        f"Deleted scene {scene_info['entity_id']} "
+                        f"(ha_scene_id={scene_info['ha_scene_id']}) from HA"
+                    )
+            except Exception as e:
+                _logger.error(
+                    f"Failed to delete scene {scene_info['entity_id']} from HA: {e}"
+                )
+
+        return result
+
     @api.constrains('ha_instance_id', 'group_ids', 'tag_ids')
     def _check_instance_consistency(self):
         """
