@@ -124,7 +124,7 @@ class HAEntity(models.Model):
         'scene_id',
         'entity_id',
         string='Scene Entities',
-        domain="[('ha_instance_id', '=', ha_instance_id), ('domain', '!=', 'scene')]",
+        domain="[('domain', '!=', 'scene')]",
         help='Entities included in this scene (only for domain=scene)'
     )
     scene_entity_count = fields.Integer(

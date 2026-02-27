@@ -6,7 +6,7 @@
         <field name="model">ha.entity</field>
         <field name="priority">20</field>
         <field name="arch" type="xml">
-            <list string="Scenes">
+            <list string="Scenes" create="1" edit="1" delete="1">
                 <field name="name"/>
                 <field name="entity_id" string="Scene ID"/>
                 <field name="ha_instance_id" optional="hide"/>
@@ -69,10 +69,10 @@
                     </group>
                     <notebook>
                         <page string="Scene Entities" name="scene_entities">
-                            <field name="scene_entity_ids" widget="many2many"
-                                   domain="[('ha_instance_id', '=', ha_instance_id), ('domain', '!=', 'scene')]"
-                                   context="{'default_ha_instance_id': ha_instance_id}">
-                                <list string="Entities in this Scene">
+                            <field name="scene_entity_ids"
+                                   domain="[('domain', '!=', 'scene')]"
+                                   options="{'no_create': True, 'no_create_edit': True}">
+                                <list string="Entities in this Scene" create="0">
                                     <field name="name"/>
                                     <field name="entity_id"/>
                                     <field name="domain"/>
