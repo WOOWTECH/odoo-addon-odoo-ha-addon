@@ -188,6 +188,168 @@ class HassRestApi:
             else:
                 raise ConnectionError(f"HA service call failed: HTTP {response.status_code}")
 
+    def create_scene_config(self, scene_id: str, name: str, entities: dict, icon: str = None):
+        """
+        Create or update a scene in Home Assistant's scenes.yaml via config API.
+
+        This creates a scene that is editable in the HA GUI, unlike scene.create service
+        which creates dynamic/runtime scenes.
+
+        REST API endpoint: POST /api/config/scene/config/{scene_id}
+
+        Args:
+            scene_id: Unique scene identifier (will be used in scenes.yaml)
+            name: Display name for the scene
+            entities: Dict of entity_id -> state/attributes to set
+                      e.g., {'light.bedroom': {'state': 'on', 'brightness': 128}}
+            icon: Optional icon (e.g., 'mdi:lightbulb')
+
+        Returns:
+            dict: Response from HA API
+
+        Raises:
+            ConnectionError: If API request fails
+        """
+        ha_info = self.__refetch_ha_info()
+        ha_url = ha_info["ha_url"]
+        ha_token = ha_info["ha_token"]
+
+        api_endpoint = f"/api/config/scene/config/{scene_id}"
+        url = f"{ha_url}{api_endpoint}"
+
+        _logger.info(f"Creating scene config: {scene_id} ({name})")
+        _logger.debug(f"URL: {url}")
+
+        headers = {
+            "Authorization": f"Bearer {ha_token}",
+            "Content-Type": "application/json",
+        }
+
+        # Build scene config payload
+        payload = {
+            "id": scene_id,
+            "name": name,
+            "entities": entities
+        }
+        if icon:
+            payload["icon"] = icon
+
+        _logger.debug(f"Scene config payload: {payload}")
+
+        response = requests.post(url, headers=headers, json=payload)
+
+        if response.status_code == 200:
+            data = response.json()
+            _logger.info(f"Scene config {scene_id} created/updated successfully")
+            return data
+        else:
+            _logger.error(
+                f"HA scene config failed: status={response.status_code}, "
+                f"url={url}, response={response.text[:500] if response.text else 'empty'}"
+            )
+            if response.status_code == 401:
+                raise ConnectionError(f"HA API authentication failed (401): Invalid or expired access token")
+            elif response.status_code == 403:
+                raise PermissionError(f"HA API access denied (403): Insufficient permissions")
+            elif response.status_code == 404:
+                raise ValueError(f"HA config API not found (404): {api_endpoint}")
+            else:
+                raise ConnectionError(f"HA scene config failed: HTTP {response.status_code}")
+
+    def delete_scene_config(self, scene_id: str):
+        """
+        Delete a scene from Home Assistant's scenes.yaml via config API.
+
+        REST API endpoint: DELETE /api/config/scene/config/{scene_id}
+
+        Args:
+            scene_id: Scene identifier to delete
+
+        Returns:
+            dict: Response from HA API
+
+        Raises:
+            ConnectionError: If API request fails
+        """
+        ha_info = self.__refetch_ha_info()
+        ha_url = ha_info["ha_url"]
+        ha_token = ha_info["ha_token"]
+
+        api_endpoint = f"/api/config/scene/config/{scene_id}"
+        url = f"{ha_url}{api_endpoint}"
+
+        _logger.info(f"Deleting scene config: {scene_id}")
+
+        headers = {
+            "Authorization": f"Bearer {ha_token}",
+            "Content-Type": "application/json",
+        }
+
+        response = requests.delete(url, headers=headers)
+
+        if response.status_code == 200:
+            _logger.info(f"Scene config {scene_id} deleted successfully")
+            return response.json() if response.text else {}
+        else:
+            _logger.error(
+                f"HA scene config delete failed: status={response.status_code}, "
+                f"url={url}, response={response.text[:500] if response.text else 'empty'}"
+            )
+            raise ConnectionError(f"HA scene config delete failed: HTTP {response.status_code}")
+
+    def get_entity_states(self, entity_ids: list):
+        """
+        Get current states of multiple entities.
+
+        Args:
+            entity_ids: List of entity IDs to fetch
+
+        Returns:
+            dict: entity_id -> state dict mapping
+        """
+        ha_info = self.__refetch_ha_info()
+        ha_url = ha_info["ha_url"]
+        ha_token = ha_info["ha_token"]
+
+        headers = {
+            "Authorization": f"Bearer {ha_token}",
+            "Content-Type": "application/json",
+        }
+
+        result = {}
+        for entity_id in entity_ids:
+            url = f"{ha_url}/api/states/{entity_id}"
+            try:
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    # Build entity state dict for scene
+                    state_dict = {"state": data.get("state", "on")}
+                    attrs = data.get("attributes", {})
+                    # Include relevant attributes based on domain
+                    domain = entity_id.split(".")[0]
+                    if domain == "light":
+                        for key in ["brightness", "color_temp", "rgb_color", "hs_color", "xy_color"]:
+                            if key in attrs:
+                                state_dict[key] = attrs[key]
+                    elif domain == "cover":
+                        if "current_position" in attrs:
+                            state_dict["position"] = attrs["current_position"]
+                    elif domain == "climate":
+                        for key in ["temperature", "target_temp_high", "target_temp_low", "hvac_mode"]:
+                            if key in attrs:
+                                state_dict[key] = attrs[key]
+                    elif domain == "fan":
+                        for key in ["percentage", "preset_mode", "oscillating"]:
+                            if key in attrs:
+                                state_dict[key] = attrs[key]
+                    result[entity_id] = state_dict
+            except Exception as e:
+                _logger.warning(f"Failed to get state for {entity_id}: {e}")
+                result[entity_id] = {"state": "on"}  # Default fallback
+
+        return result
+
     def get_ha_history(self, entity_id: str, timestamp: Optional[datetime] = None, end_timestamp: Optional[datetime] = None):
         """
         若不提供 timestamp 和 end_timestamp, 預設就是抓一天的時間。

@@ -1427,10 +1427,15 @@ class HAEntity(models.Model):
 
     def _create_scene_in_ha(self):
         """
-        Create a new scene in Home Assistant using snapshot mode.
+        Create a new scene in Home Assistant via config API.
 
-        Calls HA service: scene.create with snapshot_entities
-        The scene will capture the current state of all selected entities.
+        Uses the /api/config/scene/config/{id} endpoint to create scenes
+        that are editable in the HA GUI (stored in scenes.yaml).
+
+        This method:
+        1. Gets current states of all scene entities
+        2. Creates scene config via HA config API
+        3. Scene will be editable in HA Settings > Automations & Scenes
 
         Uses REST API to avoid WebSocket connection issues in async contexts.
         Only applicable for entities with domain='scene'.
@@ -1445,23 +1450,26 @@ class HAEntity(models.Model):
             return
 
         try:
-            # Use REST API instead of WebSocket for reliability in async contexts
             rest_api = HassRestApi(self.env, self.ha_instance_id.id)
 
             # Extract scene_id from entity_id (e.g., 'scene.movie_mode' -> 'movie_mode')
             scene_id = self.entity_id.replace('scene.', '') if self.entity_id.startswith('scene.') else self.entity_id
 
-            # Get entity_ids for snapshot
-            snapshot_entities = self.scene_entity_ids.mapped('entity_id')
+            # Get entity_ids for the scene
+            entity_ids = self.scene_entity_ids.mapped('entity_id')
 
-            service_data = {
-                'scene_id': scene_id,
-                'snapshot_entities': snapshot_entities
-            }
+            # Get current states of all entities
+            _logger.info(f"Getting current states for scene entities: {entity_ids}")
+            entity_states = rest_api.get_entity_states(entity_ids)
 
-            _logger.info(f"Creating scene in HA via REST: {self.entity_id} with entities: {snapshot_entities}")
-            rest_api.call_service('scene', 'create', service_data=service_data)
-            _logger.info(f"Scene {self.entity_id} created/updated in HA successfully")
+            # Create scene config via HA config API (editable in GUI)
+            _logger.info(f"Creating scene config in HA: {self.entity_id} ({self.name})")
+            rest_api.create_scene_config(
+                scene_id=scene_id,
+                name=self.name or scene_id,
+                entities=entity_states
+            )
+            _logger.info(f"Scene {self.entity_id} created in HA successfully (editable in GUI)")
 
         except Exception as e:
             _logger.error(f"Failed to create scene {self.entity_id} in HA: {e}", exc_info=True)
@@ -1469,9 +1477,9 @@ class HAEntity(models.Model):
 
     def _delete_scene_in_ha(self):
         """
-        Delete a scene from Home Assistant.
+        Delete a scene from Home Assistant via config API.
 
-        Calls HA service: scene.delete
+        Uses the DELETE /api/config/scene/config/{id} endpoint.
         Only applicable for entities with domain='scene'.
         """
         self.ensure_one()
@@ -1484,19 +1492,13 @@ class HAEntity(models.Model):
             return
 
         try:
-            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
-            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
+            rest_api = HassRestApi(self.env, self.ha_instance_id.id)
 
-            payload = {
-                'domain': 'scene',
-                'service': 'delete',
-                'target': {
-                    'entity_id': self.entity_id
-                }
-            }
+            # Extract scene_id from entity_id
+            scene_id = self.entity_id.replace('scene.', '') if self.entity_id.startswith('scene.') else self.entity_id
 
-            _logger.info(f"Deleting scene from HA: {self.entity_id}")
-            client.call_websocket_api_sync('call_service', payload)
+            _logger.info(f"Deleting scene config from HA: {self.entity_id}")
+            rest_api.delete_scene_config(scene_id)
             _logger.info(f"Scene {self.entity_id} deleted from HA successfully")
 
         except Exception as e:
