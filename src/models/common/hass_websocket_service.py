@@ -891,6 +891,7 @@ class HassWebSocketService:
         - update action 且 changes 中包含 area_id: 同步 area 到 Odoo
         - update action 且 changes 中包含 name: 同步 name 到 Odoo
         - update action 且 changes 中包含 labels: 同步 labels 到 Odoo
+        - remove action: 從 Odoo 刪除對應的 entity（包含 scene）
         """
         try:
             action = event_data.get('action')
@@ -905,7 +906,18 @@ class HassWebSocketService:
                 f"Entity registry updated: {action} - {entity_id} (instance {self.instance_id})"
             )
 
-            # 只處理 update action
+            # 處理 remove action - 從 Odoo 刪除對應的 entity
+            if action == 'remove':
+                self._logger.info(
+                    f"Entity removed in HA: {entity_id} (instance {self.instance_id})"
+                )
+                await self._run_sync(
+                    self._sync_entity_remove_from_ha,
+                    entity_id
+                )
+                return
+
+            # 處理 update action
             if action == 'update':
                 # 檢查是否有我們關心的欄位變更
                 area_changed = 'area_id' in changes
@@ -1041,6 +1053,46 @@ class HassWebSocketService:
         except Exception as e:
             self._logger.error(
                 f"Failed to delete label from Odoo for instance {self.instance_id}: {e}",
+                exc_info=True
+            )
+
+    def _sync_entity_remove_from_ha(self, entity_id: str):
+        """
+        Sync method: Delete entity from Odoo (executed in background thread)
+
+        When an entity (including scene) is deleted in Home Assistant,
+        this method removes the corresponding record from Odoo.
+
+        Args:
+            entity_id: HA entity_id (e.g., "scene.my_scene", "light.living_room")
+        """
+        try:
+            with db.db_connect(self.db_name).cursor() as cr:
+                env = api.Environment(cr, 1, {})
+
+                existing_entity = env['ha.entity'].sudo().search([
+                    ('entity_id', '=', entity_id),
+                    ('ha_instance_id', '=', self.instance_id)
+                ], limit=1)
+
+                if existing_entity:
+                    entity_name = existing_entity.name
+                    entity_domain = existing_entity.domain
+                    # Use from_ha_sync to prevent sync loop
+                    existing_entity.with_context(from_ha_sync=True).unlink()
+                    cr.commit()
+                    self._logger.info(
+                        f"Deleted {entity_domain} entity from Odoo: {entity_name} "
+                        f"(entity_id={entity_id}, instance {self.instance_id})"
+                    )
+                else:
+                    self._logger.debug(
+                        f"Entity {entity_id} not found in Odoo, skipping delete (instance {self.instance_id})"
+                    )
+
+        except Exception as e:
+            self._logger.error(
+                f"Failed to delete entity from Odoo for instance {self.instance_id}: {e}",
                 exc_info=True
             )
 
