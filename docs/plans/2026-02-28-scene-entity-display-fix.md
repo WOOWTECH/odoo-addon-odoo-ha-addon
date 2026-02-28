@@ -1,8 +1,8 @@
 # Scene Entity Display Fix - PRD
 
 **Created:** 2026-02-28T13:43:00Z
-**Updated:** 2026-02-28T13:55:00Z
-**Status:** Implemented
+**Updated:** 2026-02-28T14:45:00Z
+**Status:** ⚠️ Implementation Failed - HA API Limitation Discovered
 **Author:** Claude Code Assistant
 
 ---
@@ -33,7 +33,56 @@ The scene state `scene.shang_ci_qu_wen_wen_wo` shows:
 
 ---
 
-## 2. Root Cause Analysis
+## 2. Investigation Findings (2026-02-28 14:45 Update)
+
+### Critical Discovery: HA REST API Strips Metadata
+
+After extensive testing and code analysis, I've confirmed that **Home Assistant's REST API does NOT save the `metadata` field**, even though:
+
+1. **HA Frontend sends metadata** - The `saveScene()` function in `src/data/scene.ts` sends the complete `SceneConfig` including `metadata`
+2. **HA PLATFORM_SCHEMA includes metadata** - `vol.Optional("metadata"): dict` is in the schema
+3. **Odoo correctly sends metadata** - The payload includes `metadata` with `entity_only: true`
+
+**Evidence:**
+
+After syncing a scene from Odoo with metadata, the HA Scene Editor shows:
+```yaml
+id: "1772259235538"
+name: 實體顯示測試場景
+entities:
+  light.extended_color_light_1_2:
+    state: "off"
+    ...
+# NO metadata field present
+```
+
+The entities still appear under "裝置" (Devices) section, not "實體" (Entities) section.
+
+### Root Cause Analysis
+
+The HA backend `_write_value` method in `components/config/scene.py`:
+1. Creates an `updated_value` dict starting with `id`
+2. Orders specific fields (`name`, `entities`) explicitly
+3. Then uses `updated_value.update(new_value)` to merge remaining fields
+
+**Theoretical Flow:**
+- The `update()` call SHOULD preserve metadata
+- But something in the processing chain strips it
+
+**Potential Causes:**
+1. Schema validation removes unrecognized fields before reaching `_write_value`
+2. A post-processing hook strips metadata
+3. The YAML serialization drops metadata
+4. Different code path for REST API vs frontend
+
+### HA Version Tested
+- Core: 2026.1.2
+- Frontend: 20260107.2
+- Supervisor: 2026.02.3
+
+---
+
+## 3. Original Root Cause Analysis
 
 ### HA Scene Editor Behavior
 Home Assistant's Scene Editor UI has two display modes:
@@ -151,21 +200,49 @@ Directly write to `scenes.yaml` file via HA File Editor addon.
 
 ## 5. Conclusion
 
-**Fix implemented by adding `metadata` field with `entity_only: true`.**
+### ⚠️ Current Status: Fix Does NOT Work
 
-### Changes Made
+The implementation to add `metadata` with `entity_only: true` was added to `hass_rest_api.py`, but **HA's REST API strips this field** when saving to `scenes.yaml`.
+
+### Changes Made (Still in Code)
 - **File:** `src/models/common/hass_rest_api.py`
 - **Method:** `create_scene_config()`
 - **Change:** Added `metadata` dictionary with `entity_only: true` for each entity
+- **Result:** Metadata is sent but NOT persisted by HA
 
-### How It Works
-The `metadata.entity_only` flag is used by HA's scene editor to determine how to display entities:
-- `entity_only: true` → Display in "實體" (Entities) section
-- `entity_only: false` or missing → Group under "裝置" (Devices) section
+### What Works
+- Scene creation via REST API ✅
+- Scene name and entities are saved ✅
+- Scene is editable in HA GUI ✅
+
+### What Does NOT Work
+- `metadata` field is stripped by HA ❌
+- Entities still display under "裝置" (Devices) section ❌
+- Cannot force entities to appear in "實體" (Entities) section ❌
+
+### Possible Solutions (Future Work)
+
+1. **File direct scenes.yaml modification**
+   - Use HA File Editor addon or SSH access
+   - Directly write YAML with metadata
+   - Risk: File format changes, race conditions
+
+2. **WebSocket API approach**
+   - Investigate if WebSocket has different behavior
+   - May have same limitation
+
+3. **File a bug report with HA**
+   - Document this as a HA API limitation
+   - The frontend saves metadata correctly, so the API should too
+
+4. **Accept the device grouping**
+   - Document this as a known HA UI behavior
+   - Entities ARE synced correctly, just displayed differently
 
 ### Source References
 - [HA Community: entity_only explanation](https://community.home-assistant.io/t/scenes-yaml-what-is-entity-only-true-for/704552)
-- [GitHub Issue #109710](https://github.com/home-assistant/core/issues/109710)
+- [HA Community: Metadata error message](https://community.home-assistant.io/t/error-message-metadata-in-created-scenes/428741)
+- [GitHub Issue #76831: GUI Scenes adds metadata](https://github.com/home-assistant/core/issues/76831)
 
 ---
 
