@@ -3,6 +3,7 @@ from odoo.exceptions import ValidationError, AccessError
 import logging
 import json
 import re
+import threading
 import unicodedata
 from .common.utils import parse_iso_datetime, parse_domain_from_entitiy_id
 from .common.hass_rest_api import HassRestApi
@@ -385,44 +386,62 @@ class HAEntity(models.Model):
         """
         Override unlink to delete scenes from Home Assistant when deleted in Odoo.
 
-        HA deletion is scheduled via postcommit to:
+        HA deletion is scheduled via postcommit + background thread to:
         1. Not block the Odoo delete operation if HA is slow/unreachable
         2. Only execute after the Odoo transaction successfully commits
+        3. Not block Odoo's HTTP worker threads (prevents bus/longpolling interruption)
 
         Handles both cases:
         - Scenes with ha_scene_id: Delete directly using the stored ID
         - Scenes without ha_scene_id: Query HA to get the config ID first
+
+        If called with context 'from_ha_sync=True', skips HA deletion to prevent
+        sync loops when entity is removed from HA first.
         """
+        # Skip HA deletion if this unlink is triggered by HA sync
+        # (entity was already deleted in HA, no need to delete again)
+        from_ha_sync = self.env.context.get('from_ha_sync', False)
+
         # Collect scene info before deletion
         scenes_to_delete = []
         scenes_to_lookup = []  # Scenes that need ID lookup from HA
 
-        for record in self:
-            if record.domain == 'scene' and record.ha_instance_id:
-                if record.ha_scene_id:
-                    # Scene has stored ha_scene_id, can delete directly
-                    scenes_to_delete.append({
-                        'entity_id': record.entity_id,
-                        'ha_scene_id': record.ha_scene_id,
-                        'ha_instance_id': record.ha_instance_id.id,
-                    })
-                else:
-                    # Scene needs ID lookup from HA before deletion
-                    scenes_to_lookup.append({
-                        'entity_id': record.entity_id,
-                        'ha_instance_id': record.ha_instance_id.id,
-                    })
+        if not from_ha_sync:
+            for record in self:
+                if record.domain == 'scene' and record.ha_instance_id:
+                    if record.ha_scene_id:
+                        # Scene has stored ha_scene_id, can delete directly
+                        scenes_to_delete.append({
+                            'entity_id': record.entity_id,
+                            'ha_scene_id': record.ha_scene_id,
+                            'ha_instance_id': record.ha_instance_id.id,
+                        })
+                    else:
+                        # Scene needs ID lookup from HA before deletion
+                        scenes_to_lookup.append({
+                            'entity_id': record.entity_id,
+                            'ha_instance_id': record.ha_instance_id.id,
+                        })
 
         # Perform the actual deletion in Odoo
         result = super().unlink()
 
-        # Schedule HA scene deletion via postcommit (non-blocking)
-        # This runs after the transaction commits successfully
+        # Schedule HA scene deletion via postcommit + background thread (truly non-blocking)
+        # This runs after the transaction commits successfully, in a separate thread
+        # to avoid blocking Odoo's HTTP workers (which would cause bus/longpolling interruption)
         if scenes_to_delete or scenes_to_lookup:
-            def delete_scenes_from_ha():
+            # Capture necessary info for the background thread
+            db_name = self.env.cr.dbname
+            uid = self.env.uid
+
+            def delete_scenes_from_ha_thread():
+                """Background thread function to delete scenes from HA."""
                 try:
-                    with self.env.registry.cursor() as new_cr:
-                        new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+                    from odoo import registry
+                    from odoo.sql_db import db_connect
+
+                    with db_connect(db_name).cursor() as new_cr:
+                        new_env = api.Environment(new_cr, uid, {})
 
                         # First, lookup IDs for scenes that need it
                         for scene_info in scenes_to_lookup:
@@ -463,9 +482,19 @@ class HAEntity(models.Model):
                                     f"Failed to delete scene {scene_info['entity_id']} from HA: {e}"
                                 )
                 except Exception as e:
-                    _logger.error(f"Error in postcommit scene deletion: {e}")
+                    _logger.error(f"Error in background scene deletion thread: {e}")
 
-            self.env.cr.postcommit.add(delete_scenes_from_ha)
+            def start_delete_thread():
+                """Postcommit callback to start the background thread."""
+                thread = threading.Thread(
+                    target=delete_scenes_from_ha_thread,
+                    name=f"ha_scene_delete_{scenes_to_delete[0]['entity_id'] if scenes_to_delete else 'lookup'}",
+                    daemon=True
+                )
+                thread.start()
+                _logger.debug(f"Started background thread for HA scene deletion")
+
+            self.env.cr.postcommit.add(start_delete_thread)
 
         return result
 
