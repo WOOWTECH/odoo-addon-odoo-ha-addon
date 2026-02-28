@@ -229,12 +229,20 @@ class HassRestApi:
             "Content-Type": "application/json",
         }
 
+        # Build metadata to mark all entities as entity_only
+        # This ensures entities are displayed in the "Entities" section of HA scene editor
+        # instead of being grouped by device in the "Devices" section
+        metadata = {}
+        for entity_id in entities.keys():
+            metadata[entity_id] = {"entity_only": True}
+
         # Build scene config payload matching HA frontend format
         # The 'id' field in payload must match the URL parameter
         payload = {
             "id": ha_scene_id,
             "name": name,
-            "entities": entities
+            "entities": entities,
+            "metadata": metadata
         }
         if icon:
             payload["icon"] = icon

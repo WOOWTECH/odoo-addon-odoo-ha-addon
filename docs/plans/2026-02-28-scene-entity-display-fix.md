@@ -1,7 +1,8 @@
 # Scene Entity Display Fix - PRD
 
 **Created:** 2026-02-28T13:43:00Z
-**Status:** Draft
+**Updated:** 2026-02-28T13:55:00Z
+**Status:** Implemented
 **Author:** Claude Code Assistant
 
 ---
@@ -65,21 +66,47 @@ The API payload sent:
 
 ---
 
-## 3. Solution Options
+## 3. Solution
 
-### Option A: No Code Change (Documentation Only)
-**Recommendation: ✅ Preferred**
+### Implemented: Add `metadata` with `entity_only: true`
 
-The current behavior is correct according to HA's design:
-- Entities are correctly stored in the scene
-- HA Scene Editor displays them grouped by device (standard HA UX)
-- When scene is activated, only the specified entities are affected
+HA's scene editor uses a `metadata` field to track how entities were added to a scene. By setting `entity_only: true` for each entity, we tell HA to display the entity in the "實體" (Entities) section instead of grouping it under "裝置" (Devices).
 
-**Action:** Document this behavior for users to understand.
+**Implementation in `hass_rest_api.py`:**
+```python
+# Build metadata to mark all entities as entity_only
+metadata = {}
+for entity_id in entities.keys():
+    metadata[entity_id] = {"entity_only": True}
 
-### Option B: Use Different HA API (scene.create service)
-Use the `scene.create` service instead of REST Config API:
+# Build scene config payload
+payload = {
+    "id": ha_scene_id,
+    "name": name,
+    "entities": entities,
+    "metadata": metadata  # <-- Added this field
+}
+```
 
+**Resulting YAML format in HA:**
+```yaml
+- id: "1772255865322"
+  name: 上次去問問我
+  entities:
+    light.two_way_color_light:
+      state: "off"
+    switch.onofflightswitch_2:
+      state: "off"
+  metadata:
+    light.two_way_color_light:
+      entity_only: true
+    switch.onofflightswitch_2:
+      entity_only: true
+```
+
+### Alternative Options (Not Used)
+
+#### Option B: Use Different HA API (scene.create service)
 ```yaml
 service: scene.create
 data:
@@ -94,7 +121,7 @@ data:
 - Scenes disappear on HA restart unless using `scene.apply` with persistence
 - Original design document specifies editable scenes
 
-### Option C: Switch to YAML-based Scene Creation
+#### Option C: Switch to YAML-based Scene Creation
 Directly write to `scenes.yaml` file via HA File Editor addon.
 
 **Drawbacks:**
@@ -106,37 +133,39 @@ Directly write to `scenes.yaml` file via HA File Editor addon.
 
 ## 4. Verification Steps
 
-### Verify Current Implementation is Correct
-1. Create scene in Odoo with 2 entities: `sensor.xxx`, `switch.yyy`
-2. Sync to HA
-3. In HA, check scene state via Developer Tools → States
-4. Confirm `entity_id` attribute shows exactly the 2 selected entities
-5. Activate the scene and verify only those 2 entities are affected
+### Test the Implementation
+1. Create a new scene in Odoo with entities (e.g., `switch.xxx`, `light.yyy`)
+2. Add entities to the scene via the scene entity selector
+3. Save the scene (triggers sync to HA)
+4. In HA Scene Editor, verify:
+   - Entities appear in the "實體" (Entities) section
+   - NOT grouped under "裝置" (Devices) section
+5. Check scenes.yaml to confirm `metadata` with `entity_only: true` is present
 
 ### Expected Results
-- Scene state shows only selected entities
+- Scene entities display in "實體" section in HA editor
+- Each entity has `entity_only: true` in metadata
 - Scene activation only affects selected entities
-- Device grouping in UI is purely cosmetic
 
 ---
 
 ## 5. Conclusion
 
-**The current implementation is working correctly.**
+**Fix implemented by adding `metadata` field with `entity_only: true`.**
 
-The "裝置" (Devices) grouping in HA's Scene Editor is standard Home Assistant behavior when entities belong to devices in HA's device registry. This is not a bug but a UX design choice by Home Assistant.
+### Changes Made
+- **File:** `src/models/common/hass_rest_api.py`
+- **Method:** `create_scene_config()`
+- **Change:** Added `metadata` dictionary with `entity_only: true` for each entity
 
-### Recommendations
-1. **No code changes needed** - The implementation correctly sends entities to HA
-2. **Add user documentation** explaining HA's device grouping display behavior
-3. **Verify with test** - Create a scene with entities that don't belong to any device (e.g., sensors) and confirm they appear in the "實體" section
+### How It Works
+The `metadata.entity_only` flag is used by HA's scene editor to determine how to display entities:
+- `entity_only: true` → Display in "實體" (Entities) section
+- `entity_only: false` or missing → Group under "裝置" (Devices) section
 
-### User Communication
-Explain to the user:
-- HA Scene Editor groups entities by their parent device for display purposes
-- The actual scene data only contains the entities they selected
-- When the scene is activated, only the selected entities are affected
-- This is standard HA behavior, not an Odoo issue
+### Source References
+- [HA Community: entity_only explanation](https://community.home-assistant.io/t/scenes-yaml-what-is-entity-only-true-for/704552)
+- [GitHub Issue #109710](https://github.com/home-assistant/core/issues/109710)
 
 ---
 
