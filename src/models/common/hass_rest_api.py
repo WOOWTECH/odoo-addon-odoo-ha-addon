@@ -6,6 +6,10 @@ from typing import TypedDict, Optional
 
 _logger = logging.getLogger(__name__)
 
+# Default timeout for HTTP requests (in seconds)
+# Prevents blocking if HA server is unreachable or slow
+DEFAULT_TIMEOUT = 10
+
 
 class HAInfo(TypedDict):
     ha_url: str
@@ -103,7 +107,7 @@ class HassRestApi:
             "Authorization": f"Bearer {ha_token}",
             "Content-Type": "application/json",
         }
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=DEFAULT_TIMEOUT)
 
         # 檢查回應狀態碼
         if response.status_code == 200:
@@ -168,7 +172,7 @@ class HassRestApi:
 
         _logger.debug(f"Service payload: {payload}")
 
-        response = requests.post(url, headers=headers, json=payload)
+        response = requests.post(url, headers=headers, json=payload, timeout=DEFAULT_TIMEOUT)
 
         if response.status_code == 200:
             data = response.json()
@@ -250,7 +254,7 @@ class HassRestApi:
 
         _logger.debug(f"Scene config payload: {payload}")
 
-        response = requests.post(url, headers=headers, json=payload)
+        response = requests.post(url, headers=headers, json=payload, timeout=DEFAULT_TIMEOUT)
 
         if response.status_code == 200:
             data = response.json()
@@ -300,7 +304,7 @@ class HassRestApi:
             "Content-Type": "application/json",
         }
 
-        response = requests.delete(url, headers=headers)
+        response = requests.delete(url, headers=headers, timeout=DEFAULT_TIMEOUT)
 
         if response.status_code == 200:
             _logger.info(f"Scene config {ha_scene_id} deleted successfully")
@@ -399,7 +403,7 @@ class HassRestApi:
         }
 
         try:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, timeout=DEFAULT_TIMEOUT)
             if response.status_code == 200:
                 data = response.json()
                 attributes = data.get('attributes', {})
@@ -446,7 +450,7 @@ class HassRestApi:
             "Authorization": f"Bearer {ha_token}",
             "Content-Type": "application/json",
         }
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=DEFAULT_TIMEOUT)
 
         # 檢查回應狀態碼
         if response.status_code == 200:

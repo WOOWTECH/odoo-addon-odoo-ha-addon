@@ -384,6 +384,10 @@ class HAEntity(models.Model):
     def unlink(self):
         """
         Override unlink to delete scenes from Home Assistant when deleted in Odoo.
+
+        HA deletion is scheduled via postcommit to:
+        1. Not block the Odoo delete operation if HA is slow/unreachable
+        2. Only execute after the Odoo transaction successfully commits
         """
         # Collect scene info before deletion
         scenes_to_delete = []
@@ -398,20 +402,31 @@ class HAEntity(models.Model):
         # Perform the actual deletion in Odoo
         result = super().unlink()
 
-        # Delete scenes from HA after successful Odoo deletion
-        for scene_info in scenes_to_delete:
-            try:
-                if scene_info['ha_instance_id']:
-                    rest_api = HassRestApi(self.env, scene_info['ha_instance_id'])
-                    rest_api.delete_scene_config(scene_info['ha_scene_id'])
-                    _logger.info(
-                        f"Deleted scene {scene_info['entity_id']} "
-                        f"(ha_scene_id={scene_info['ha_scene_id']}) from HA"
-                    )
-            except Exception as e:
-                _logger.error(
-                    f"Failed to delete scene {scene_info['entity_id']} from HA: {e}"
-                )
+        # Schedule HA scene deletion via postcommit (non-blocking)
+        # This runs after the transaction commits successfully
+        if scenes_to_delete:
+            def delete_scenes_from_ha():
+                try:
+                    with self.env.registry.cursor() as new_cr:
+                        new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+                        for scene_info in scenes_to_delete:
+                            try:
+                                if scene_info['ha_instance_id']:
+                                    rest_api = HassRestApi(new_env, scene_info['ha_instance_id'])
+                                    rest_api.delete_scene_config(scene_info['ha_scene_id'])
+                                    _logger.info(
+                                        f"Deleted scene {scene_info['entity_id']} "
+                                        f"(ha_scene_id={scene_info['ha_scene_id']}) from HA"
+                                    )
+                            except Exception as e:
+                                # Log error but don't fail - Odoo deletion was already successful
+                                _logger.error(
+                                    f"Failed to delete scene {scene_info['entity_id']} from HA: {e}"
+                                )
+                except Exception as e:
+                    _logger.error(f"Error in postcommit scene deletion: {e}")
+
+            self.env.cr.postcommit.add(delete_scenes_from_ha)
 
         return result
 
