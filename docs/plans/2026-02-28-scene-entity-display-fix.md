@@ -390,9 +390,31 @@ curl -X GET "https://ha.example.com/api/config/scene/config/1772273817000"
 - For existing scenes, user needs to re-sync (edit and save) to get metadata
 - New scenes created from Odoo will have proper metadata
 
-### Manual Fix for Existing Scenes
+### Batch Re-sync Feature (New)
 
-To fix existing scenes that show entities under "裝置" (Devices):
+A new batch action has been added to re-sync multiple scenes at once:
+
+**Prerequisites:**
+1. Upgrade the `odoo_ha_addon` module to load the new server action:
+   - Go to Apps menu in Odoo
+   - Search for "Awesome Dashboard" or "odoo_ha_addon"
+   - Click the module, then click "Upgrade"
+
+**How to Use:**
+1. Go to Entity list view in Odoo
+2. Filter by `domain = scene`
+3. Select multiple scenes (or all)
+4. Click "Action" menu → "Sync Scenes to HA"
+5. All selected scenes will be re-synced with correct metadata
+
+**Implementation:**
+- New method: `action_batch_sync_scenes_to_ha()` in `ha.entity` model
+- Server action: `action_server_batch_sync_scenes` in `ha_entity_views.xml`
+- Supports multi-select from tree view
+
+### Manual Fix for Existing Scenes (Alternative)
+
+To fix individual scenes manually:
 1. In Odoo, edit the scene (change any field, then change back)
 2. Save to trigger sync
 3. Verify in HA Scene Editor that entities now show under "實體" (Entities)
@@ -415,7 +437,8 @@ curl -X POST "https://ha.example.com/api/config/scene/config/{scene_id}" \
 
 | File | Change |
 |------|--------|
-| `src/models/ha_entity.py` | Enhanced `unlink()` to lookup scene config IDs for scenes without `ha_scene_id` |
+| `src/models/ha_entity.py` | Enhanced `unlink()` to lookup scene config IDs; Added `action_batch_sync_scenes_to_ha()` |
+| `src/views/ha_entity_views.xml` | Added server action `action_server_batch_sync_scenes` |
 
 ### Test Results
 

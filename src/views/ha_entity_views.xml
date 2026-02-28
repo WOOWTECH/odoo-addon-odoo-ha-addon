@@ -225,4 +225,21 @@
         <field name="res_model">ha.entity.tag</field>
         <field name="view_mode">kanban,list,form</field>
     </record>
+
+    <!-- ===================================== -->
+    <!-- Server Actions                        -->
+    <!-- ===================================== -->
+
+    <!-- Batch Sync Scenes to HA (supports multi-select) -->
+    <record id="action_server_batch_sync_scenes" model="ir.actions.server">
+        <field name="name">Sync Scenes to HA</field>
+        <field name="model_id" ref="model_ha_entity"/>
+        <field name="binding_model_id" ref="model_ha_entity"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records.action_batch_sync_scenes_to_ha()
+        </field>
+    </record>
 </odoo>

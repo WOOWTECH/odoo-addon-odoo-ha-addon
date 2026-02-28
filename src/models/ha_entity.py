@@ -1571,6 +1571,67 @@ class HAEntity(models.Model):
                 }
             }
 
+    def action_batch_sync_scenes_to_ha(self):
+        """
+        Batch action to sync multiple scenes to Home Assistant.
+
+        This is useful for re-syncing existing scenes to ensure they have
+        the correct metadata (entity_only: true) for proper display in HA.
+
+        Can be called from:
+        - Tree view action menu (multi-select)
+        - Server action
+        - Programmatically
+        """
+        scenes = self.filtered(lambda r: r.domain == 'scene')
+
+        if not scenes:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('No Scenes Selected'),
+                    'message': _('Please select scene entities to sync.'),
+                    'type': 'warning',
+                }
+            }
+
+        success_count = 0
+        failed_scenes = []
+        skipped_scenes = []
+
+        for scene in scenes:
+            if not scene.scene_entity_ids:
+                skipped_scenes.append(scene.name or scene.entity_id)
+                continue
+
+            try:
+                scene._create_scene_in_ha()
+                success_count += 1
+            except Exception as e:
+                _logger.error(f"Failed to sync scene {scene.entity_id}: {e}")
+                failed_scenes.append(f"{scene.name or scene.entity_id}: {str(e)}")
+
+        # Build result message
+        messages = []
+        if success_count:
+            messages.append(_('%d scene(s) synced successfully.') % success_count)
+        if skipped_scenes:
+            messages.append(_('Skipped (no entities): %s') % ', '.join(skipped_scenes))
+        if failed_scenes:
+            messages.append(_('Failed: %s') % ', '.join(failed_scenes))
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Batch Scene Sync Complete'),
+                'message': ' '.join(messages),
+                'type': 'success' if not failed_scenes else 'warning',
+                'sticky': bool(failed_scenes),
+            }
+        }
+
     def _create_scene_in_ha(self):
         """
         Create or update a scene in Home Assistant via config API.
