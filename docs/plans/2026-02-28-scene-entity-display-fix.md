@@ -1,8 +1,8 @@
 # Scene Entity Display Fix - PRD
 
 **Created:** 2026-02-28T13:43:00Z
-**Updated:** 2026-02-28T15:00:00Z
-**Status:** ✅ Fix Applied - Removed `id` from payload body
+**Updated:** 2026-02-28T09:59:18Z
+**Status:** ❌ Issue Persists - HA REST API strips metadata regardless of `id` removal
 **Author:** Claude Code Assistant
 
 ---
@@ -242,10 +242,46 @@ By intercepting fetch requests in HA frontend, we captured the exact format HA u
 - `metadata` field is preserved ✅ (pending final verification)
 - Entities should display in "實體" section ✅ (pending final verification)
 
-### Verification Needed
-- Test scene sync from Odoo with the new code
-- Confirm entities appear in "實體" (Entities) section
-- Confirm metadata is persisted in scenes.yaml
+### ❌ Verification Result (2026-02-28T09:59:18Z)
+
+After extensive testing, the issue **still persists**:
+
+1. **Code is correct** - `hass_rest_api.py` sends metadata with `entity_only: True` and no `id` in body
+2. **HA strips metadata anyway** - The REST API appears to handle metadata differently than frontend
+3. **User tested manually** - Created new scenes via Odoo, entities still appear under "裝置" (Devices)
+
+### Root Cause (Updated)
+
+The Home Assistant REST API (`/api/config/scene/config/{id}`) **does NOT preserve the `metadata` field** when:
+- Request comes from external API client (like Odoo)
+- vs when request comes from HA frontend UI
+
+This appears to be a **HA backend limitation** rather than an Odoo issue. The HA scene configuration processing may have different code paths for:
+1. Frontend requests (preserves metadata)
+2. REST API requests (strips metadata)
+
+### Potential Solutions
+
+#### Option 1: File-based approach (Write to scenes.yaml directly)
+Write scenes directly to HA's `scenes.yaml` file via:
+- HA File Editor addon
+- SSH/File access
+- Custom component that writes YAML
+
+**Pros:** Full control over YAML content including metadata
+**Cons:** Requires file access, complex to implement, risk of YAML corruption
+
+#### Option 2: Report HA Bug/Feature Request
+File an issue with Home Assistant about REST API not preserving metadata.
+
+**Pros:** Fixes the root cause
+**Cons:** Depends on HA team, unknown timeline
+
+#### Option 3: Accept Current Behavior
+Document that entities will appear grouped by device in HA Scene Editor, but scene activation only affects selected entities.
+
+**Pros:** No additional work
+**Cons:** Suboptimal UX for users who want entity-level display
 
 ### Source References
 - [HA Community: entity_only explanation](https://community.home-assistant.io/t/scenes-yaml-what-is-entity-only-true-for/704552)
