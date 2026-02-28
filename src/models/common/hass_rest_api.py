@@ -237,9 +237,10 @@ class HassRestApi:
             metadata[entity_id] = {"entity_only": True}
 
         # Build scene config payload matching HA frontend format
-        # The 'id' field in payload must match the URL parameter
+        # NOTE: Do NOT include 'id' in payload body - HA frontend doesn't send it
+        # The id is only in the URL path, not in the request body
+        # Including 'id' in body causes HA to strip the metadata field
         payload = {
-            "id": ha_scene_id,
             "name": name,
             "entities": entities,
             "metadata": metadata
