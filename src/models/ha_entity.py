@@ -264,6 +264,35 @@ class HAEntity(models.Model):
 
         return defaults
 
+    @api.model
+    def _search(self, domain, offset=0, limit=None, order=None):
+        """
+        Override _search to handle scene entity search with instance filtering.
+
+        When searching for entities to add to a scene, the domain may contain
+        ha_instance_id = False in create mode. We use the context to get the
+        correct instance_id.
+
+        Context keys:
+        - scene_entity_search_instance_id: The instance ID for filtering scene entities
+        """
+        # Check if this is a scene entity search with a False instance_id
+        scene_instance_id = self.env.context.get('scene_entity_search_instance_id')
+        if scene_instance_id:
+            # Build a new domain with the correct instance_id
+            new_domain = []
+            for clause in domain:
+                if isinstance(clause, (list, tuple)) and len(clause) >= 3:
+                    field, op, value = clause[0], clause[1], clause[2]
+                    # Replace ha_instance_id = False with the correct instance_id
+                    if field == 'ha_instance_id' and op == '=' and not value:
+                        new_domain.append(('ha_instance_id', '=', scene_instance_id))
+                        continue
+                new_domain.append(clause)
+            domain = new_domain
+
+        return super()._search(domain, offset=offset, limit=limit, order=order)
+
     @api.model_create_multi
     def create(self, vals_list):
         """

@@ -114,9 +114,9 @@
                             <!-- Entity selector: Only visible when ha_instance_id is selected -->
                             <field name="scene_entity_ids"
                                    invisible="not ha_instance_id"
-                                   domain="[('ha_instance_id', '=', ha_instance_id), ('domain', 'in', ['light', 'switch', 'cover', 'fan', 'climate', 'input_boolean', 'input_number', 'media_player'])]"
+                                   domain="[('ha_instance_id', '=', ha_instance_id), ('domain', 'in', ['light', 'switch', 'cover', 'fan', 'climate', 'input_boolean', 'input_number', 'media_player', 'sensor'])]"
                                    options="{'no_create': True, 'no_create_edit': True}"
-                                   context="{'default_ha_instance_id': ha_instance_id, 'list_view_ref': 'odoo_ha_addon.ha_entity_scene_selector_list'}">
+                                   context="{'default_ha_instance_id': ha_instance_id, 'scene_entity_search_instance_id': ha_instance_id, 'list_view_ref': 'odoo_ha_addon.ha_entity_scene_selector_list'}">
                                 <list string="Scene Entities" create="0" editable="bottom" limit="20">
                                     <field name="name" readonly="1"/>
                                     <field name="entity_id" readonly="1"/>
