@@ -106,7 +106,14 @@
                         <page string="Scene Entities" name="scene_entities">
                             <!-- Scene entity selection -->
                             <!-- Using embedded list with pagination for better performance -->
+                            <!-- Warning: Show when ha_instance_id is not selected -->
+                            <div class="alert alert-warning" role="alert" invisible="ha_instance_id">
+                                <i class="fa fa-exclamation-triangle me-2"/>
+                                <strong>請先選擇 Home Assistant 實例</strong>才能新增場景實體。
+                            </div>
+                            <!-- Entity selector: Only visible when ha_instance_id is selected -->
                             <field name="scene_entity_ids"
+                                   invisible="not ha_instance_id"
                                    domain="[('ha_instance_id', '=', ha_instance_id), ('domain', 'in', ['light', 'switch', 'cover', 'fan', 'climate', 'input_boolean', 'input_number', 'media_player'])]"
                                    options="{'no_create': True, 'no_create_edit': True}"
                                    context="{'default_ha_instance_id': ha_instance_id, 'list_view_ref': 'odoo_ha_addon.ha_entity_scene_selector_list'}">
@@ -117,7 +124,7 @@
                                     <field name="entity_state" string="Current State" readonly="1"/>
                                 </list>
                             </field>
-                            <div class="alert alert-info mt-3" role="status">
+                            <div class="alert alert-info mt-3" role="status" invisible="not ha_instance_id">
                                 <i class="fa fa-info-circle me-2"/>
                                 <strong>Tip:</strong> Click "Add a line" to search and select entities.
                                 When you save this scene, it will capture the current state of all selected entities.
