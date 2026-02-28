@@ -388,36 +388,75 @@ class HAEntity(models.Model):
         HA deletion is scheduled via postcommit to:
         1. Not block the Odoo delete operation if HA is slow/unreachable
         2. Only execute after the Odoo transaction successfully commits
+
+        Handles both cases:
+        - Scenes with ha_scene_id: Delete directly using the stored ID
+        - Scenes without ha_scene_id: Query HA to get the config ID first
         """
         # Collect scene info before deletion
         scenes_to_delete = []
+        scenes_to_lookup = []  # Scenes that need ID lookup from HA
+
         for record in self:
-            if record.domain == 'scene' and record.ha_scene_id:
-                scenes_to_delete.append({
-                    'entity_id': record.entity_id,
-                    'ha_scene_id': record.ha_scene_id,
-                    'ha_instance_id': record.ha_instance_id.id if record.ha_instance_id else False,
-                })
+            if record.domain == 'scene' and record.ha_instance_id:
+                if record.ha_scene_id:
+                    # Scene has stored ha_scene_id, can delete directly
+                    scenes_to_delete.append({
+                        'entity_id': record.entity_id,
+                        'ha_scene_id': record.ha_scene_id,
+                        'ha_instance_id': record.ha_instance_id.id,
+                    })
+                else:
+                    # Scene needs ID lookup from HA before deletion
+                    scenes_to_lookup.append({
+                        'entity_id': record.entity_id,
+                        'ha_instance_id': record.ha_instance_id.id,
+                    })
 
         # Perform the actual deletion in Odoo
         result = super().unlink()
 
         # Schedule HA scene deletion via postcommit (non-blocking)
         # This runs after the transaction commits successfully
-        if scenes_to_delete:
+        if scenes_to_delete or scenes_to_lookup:
             def delete_scenes_from_ha():
                 try:
                     with self.env.registry.cursor() as new_cr:
                         new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+
+                        # First, lookup IDs for scenes that need it
+                        for scene_info in scenes_to_lookup:
+                            try:
+                                rest_api = HassRestApi(new_env, scene_info['ha_instance_id'])
+                                ha_scene_id = rest_api.get_scene_config_id(scene_info['entity_id'])
+                                if ha_scene_id:
+                                    scenes_to_delete.append({
+                                        'entity_id': scene_info['entity_id'],
+                                        'ha_scene_id': ha_scene_id,
+                                        'ha_instance_id': scene_info['ha_instance_id'],
+                                    })
+                                    _logger.info(
+                                        f"Found ha_scene_id for {scene_info['entity_id']}: {ha_scene_id}"
+                                    )
+                                else:
+                                    _logger.info(
+                                        f"Scene {scene_info['entity_id']} has no config ID in HA "
+                                        f"(may be a device-created scene like Hue), skipping HA deletion"
+                                    )
+                            except Exception as e:
+                                _logger.warning(
+                                    f"Failed to lookup scene config ID for {scene_info['entity_id']}: {e}"
+                                )
+
+                        # Now delete all scenes with known IDs
                         for scene_info in scenes_to_delete:
                             try:
-                                if scene_info['ha_instance_id']:
-                                    rest_api = HassRestApi(new_env, scene_info['ha_instance_id'])
-                                    rest_api.delete_scene_config(scene_info['ha_scene_id'])
-                                    _logger.info(
-                                        f"Deleted scene {scene_info['entity_id']} "
-                                        f"(ha_scene_id={scene_info['ha_scene_id']}) from HA"
-                                    )
+                                rest_api = HassRestApi(new_env, scene_info['ha_instance_id'])
+                                rest_api.delete_scene_config(scene_info['ha_scene_id'])
+                                _logger.info(
+                                    f"Deleted scene {scene_info['entity_id']} "
+                                    f"(ha_scene_id={scene_info['ha_scene_id']}) from HA"
+                                )
                             except Exception as e:
                                 # Log error but don't fail - Odoo deletion was already successful
                                 _logger.error(
