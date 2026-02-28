@@ -2279,12 +2279,17 @@ class HassWebSocketService:
                     ('ha_instance_id', '=', self.instance_id)
                 ], limit=1)
 
+                # 從 attributes 中取得 friendly_name 作為顯示名稱
+                attributes = new_state_data.get('attributes', {})
+                friendly_name = attributes.get('friendly_name')
+
                 entity_values = {
                     'entity_id': entity_id,
                     'domain': entity_id.split('.')[0],
+                    'name': friendly_name,  # 使用 friendly_name 作為顯示名稱
                     'entity_state': new_state_data.get('state'),
                     'last_changed': datetime.now(),
-                    'attributes': new_state_data.get('attributes', {}),
+                    'attributes': attributes,
                     'ha_instance_id': self.instance_id  # Phase 2: 新增實例 ID
                 }
 
