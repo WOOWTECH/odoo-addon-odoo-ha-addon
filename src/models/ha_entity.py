@@ -1699,6 +1699,16 @@ class HAEntity(models.Model):
             )
             _logger.info(f"Scene {self.entity_id} (ha_scene_id={ha_scene_id}) created in HA successfully. Result: {result}")
 
+            # Sync area_id to HA via entity_registry/update
+            # Scene area is managed at entity registry level, not in scene config
+            if self.area_id:
+                try:
+                    self._update_entity_area_in_ha()
+                    _logger.info(f"Scene {self.entity_id} area synced to HA: {self.area_id.area_id}")
+                except Exception as area_error:
+                    # Log warning but don't fail the entire scene creation
+                    _logger.warning(f"Scene {self.entity_id} created but area sync failed: {area_error}")
+
         except Exception as e:
             _logger.error(f"Failed to create scene {self.entity_id} in HA: {e}", exc_info=True)
             raise
