@@ -1,0 +1,1031 @@
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - navigation [ref=e3]:
+      - button "" [ref=e5] [cursor=pointer]:
+        - generic [ref=e6]: 
+      - menuitem "WOOW Dashboard" [ref=e7] [cursor=pointer]
+      - menu [ref=e8]:
+        - menuitem "Dashboard" [ref=e9] [cursor=pointer]
+        - button "Model" [ref=e10] [cursor=pointer]:
+          - generic [ref=e11]: Model
+        - button "Configuration" [ref=e12] [cursor=pointer]:
+          - generic [ref=e13]: Configuration
+      - menu [ref=e14]:
+        - button "訊息 14" [ref=e28] [cursor=pointer]:
+          - img "訊息" [ref=e17]: 
+          - generic [ref=e18]: "14"
+        - button "活動 24" [ref=e29] [cursor=pointer]:
+          - img "活動" [ref=e20]: 
+          - generic [ref=e30]: "24"
+        - button "" [ref=e22] [cursor=pointer]:
+          - generic [ref=e23]: 
+        - button "使用者" [ref=e25] [cursor=pointer]:
+          - img "使用者" [ref=e26]
+          - text: 
+  - generic [ref=e2196]:
+    - generic [ref=e2198]:
+      - generic [ref=e2199]:
+        - button "新增" [ref=e2202] [cursor=pointer]
+        - generic [ref=e2203]:
+          - generic [ref=e2205]: Scenes
+          - button "" [ref=e2209] [cursor=pointer]:
+            - generic [ref=e2210]: 
+      - search [ref=e2212]:
+        - search [ref=e2213]:
+          - button "搜尋⋯" [ref=e2214] [cursor=pointer]:
+            - img [ref=e2215]: 
+          - searchbox "搜尋⋯" [active] [ref=e2217]
+        - button "" [expanded] [ref=e2218] [cursor=pointer]
+      - search [ref=e2220]:
+        - navigation "頁面工具" [ref=e2221]:
+          - generic [ref=e2222]:
+            - generic [ref=e2223]: 1-80
+            - text: / 88
+          - generic [ref=e2224]:
+            - button "上一頁" [ref=e2225] [cursor=pointer]:
+              - generic [ref=e2226]: 
+            - button "下一頁" [ref=e2227] [cursor=pointer]:
+              - generic [ref=e2228]: 
+    - table [ref=e2231]:
+      - rowgroup [ref=e2232]:
+        - row "Name  Scene ID  Area  Entities State  Labels Last Activated  " [ref=e2233]:
+          - columnheader [ref=e2234] [cursor=pointer]:
+            - checkbox [ref=e2236]
+          - columnheader "Name " [ref=e2237] [cursor=pointer]:
+            - generic [ref=e2238]:
+              - generic [ref=e2239]: Name
+              - generic [ref=e2240]: 
+          - columnheader "Scene ID " [ref=e2242] [cursor=pointer]:
+            - generic [ref=e2243]:
+              - generic [ref=e2244]: Scene ID
+              - generic [ref=e2245]: 
+          - columnheader "Area " [ref=e2247] [cursor=pointer]:
+            - generic [ref=e2248]:
+              - generic [ref=e2249]: Area
+              - generic [ref=e2250]: 
+          - columnheader "Entities" [ref=e2252]:
+            - generic [ref=e2253]:
+              - generic [ref=e2254]: Entities
+              - text: 
+          - columnheader "State " [ref=e2256] [cursor=pointer]:
+            - generic [ref=e2257]:
+              - generic [ref=e2258]: State
+              - generic [ref=e2259]: 
+          - columnheader "Labels" [ref=e2261]:
+            - generic [ref=e2262]:
+              - generic [ref=e2263]: Labels
+              - text: 
+          - columnheader "Last Activated " [ref=e2265] [cursor=pointer]:
+            - generic [ref=e2266]:
+              - generic [ref=e2267]: Last Activated
+              - generic [ref=e2268]: 
+          - columnheader "" [ref=e2270]:
+            - button "" [ref=e2272] [cursor=pointer]:
+              - generic [ref=e2273]: 
+      - rowgroup [ref=e2274]:
+        - row "戶外區 Concentrate scene.hu_wai_qu_concentrate 0 2026-01-20T15:47:04.185260+00:00 2026年02月04日 18時36分57秒" [ref=e2275]:
+          - cell [ref=e2276]:
+            - checkbox [ref=e2278] [cursor=pointer]
+          - cell "戶外區 Concentrate" [ref=e2279] [cursor=pointer]
+          - cell "scene.hu_wai_qu_concentrate" [ref=e2280] [cursor=pointer]
+          - cell [ref=e2281] [cursor=pointer]
+          - cell "0" [ref=e2282] [cursor=pointer]
+          - cell "2026-01-20T15:47:04.185260+00:00" [ref=e2283] [cursor=pointer]
+          - cell [ref=e2284] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2286] [cursor=pointer]
+          - cell [ref=e2287]
+        - row "展示區 Energize scene.zhan_shi_qu_energize 會議區 0 2026-01-20T15:44:29.137918+00:00 2026年02月04日 18時36分57秒" [ref=e2288]:
+          - cell [ref=e2289]:
+            - checkbox [ref=e2291] [cursor=pointer]
+          - cell "展示區 Energize" [ref=e2292] [cursor=pointer]
+          - cell "scene.zhan_shi_qu_energize" [ref=e2293] [cursor=pointer]
+          - cell "會議區" [ref=e2294] [cursor=pointer]
+          - cell "0" [ref=e2295] [cursor=pointer]
+          - cell "2026-01-20T15:44:29.137918+00:00" [ref=e2296] [cursor=pointer]
+          - cell [ref=e2297] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2299] [cursor=pointer]
+          - cell [ref=e2300]
+        - row "黃白系列Bridge_1 夜燈 scene.huang_bai_xi_lie_bridge_1_ye_deng 0 unknown 2026年02月04日 18時36分57秒" [ref=e2301]:
+          - cell [ref=e2302]:
+            - checkbox [ref=e2304] [cursor=pointer]
+          - cell "黃白系列Bridge_1 夜燈" [ref=e2305] [cursor=pointer]
+          - cell "scene.huang_bai_xi_lie_bridge_1_ye_deng" [ref=e2306] [cursor=pointer]
+          - cell [ref=e2307] [cursor=pointer]
+          - cell "0" [ref=e2308] [cursor=pointer]
+          - cell "unknown" [ref=e2309] [cursor=pointer]
+          - cell [ref=e2310] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2312] [cursor=pointer]
+          - cell [ref=e2313]
+        - row "全彩系列Bridge_1 專注精神 scene.quan_cai_xi_lie_bridge_1_zhuan_zhu_jing_shen 0 unknown 2026年02月04日 18時36分57秒" [ref=e2314]:
+          - cell [ref=e2315]:
+            - checkbox [ref=e2317] [cursor=pointer]
+          - cell "全彩系列Bridge_1 專注精神" [ref=e2318] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_zhuan_zhu_jing_shen" [ref=e2319] [cursor=pointer]
+          - cell [ref=e2320] [cursor=pointer]
+          - cell "0" [ref=e2321] [cursor=pointer]
+          - cell "unknown" [ref=e2322] [cursor=pointer]
+          - cell [ref=e2323] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2325] [cursor=pointer]
+          - cell [ref=e2326]
+        - row "全彩系列Bridge_1 活力充沛 scene.quan_cai_xi_lie_bridge_1_huo_li_chong_pei 0 unknown 2026年02月04日 18時36分57秒" [ref=e2327]:
+          - cell [ref=e2328]:
+            - checkbox [ref=e2330] [cursor=pointer]
+          - cell "全彩系列Bridge_1 活力充沛" [ref=e2331] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_huo_li_chong_pei" [ref=e2332] [cursor=pointer]
+          - cell [ref=e2333] [cursor=pointer]
+          - cell "0" [ref=e2334] [cursor=pointer]
+          - cell "unknown" [ref=e2335] [cursor=pointer]
+          - cell [ref=e2336] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2338] [cursor=pointer]
+          - cell [ref=e2339]
+        - row "展示區 閱讀 scene.zhan_shi_qu_yue_du 會議區 0 2025-09-19T07:13:30.087906+00:00 2026年02月04日 18時36分57秒" [ref=e2340]:
+          - cell [ref=e2341]:
+            - checkbox [ref=e2343] [cursor=pointer]
+          - cell "展示區 閱讀" [ref=e2344] [cursor=pointer]
+          - cell "scene.zhan_shi_qu_yue_du" [ref=e2345] [cursor=pointer]
+          - cell "會議區" [ref=e2346] [cursor=pointer]
+          - cell "0" [ref=e2347] [cursor=pointer]
+          - cell "2025-09-19T07:13:30.087906+00:00" [ref=e2348] [cursor=pointer]
+          - cell [ref=e2349] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2351] [cursor=pointer]
+          - cell [ref=e2352]
+        - row "全彩系列Bridge_1 明亮 scene.quan_cai_xi_lie_bridge_1_ming_liang 0 unknown 2026年02月04日 18時36分57秒" [ref=e2353]:
+          - cell [ref=e2354]:
+            - checkbox [ref=e2356] [cursor=pointer]
+          - cell "全彩系列Bridge_1 明亮" [ref=e2357] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_ming_liang" [ref=e2358] [cursor=pointer]
+          - cell [ref=e2359] [cursor=pointer]
+          - cell "0" [ref=e2360] [cursor=pointer]
+          - cell "unknown" [ref=e2361] [cursor=pointer]
+          - cell [ref=e2362] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2364] [cursor=pointer]
+          - cell [ref=e2365]
+        - row "展示區 夜燈 scene.zhan_shi_qu_ye_deng 會議區 0 2026-01-20T15:44:37.576141+00:00 2026年02月04日 18時36分57秒" [ref=e2366]:
+          - cell [ref=e2367]:
+            - checkbox [ref=e2369] [cursor=pointer]
+          - cell "展示區 夜燈" [ref=e2370] [cursor=pointer]
+          - cell "scene.zhan_shi_qu_ye_deng" [ref=e2371] [cursor=pointer]
+          - cell "會議區" [ref=e2372] [cursor=pointer]
+          - cell "0" [ref=e2373] [cursor=pointer]
+          - cell "2026-01-20T15:44:37.576141+00:00" [ref=e2374] [cursor=pointer]
+          - cell [ref=e2375] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2377] [cursor=pointer]
+          - cell [ref=e2378]
+        - row "戶外區 夜燈 scene.hu_wai_qu_ye_deng 0 unknown 2026年02月04日 18時36分57秒" [ref=e2379]:
+          - cell [ref=e2380]:
+            - checkbox [ref=e2382] [cursor=pointer]
+          - cell "戶外區 夜燈" [ref=e2383] [cursor=pointer]
+          - cell "scene.hu_wai_qu_ye_deng" [ref=e2384] [cursor=pointer]
+          - cell [ref=e2385] [cursor=pointer]
+          - cell "0" [ref=e2386] [cursor=pointer]
+          - cell "unknown" [ref=e2387] [cursor=pointer]
+          - cell [ref=e2388] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2390] [cursor=pointer]
+          - cell [ref=e2391]
+        - row "接待區 蘇活 scene.jie_dai_qu_su_huo 接待區 0 2025-11-17T05:21:15.366747+00:00 2026年02月04日 18時36分57秒" [ref=e2392]:
+          - cell [ref=e2393]:
+            - checkbox [ref=e2395] [cursor=pointer]
+          - cell "接待區 蘇活" [ref=e2396] [cursor=pointer]
+          - cell "scene.jie_dai_qu_su_huo" [ref=e2397] [cursor=pointer]
+          - cell "接待區" [ref=e2398] [cursor=pointer]
+          - cell "0" [ref=e2399] [cursor=pointer]
+          - cell "2025-11-17T05:21:15.366747+00:00" [ref=e2400] [cursor=pointer]
+          - cell [ref=e2401] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2403] [cursor=pointer]
+          - cell [ref=e2404]
+        - row "接待區 北極極光 scene.jie_dai_qu_bei_ji_ji_guang 接待區 0 2026-01-20T22:18:33.280560+00:00 2026年02月04日 18時36分57秒" [ref=e2405]:
+          - cell [ref=e2406]:
+            - checkbox [ref=e2408] [cursor=pointer]
+          - cell "接待區 北極極光" [ref=e2409] [cursor=pointer]
+          - cell "scene.jie_dai_qu_bei_ji_ji_guang" [ref=e2410] [cursor=pointer]
+          - cell "接待區" [ref=e2411] [cursor=pointer]
+          - cell "0" [ref=e2412] [cursor=pointer]
+          - cell "2026-01-20T22:18:33.280560+00:00" [ref=e2413] [cursor=pointer]
+          - cell [ref=e2414] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2416] [cursor=pointer]
+          - cell [ref=e2417]
+        - row "接待區 中國城 scene.jie_dai_qu_zhong_guo_cheng 接待區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2418]:
+          - cell [ref=e2419]:
+            - checkbox [ref=e2421] [cursor=pointer]
+          - cell "接待區 中國城" [ref=e2422] [cursor=pointer]
+          - cell "scene.jie_dai_qu_zhong_guo_cheng" [ref=e2423] [cursor=pointer]
+          - cell "接待區" [ref=e2424] [cursor=pointer]
+          - cell "0" [ref=e2425] [cursor=pointer]
+          - cell "unknown" [ref=e2426] [cursor=pointer]
+          - cell [ref=e2427] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2429] [cursor=pointer]
+          - cell [ref=e2430]
+        - row "會議區 夜燈 scene.hui_yi_qu_ye_deng 會議區 0 2026-01-14T05:02:22.443367+00:00 2026年02月04日 18時36分57秒" [ref=e2431]:
+          - cell [ref=e2432]:
+            - checkbox [ref=e2434] [cursor=pointer]
+          - cell "會議區 夜燈" [ref=e2435] [cursor=pointer]
+          - cell "scene.hui_yi_qu_ye_deng" [ref=e2436] [cursor=pointer]
+          - cell "會議區" [ref=e2437] [cursor=pointer]
+          - cell "0" [ref=e2438] [cursor=pointer]
+          - cell "2026-01-14T05:02:22.443367+00:00" [ref=e2439] [cursor=pointer]
+          - cell [ref=e2440] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2442] [cursor=pointer]
+          - cell [ref=e2443]
+        - row "展示區 Concentrate scene.zhan_shi_qu_concentrate 會議區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2444]:
+          - cell [ref=e2445]:
+            - checkbox [ref=e2447] [cursor=pointer]
+          - cell "展示區 Concentrate" [ref=e2448] [cursor=pointer]
+          - cell "scene.zhan_shi_qu_concentrate" [ref=e2449] [cursor=pointer]
+          - cell "會議區" [ref=e2450] [cursor=pointer]
+          - cell "0" [ref=e2451] [cursor=pointer]
+          - cell "unknown" [ref=e2452] [cursor=pointer]
+          - cell [ref=e2453] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2455] [cursor=pointer]
+          - cell [ref=e2456]
+        - row "黃白系列Bridge_1 Relax scene.huang_bai_xi_lie_bridge_1_relax 0 unknown 2026年02月04日 18時36分57秒" [ref=e2457]:
+          - cell [ref=e2458]:
+            - checkbox [ref=e2460] [cursor=pointer]
+          - cell "黃白系列Bridge_1 Relax" [ref=e2461] [cursor=pointer]
+          - cell "scene.huang_bai_xi_lie_bridge_1_relax" [ref=e2462] [cursor=pointer]
+          - cell [ref=e2463] [cursor=pointer]
+          - cell "0" [ref=e2464] [cursor=pointer]
+          - cell "unknown" [ref=e2465] [cursor=pointer]
+          - cell [ref=e2466] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2468] [cursor=pointer]
+          - cell [ref=e2469]
+        - row "全彩系列Bridge_1 待用 scene.quan_cai_xi_lie_bridge_1_dai_yong 0 unknown 2026年02月04日 18時36分57秒" [ref=e2470]:
+          - cell [ref=e2471]:
+            - checkbox [ref=e2473] [cursor=pointer]
+          - cell "全彩系列Bridge_1 待用" [ref=e2474] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_dai_yong" [ref=e2475] [cursor=pointer]
+          - cell [ref=e2476] [cursor=pointer]
+          - cell "0" [ref=e2477] [cursor=pointer]
+          - cell "unknown" [ref=e2478] [cursor=pointer]
+          - cell [ref=e2479] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2481] [cursor=pointer]
+          - cell [ref=e2482]
+        - row "接待區 Energize scene.jie_dai_qu_energize 接待區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2483]:
+          - cell [ref=e2484]:
+            - checkbox [ref=e2486] [cursor=pointer]
+          - cell "接待區 Energize" [ref=e2487] [cursor=pointer]
+          - cell "scene.jie_dai_qu_energize" [ref=e2488] [cursor=pointer]
+          - cell "接待區" [ref=e2489] [cursor=pointer]
+          - cell "0" [ref=e2490] [cursor=pointer]
+          - cell "unknown" [ref=e2491] [cursor=pointer]
+          - cell [ref=e2492] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2494] [cursor=pointer]
+          - cell [ref=e2495]
+        - row "接待區 Relax scene.jie_dai_qu_relax 接待區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2496]:
+          - cell [ref=e2497]:
+            - checkbox [ref=e2499] [cursor=pointer]
+          - cell "接待區 Relax" [ref=e2500] [cursor=pointer]
+          - cell "scene.jie_dai_qu_relax" [ref=e2501] [cursor=pointer]
+          - cell "接待區" [ref=e2502] [cursor=pointer]
+          - cell "0" [ref=e2503] [cursor=pointer]
+          - cell "unknown" [ref=e2504] [cursor=pointer]
+          - cell [ref=e2505] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2507] [cursor=pointer]
+          - cell [ref=e2508]
+        - row "戶外區 Energize scene.hu_wai_qu_energize 0 unknown 2026年02月04日 18時36分57秒" [ref=e2509]:
+          - cell [ref=e2510]:
+            - checkbox [ref=e2512] [cursor=pointer]
+          - cell "戶外區 Energize" [ref=e2513] [cursor=pointer]
+          - cell "scene.hu_wai_qu_energize" [ref=e2514] [cursor=pointer]
+          - cell [ref=e2515] [cursor=pointer]
+          - cell "0" [ref=e2516] [cursor=pointer]
+          - cell "unknown" [ref=e2517] [cursor=pointer]
+          - cell [ref=e2518] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2520] [cursor=pointer]
+          - cell [ref=e2521]
+        - row "戶外區 中國城 scene.hu_wai_qu_zhong_guo_cheng 0 unknown 2026年02月04日 18時36分57秒" [ref=e2522]:
+          - cell [ref=e2523]:
+            - checkbox [ref=e2525] [cursor=pointer]
+          - cell "戶外區 中國城" [ref=e2526] [cursor=pointer]
+          - cell "scene.hu_wai_qu_zhong_guo_cheng" [ref=e2527] [cursor=pointer]
+          - cell [ref=e2528] [cursor=pointer]
+          - cell "0" [ref=e2529] [cursor=pointer]
+          - cell "unknown" [ref=e2530] [cursor=pointer]
+          - cell [ref=e2531] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2533] [cursor=pointer]
+          - cell [ref=e2534]
+        - row "黃白系列Bridge_1 明亮 scene.huang_bai_xi_lie_bridge_1_ming_liang 0 unknown 2026年02月04日 18時36分57秒" [ref=e2535]:
+          - cell [ref=e2536]:
+            - checkbox [ref=e2538] [cursor=pointer]
+          - cell "黃白系列Bridge_1 明亮" [ref=e2539] [cursor=pointer]
+          - cell "scene.huang_bai_xi_lie_bridge_1_ming_liang" [ref=e2540] [cursor=pointer]
+          - cell [ref=e2541] [cursor=pointer]
+          - cell "0" [ref=e2542] [cursor=pointer]
+          - cell "unknown" [ref=e2543] [cursor=pointer]
+          - cell [ref=e2544] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2546] [cursor=pointer]
+          - cell [ref=e2547]
+        - row "接待區 Concentrate scene.jie_dai_qu_concentrate 接待區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2548]:
+          - cell [ref=e2549]:
+            - checkbox [ref=e2551] [cursor=pointer]
+          - cell "接待區 Concentrate" [ref=e2552] [cursor=pointer]
+          - cell "scene.jie_dai_qu_concentrate" [ref=e2553] [cursor=pointer]
+          - cell "接待區" [ref=e2554] [cursor=pointer]
+          - cell "0" [ref=e2555] [cursor=pointer]
+          - cell "unknown" [ref=e2556] [cursor=pointer]
+          - cell [ref=e2557] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2559] [cursor=pointer]
+          - cell [ref=e2560]
+        - row "會議區 中國城 scene.hui_yi_qu_zhong_guo_cheng 會議區 0 2026-02-03T10:55:30.527175+00:00 2026年02月04日 18時36分57秒" [ref=e2561]:
+          - cell [ref=e2562]:
+            - checkbox [ref=e2564] [cursor=pointer]
+          - cell "會議區 中國城" [ref=e2565] [cursor=pointer]
+          - cell "scene.hui_yi_qu_zhong_guo_cheng" [ref=e2566] [cursor=pointer]
+          - cell "會議區" [ref=e2567] [cursor=pointer]
+          - cell "0" [ref=e2568] [cursor=pointer]
+          - cell "2026-02-03T10:55:30.527175+00:00" [ref=e2569] [cursor=pointer]
+          - cell [ref=e2570] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2572] [cursor=pointer]
+          - cell [ref=e2573]
+        - row "會議區 Concentrate scene.hui_yi_qu_concentrate 會議區 0 2026-01-19T09:03:18.321847+00:00 2026年02月04日 18時36分57秒" [ref=e2574]:
+          - cell [ref=e2575]:
+            - checkbox [ref=e2577] [cursor=pointer]
+          - cell "會議區 Concentrate" [ref=e2578] [cursor=pointer]
+          - cell "scene.hui_yi_qu_concentrate" [ref=e2579] [cursor=pointer]
+          - cell "會議區" [ref=e2580] [cursor=pointer]
+          - cell "0" [ref=e2581] [cursor=pointer]
+          - cell "2026-01-19T09:03:18.321847+00:00" [ref=e2582] [cursor=pointer]
+          - cell [ref=e2583] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2585] [cursor=pointer]
+          - cell [ref=e2586]
+        - row "全彩系列Bridge_1 北極極光 scene.quan_cai_xi_lie_bridge_1_bei_ji_ji_guang 0 unknown 2026年02月04日 18時36分57秒" [ref=e2587]:
+          - cell [ref=e2588]:
+            - checkbox [ref=e2590] [cursor=pointer]
+          - cell "全彩系列Bridge_1 北極極光" [ref=e2591] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_bei_ji_ji_guang" [ref=e2592] [cursor=pointer]
+          - cell [ref=e2593] [cursor=pointer]
+          - cell "0" [ref=e2594] [cursor=pointer]
+          - cell "unknown" [ref=e2595] [cursor=pointer]
+          - cell [ref=e2596] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2598] [cursor=pointer]
+          - cell [ref=e2599]
+        - row "會議區 閱讀 scene.hui_yi_qu_yue_du 會議區 0 2025-10-30T09:03:49.868360+00:00 2026年02月04日 18時36分57秒" [ref=e2600]:
+          - cell [ref=e2601]:
+            - checkbox [ref=e2603] [cursor=pointer]
+          - cell "會議區 閱讀" [ref=e2604] [cursor=pointer]
+          - cell "scene.hui_yi_qu_yue_du" [ref=e2605] [cursor=pointer]
+          - cell "會議區" [ref=e2606] [cursor=pointer]
+          - cell "0" [ref=e2607] [cursor=pointer]
+          - cell "2025-10-30T09:03:49.868360+00:00" [ref=e2608] [cursor=pointer]
+          - cell [ref=e2609] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2611] [cursor=pointer]
+          - cell [ref=e2612]
+        - row "接待區 琥珀色光暈 scene.jie_dai_qu_hu_po_se_guang_yun 接待區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2613]:
+          - cell [ref=e2614]:
+            - checkbox [ref=e2616] [cursor=pointer]
+          - cell "接待區 琥珀色光暈" [ref=e2617] [cursor=pointer]
+          - cell "scene.jie_dai_qu_hu_po_se_guang_yun" [ref=e2618] [cursor=pointer]
+          - cell "接待區" [ref=e2619] [cursor=pointer]
+          - cell "0" [ref=e2620] [cursor=pointer]
+          - cell "unknown" [ref=e2621] [cursor=pointer]
+          - cell [ref=e2622] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2624] [cursor=pointer]
+          - cell [ref=e2625]
+        - row "戶外區 北極極光 scene.hu_wai_qu_bei_ji_ji_guang 0 unknown 2026年02月04日 18時36分57秒" [ref=e2626]:
+          - cell [ref=e2627]:
+            - checkbox [ref=e2629] [cursor=pointer]
+          - cell "戶外區 北極極光" [ref=e2630] [cursor=pointer]
+          - cell "scene.hu_wai_qu_bei_ji_ji_guang" [ref=e2631] [cursor=pointer]
+          - cell [ref=e2632] [cursor=pointer]
+          - cell "0" [ref=e2633] [cursor=pointer]
+          - cell "unknown" [ref=e2634] [cursor=pointer]
+          - cell [ref=e2635] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2637] [cursor=pointer]
+          - cell [ref=e2638]
+        - row "會議區 明亮 scene.hui_yi_qu_ming_liang 會議區 0 2026-01-30T04:43:48.703057+00:00 2026年02月04日 18時36分57秒" [ref=e2639]:
+          - cell [ref=e2640]:
+            - checkbox [ref=e2642] [cursor=pointer]
+          - cell "會議區 明亮" [ref=e2643] [cursor=pointer]
+          - cell "scene.hui_yi_qu_ming_liang" [ref=e2644] [cursor=pointer]
+          - cell "會議區" [ref=e2645] [cursor=pointer]
+          - cell "0" [ref=e2646] [cursor=pointer]
+          - cell "2026-01-30T04:43:48.703057+00:00" [ref=e2647] [cursor=pointer]
+          - cell [ref=e2648] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2650] [cursor=pointer]
+          - cell [ref=e2651]
+        - row "全彩系列Bridge_1 琥珀色光暈 scene.quan_cai_xi_lie_bridge_1_hu_po_se_guang_yun 0 unknown 2026年02月04日 18時36分57秒" [ref=e2652]:
+          - cell [ref=e2653]:
+            - checkbox [ref=e2655] [cursor=pointer]
+          - cell "全彩系列Bridge_1 琥珀色光暈" [ref=e2656] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_hu_po_se_guang_yun" [ref=e2657] [cursor=pointer]
+          - cell [ref=e2658] [cursor=pointer]
+          - cell "0" [ref=e2659] [cursor=pointer]
+          - cell "unknown" [ref=e2660] [cursor=pointer]
+          - cell [ref=e2661] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2663] [cursor=pointer]
+          - cell [ref=e2664]
+        - row "展示區 Relax scene.zhan_shi_qu_relax 會議區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2665]:
+          - cell [ref=e2666]:
+            - checkbox [ref=e2668] [cursor=pointer]
+          - cell "展示區 Relax" [ref=e2669] [cursor=pointer]
+          - cell "scene.zhan_shi_qu_relax" [ref=e2670] [cursor=pointer]
+          - cell "會議區" [ref=e2671] [cursor=pointer]
+          - cell "0" [ref=e2672] [cursor=pointer]
+          - cell "unknown" [ref=e2673] [cursor=pointer]
+          - cell [ref=e2674] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2676] [cursor=pointer]
+          - cell [ref=e2677]
+        - row "全彩系列Bridge_1 夜燈 scene.quan_cai_xi_lie_bridge_1_ye_deng 0 unknown 2026年02月04日 18時36分57秒" [ref=e2678]:
+          - cell [ref=e2679]:
+            - checkbox [ref=e2681] [cursor=pointer]
+          - cell "全彩系列Bridge_1 夜燈" [ref=e2682] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_ye_deng" [ref=e2683] [cursor=pointer]
+          - cell [ref=e2684] [cursor=pointer]
+          - cell "0" [ref=e2685] [cursor=pointer]
+          - cell "unknown" [ref=e2686] [cursor=pointer]
+          - cell [ref=e2687] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2689] [cursor=pointer]
+          - cell [ref=e2690]
+        - row "全彩系列Bridge_1 閱讀 scene.quan_cai_xi_lie_bridge_1_yue_du 0 unknown 2026年02月04日 18時36分57秒" [ref=e2691]:
+          - cell [ref=e2692]:
+            - checkbox [ref=e2694] [cursor=pointer]
+          - cell "全彩系列Bridge_1 閱讀" [ref=e2695] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_yue_du" [ref=e2696] [cursor=pointer]
+          - cell [ref=e2697] [cursor=pointer]
+          - cell "0" [ref=e2698] [cursor=pointer]
+          - cell "unknown" [ref=e2699] [cursor=pointer]
+          - cell [ref=e2700] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2702] [cursor=pointer]
+          - cell [ref=e2703]
+        - row "黃白系列Bridge_1 閱讀 scene.huang_bai_xi_lie_bridge_1_yue_du 0 unknown 2026年02月04日 18時36分57秒" [ref=e2704]:
+          - cell [ref=e2705]:
+            - checkbox [ref=e2707] [cursor=pointer]
+          - cell "黃白系列Bridge_1 閱讀" [ref=e2708] [cursor=pointer]
+          - cell "scene.huang_bai_xi_lie_bridge_1_yue_du" [ref=e2709] [cursor=pointer]
+          - cell [ref=e2710] [cursor=pointer]
+          - cell "0" [ref=e2711] [cursor=pointer]
+          - cell "unknown" [ref=e2712] [cursor=pointer]
+          - cell [ref=e2713] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2715] [cursor=pointer]
+          - cell [ref=e2716]
+        - row "會議區 北極極光 scene.hui_yi_qu_bei_ji_ji_guang 會議區 0 2026-02-02T08:55:07.937891+00:00 2026年02月04日 18時36分57秒" [ref=e2717]:
+          - cell [ref=e2718]:
+            - checkbox [ref=e2720] [cursor=pointer]
+          - cell "會議區 北極極光" [ref=e2721] [cursor=pointer]
+          - cell "scene.hui_yi_qu_bei_ji_ji_guang" [ref=e2722] [cursor=pointer]
+          - cell "會議區" [ref=e2723] [cursor=pointer]
+          - cell "0" [ref=e2724] [cursor=pointer]
+          - cell "2026-02-02T08:55:07.937891+00:00" [ref=e2725] [cursor=pointer]
+          - cell [ref=e2726] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2728] [cursor=pointer]
+          - cell [ref=e2729]
+        - row "黃白系列Bridge_1 Doze scene.huang_bai_xi_lie_bridge_1_doze 0 unknown 2026年02月04日 18時36分57秒" [ref=e2730]:
+          - cell [ref=e2731]:
+            - checkbox [ref=e2733] [cursor=pointer]
+          - cell "黃白系列Bridge_1 Doze" [ref=e2734] [cursor=pointer]
+          - cell "scene.huang_bai_xi_lie_bridge_1_doze" [ref=e2735] [cursor=pointer]
+          - cell [ref=e2736] [cursor=pointer]
+          - cell "0" [ref=e2737] [cursor=pointer]
+          - cell "unknown" [ref=e2738] [cursor=pointer]
+          - cell [ref=e2739] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2741] [cursor=pointer]
+          - cell [ref=e2742]
+        - row "展示區 夏威夷 scene.zhan_shi_qu_xia_wei_yi 會議區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2743]:
+          - cell [ref=e2744]:
+            - checkbox [ref=e2746] [cursor=pointer]
+          - cell "展示區 夏威夷" [ref=e2747] [cursor=pointer]
+          - cell "scene.zhan_shi_qu_xia_wei_yi" [ref=e2748] [cursor=pointer]
+          - cell "會議區" [ref=e2749] [cursor=pointer]
+          - cell "0" [ref=e2750] [cursor=pointer]
+          - cell "unknown" [ref=e2751] [cursor=pointer]
+          - cell [ref=e2752] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2754] [cursor=pointer]
+          - cell [ref=e2755]
+        - row "展示區 Doze scene.zhan_shi_qu_doze 會議區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2756]:
+          - cell [ref=e2757]:
+            - checkbox [ref=e2759] [cursor=pointer]
+          - cell "展示區 Doze" [ref=e2760] [cursor=pointer]
+          - cell "scene.zhan_shi_qu_doze" [ref=e2761] [cursor=pointer]
+          - cell "會議區" [ref=e2762] [cursor=pointer]
+          - cell "0" [ref=e2763] [cursor=pointer]
+          - cell "unknown" [ref=e2764] [cursor=pointer]
+          - cell [ref=e2765] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2767] [cursor=pointer]
+          - cell [ref=e2768]
+        - row "黃白系列Bridge_1 Concentrate scene.huang_bai_xi_lie_bridge_1_concentrate 0 unknown 2026年02月04日 18時36分57秒" [ref=e2769]:
+          - cell [ref=e2770]:
+            - checkbox [ref=e2772] [cursor=pointer]
+          - cell "黃白系列Bridge_1 Concentrate" [ref=e2773] [cursor=pointer]
+          - cell "scene.huang_bai_xi_lie_bridge_1_concentrate" [ref=e2774] [cursor=pointer]
+          - cell [ref=e2775] [cursor=pointer]
+          - cell "0" [ref=e2776] [cursor=pointer]
+          - cell "unknown" [ref=e2777] [cursor=pointer]
+          - cell [ref=e2778] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2780] [cursor=pointer]
+          - cell [ref=e2781]
+        - row "接待區 閱讀 scene.jie_dai_qu_yue_du 接待區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2782]:
+          - cell [ref=e2783]:
+            - checkbox [ref=e2785] [cursor=pointer]
+          - cell "接待區 閱讀" [ref=e2786] [cursor=pointer]
+          - cell "scene.jie_dai_qu_yue_du" [ref=e2787] [cursor=pointer]
+          - cell "接待區" [ref=e2788] [cursor=pointer]
+          - cell "0" [ref=e2789] [cursor=pointer]
+          - cell "unknown" [ref=e2790] [cursor=pointer]
+          - cell [ref=e2791] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2793] [cursor=pointer]
+          - cell [ref=e2794]
+        - row "戶外區 琥珀色光暈 scene.hu_wai_qu_hu_po_se_guang_yun 0 unknown 2026年02月04日 18時36分57秒" [ref=e2795]:
+          - cell [ref=e2796]:
+            - checkbox [ref=e2798] [cursor=pointer]
+          - cell "戶外區 琥珀色光暈" [ref=e2799] [cursor=pointer]
+          - cell "scene.hu_wai_qu_hu_po_se_guang_yun" [ref=e2800] [cursor=pointer]
+          - cell [ref=e2801] [cursor=pointer]
+          - cell "0" [ref=e2802] [cursor=pointer]
+          - cell "unknown" [ref=e2803] [cursor=pointer]
+          - cell [ref=e2804] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2806] [cursor=pointer]
+          - cell [ref=e2807]
+        - row "會議區 Relax scene.hui_yi_qu_relax 會議區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2808]:
+          - cell [ref=e2809]:
+            - checkbox [ref=e2811] [cursor=pointer]
+          - cell "會議區 Relax" [ref=e2812] [cursor=pointer]
+          - cell "scene.hui_yi_qu_relax" [ref=e2813] [cursor=pointer]
+          - cell "會議區" [ref=e2814] [cursor=pointer]
+          - cell "0" [ref=e2815] [cursor=pointer]
+          - cell "unknown" [ref=e2816] [cursor=pointer]
+          - cell [ref=e2817] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2819] [cursor=pointer]
+          - cell [ref=e2820]
+        - row "戶外區 閱讀 scene.hu_wai_qu_yue_du 0 unknown 2026年02月04日 18時36分57秒" [ref=e2821]:
+          - cell [ref=e2822]:
+            - checkbox [ref=e2824] [cursor=pointer]
+          - cell "戶外區 閱讀" [ref=e2825] [cursor=pointer]
+          - cell "scene.hu_wai_qu_yue_du" [ref=e2826] [cursor=pointer]
+          - cell [ref=e2827] [cursor=pointer]
+          - cell "0" [ref=e2828] [cursor=pointer]
+          - cell "unknown" [ref=e2829] [cursor=pointer]
+          - cell [ref=e2830] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2832] [cursor=pointer]
+          - cell [ref=e2833]
+        - row "戶外區 蘇活 scene.hu_wai_qu_su_huo 0 unknown 2026年02月04日 18時36分57秒" [ref=e2834]:
+          - cell [ref=e2835]:
+            - checkbox [ref=e2837] [cursor=pointer]
+          - cell "戶外區 蘇活" [ref=e2838] [cursor=pointer]
+          - cell "scene.hu_wai_qu_su_huo" [ref=e2839] [cursor=pointer]
+          - cell [ref=e2840] [cursor=pointer]
+          - cell "0" [ref=e2841] [cursor=pointer]
+          - cell "unknown" [ref=e2842] [cursor=pointer]
+          - cell [ref=e2843] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2845] [cursor=pointer]
+          - cell [ref=e2846]
+        - row "會議區 蘇活 scene.hui_yi_qu_su_huo 會議區 0 2026-01-14T11:24:57.337366+00:00 2026年02月04日 18時36分57秒" [ref=e2847]:
+          - cell [ref=e2848]:
+            - checkbox [ref=e2850] [cursor=pointer]
+          - cell "會議區 蘇活" [ref=e2851] [cursor=pointer]
+          - cell "scene.hui_yi_qu_su_huo" [ref=e2852] [cursor=pointer]
+          - cell "會議區" [ref=e2853] [cursor=pointer]
+          - cell "0" [ref=e2854] [cursor=pointer]
+          - cell "2026-01-14T11:24:57.337366+00:00" [ref=e2855] [cursor=pointer]
+          - cell [ref=e2856] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2858] [cursor=pointer]
+          - cell [ref=e2859]
+        - row "接待區 夜燈 scene.jie_dai_qu_ye_deng 接待區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2860]:
+          - cell [ref=e2861]:
+            - checkbox [ref=e2863] [cursor=pointer]
+          - cell "接待區 夜燈" [ref=e2864] [cursor=pointer]
+          - cell "scene.jie_dai_qu_ye_deng" [ref=e2865] [cursor=pointer]
+          - cell "接待區" [ref=e2866] [cursor=pointer]
+          - cell "0" [ref=e2867] [cursor=pointer]
+          - cell "unknown" [ref=e2868] [cursor=pointer]
+          - cell [ref=e2869] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2871] [cursor=pointer]
+          - cell [ref=e2872]
+        - row "全彩系列Bridge_1 蘇活 scene.quan_cai_xi_lie_bridge_1_su_huo 0 unknown 2026年02月04日 18時36分57秒" [ref=e2873]:
+          - cell [ref=e2874]:
+            - checkbox [ref=e2876] [cursor=pointer]
+          - cell "全彩系列Bridge_1 蘇活" [ref=e2877] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_su_huo" [ref=e2878] [cursor=pointer]
+          - cell [ref=e2879] [cursor=pointer]
+          - cell "0" [ref=e2880] [cursor=pointer]
+          - cell "unknown" [ref=e2881] [cursor=pointer]
+          - cell [ref=e2882] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2884] [cursor=pointer]
+          - cell [ref=e2885]
+        - row "會議區 琥珀色光暈 scene.hui_yi_qu_hu_po_se_guang_yun 會議區 0 2026-01-20T15:43:58.258783+00:00 2026年02月04日 18時36分57秒" [ref=e2886]:
+          - cell [ref=e2887]:
+            - checkbox [ref=e2889] [cursor=pointer]
+          - cell "會議區 琥珀色光暈" [ref=e2890] [cursor=pointer]
+          - cell "scene.hui_yi_qu_hu_po_se_guang_yun" [ref=e2891] [cursor=pointer]
+          - cell "會議區" [ref=e2892] [cursor=pointer]
+          - cell "0" [ref=e2893] [cursor=pointer]
+          - cell "2026-01-20T15:43:58.258783+00:00" [ref=e2894] [cursor=pointer]
+          - cell [ref=e2895] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2897] [cursor=pointer]
+          - cell [ref=e2898]
+        - row "全彩系列Bridge_1 黯淡 scene.quan_cai_xi_lie_bridge_1_an_dan 0 unknown 2026年02月04日 18時36分57秒" [ref=e2899]:
+          - cell [ref=e2900]:
+            - checkbox [ref=e2902] [cursor=pointer]
+          - cell "全彩系列Bridge_1 黯淡" [ref=e2903] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_an_dan" [ref=e2904] [cursor=pointer]
+          - cell [ref=e2905] [cursor=pointer]
+          - cell "0" [ref=e2906] [cursor=pointer]
+          - cell "unknown" [ref=e2907] [cursor=pointer]
+          - cell [ref=e2908] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2910] [cursor=pointer]
+          - cell [ref=e2911]
+        - row "會議區 Doze scene.hui_yi_qu_doze 會議區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2912]:
+          - cell [ref=e2913]:
+            - checkbox [ref=e2915] [cursor=pointer]
+          - cell "會議區 Doze" [ref=e2916] [cursor=pointer]
+          - cell "scene.hui_yi_qu_doze" [ref=e2917] [cursor=pointer]
+          - cell "會議區" [ref=e2918] [cursor=pointer]
+          - cell "0" [ref=e2919] [cursor=pointer]
+          - cell "unknown" [ref=e2920] [cursor=pointer]
+          - cell [ref=e2921] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2923] [cursor=pointer]
+          - cell [ref=e2924]
+        - row "展示區 北極極光 scene.zhan_shi_qu_bei_ji_ji_guang 會議區 0 unknown 2026年02月04日 18時36分57秒" [ref=e2925]:
+          - cell [ref=e2926]:
+            - checkbox [ref=e2928] [cursor=pointer]
+          - cell "展示區 北極極光" [ref=e2929] [cursor=pointer]
+          - cell "scene.zhan_shi_qu_bei_ji_ji_guang" [ref=e2930] [cursor=pointer]
+          - cell "會議區" [ref=e2931] [cursor=pointer]
+          - cell "0" [ref=e2932] [cursor=pointer]
+          - cell "unknown" [ref=e2933] [cursor=pointer]
+          - cell [ref=e2934] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2936] [cursor=pointer]
+          - cell [ref=e2937]
+        - row "會議區 Energize scene.hui_yi_qu_energize 會議區 0 2026-01-18T05:59:07.302781+00:00 2026年02月04日 18時36分57秒" [ref=e2938]:
+          - cell [ref=e2939]:
+            - checkbox [ref=e2941] [cursor=pointer]
+          - cell "會議區 Energize" [ref=e2942] [cursor=pointer]
+          - cell "scene.hui_yi_qu_energize" [ref=e2943] [cursor=pointer]
+          - cell "會議區" [ref=e2944] [cursor=pointer]
+          - cell "0" [ref=e2945] [cursor=pointer]
+          - cell "2026-01-18T05:59:07.302781+00:00" [ref=e2946] [cursor=pointer]
+          - cell [ref=e2947] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2949] [cursor=pointer]
+          - cell [ref=e2950]
+        - row "戶外區 Doze scene.hu_wai_qu_doze 0 unknown 2026年02月04日 18時36分57秒" [ref=e2951]:
+          - cell [ref=e2952]:
+            - checkbox [ref=e2954] [cursor=pointer]
+          - cell "戶外區 Doze" [ref=e2955] [cursor=pointer]
+          - cell "scene.hu_wai_qu_doze" [ref=e2956] [cursor=pointer]
+          - cell [ref=e2957] [cursor=pointer]
+          - cell "0" [ref=e2958] [cursor=pointer]
+          - cell "unknown" [ref=e2959] [cursor=pointer]
+          - cell [ref=e2960] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2962] [cursor=pointer]
+          - cell [ref=e2963]
+        - row "黃白系列Bridge_1 Energize scene.huang_bai_xi_lie_bridge_1_energize 0 unknown 2026年02月04日 18時36分57秒" [ref=e2964]:
+          - cell [ref=e2965]:
+            - checkbox [ref=e2967] [cursor=pointer]
+          - cell "黃白系列Bridge_1 Energize" [ref=e2968] [cursor=pointer]
+          - cell "scene.huang_bai_xi_lie_bridge_1_energize" [ref=e2969] [cursor=pointer]
+          - cell [ref=e2970] [cursor=pointer]
+          - cell "0" [ref=e2971] [cursor=pointer]
+          - cell "unknown" [ref=e2972] [cursor=pointer]
+          - cell [ref=e2973] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2975] [cursor=pointer]
+          - cell [ref=e2976]
+        - row "全彩系列Bridge_1 中國城 scene.quan_cai_xi_lie_bridge_1_zhong_guo_cheng 0 unknown 2026年02月04日 18時36分57秒" [ref=e2977]:
+          - cell [ref=e2978]:
+            - checkbox [ref=e2980] [cursor=pointer]
+          - cell "全彩系列Bridge_1 中國城" [ref=e2981] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_zhong_guo_cheng" [ref=e2982] [cursor=pointer]
+          - cell [ref=e2983] [cursor=pointer]
+          - cell "0" [ref=e2984] [cursor=pointer]
+          - cell "unknown" [ref=e2985] [cursor=pointer]
+          - cell [ref=e2986] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e2988] [cursor=pointer]
+          - cell [ref=e2989]
+        - row "全彩系列Bridge_1 放鬆休息 scene.quan_cai_xi_lie_bridge_1_fang_song_xiu_xi 0 unknown 2026年02月04日 18時36分57秒" [ref=e2990]:
+          - cell [ref=e2991]:
+            - checkbox [ref=e2993] [cursor=pointer]
+          - cell "全彩系列Bridge_1 放鬆休息" [ref=e2994] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_fang_song_xiu_xi" [ref=e2995] [cursor=pointer]
+          - cell [ref=e2996] [cursor=pointer]
+          - cell "0" [ref=e2997] [cursor=pointer]
+          - cell "unknown" [ref=e2998] [cursor=pointer]
+          - cell [ref=e2999] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e3001] [cursor=pointer]
+          - cell [ref=e3002]
+        - row "戶外區 Relax scene.hu_wai_qu_relax 0 unknown 2026年02月04日 18時36分57秒" [ref=e3003]:
+          - cell [ref=e3004]:
+            - checkbox [ref=e3006] [cursor=pointer]
+          - cell "戶外區 Relax" [ref=e3007] [cursor=pointer]
+          - cell "scene.hu_wai_qu_relax" [ref=e3008] [cursor=pointer]
+          - cell [ref=e3009] [cursor=pointer]
+          - cell "0" [ref=e3010] [cursor=pointer]
+          - cell "unknown" [ref=e3011] [cursor=pointer]
+          - cell [ref=e3012] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e3014] [cursor=pointer]
+          - cell [ref=e3015]
+        - row "接待區 Doze scene.jie_dai_qu_doze 接待區 0 unknown 2026年02月04日 18時36分57秒" [ref=e3016]:
+          - cell [ref=e3017]:
+            - checkbox [ref=e3019] [cursor=pointer]
+          - cell "接待區 Doze" [ref=e3020] [cursor=pointer]
+          - cell "scene.jie_dai_qu_doze" [ref=e3021] [cursor=pointer]
+          - cell "接待區" [ref=e3022] [cursor=pointer]
+          - cell "0" [ref=e3023] [cursor=pointer]
+          - cell "unknown" [ref=e3024] [cursor=pointer]
+          - cell [ref=e3025] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e3027] [cursor=pointer]
+          - cell [ref=e3028]
+        - row "展示區 自然光 scene.zhan_shi_qu_zi_ran_guang 會議區 0 unknown 2026年02月04日 18時36分57秒" [ref=e3029]:
+          - cell [ref=e3030]:
+            - checkbox [ref=e3032] [cursor=pointer]
+          - cell "展示區 自然光" [ref=e3033] [cursor=pointer]
+          - cell "scene.zhan_shi_qu_zi_ran_guang" [ref=e3034] [cursor=pointer]
+          - cell "會議區" [ref=e3035] [cursor=pointer]
+          - cell "0" [ref=e3036] [cursor=pointer]
+          - cell "unknown" [ref=e3037] [cursor=pointer]
+          - cell [ref=e3038] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e3040] [cursor=pointer]
+          - cell [ref=e3041]
+        - row "接待區 自然光 scene.jie_dai_qu_zi_ran_guang 接待區 0 unknown 2026年02月04日 18時36分57秒" [ref=e3042]:
+          - cell [ref=e3043]:
+            - checkbox [ref=e3045] [cursor=pointer]
+          - cell "接待區 自然光" [ref=e3046] [cursor=pointer]
+          - cell "scene.jie_dai_qu_zi_ran_guang" [ref=e3047] [cursor=pointer]
+          - cell "接待區" [ref=e3048] [cursor=pointer]
+          - cell "0" [ref=e3049] [cursor=pointer]
+          - cell "unknown" [ref=e3050] [cursor=pointer]
+          - cell [ref=e3051] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e3053] [cursor=pointer]
+          - cell [ref=e3054]
+        - row "戶外區 自然光 scene.hu_wai_qu_zi_ran_guang 0 unknown 2026年02月04日 18時36分57秒" [ref=e3055]:
+          - cell [ref=e3056]:
+            - checkbox [ref=e3058] [cursor=pointer]
+          - cell "戶外區 自然光" [ref=e3059] [cursor=pointer]
+          - cell "scene.hu_wai_qu_zi_ran_guang" [ref=e3060] [cursor=pointer]
+          - cell [ref=e3061] [cursor=pointer]
+          - cell "0" [ref=e3062] [cursor=pointer]
+          - cell "unknown" [ref=e3063] [cursor=pointer]
+          - cell [ref=e3064] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e3066] [cursor=pointer]
+          - cell [ref=e3067]
+        - row "全彩系列Bridge_1 自然光 scene.quan_cai_xi_lie_bridge_1_zi_ran_guang 0 unknown 2026年02月04日 18時36分57秒" [ref=e3068]:
+          - cell [ref=e3069]:
+            - checkbox [ref=e3071] [cursor=pointer]
+          - cell "全彩系列Bridge_1 自然光" [ref=e3072] [cursor=pointer]
+          - cell "scene.quan_cai_xi_lie_bridge_1_zi_ran_guang" [ref=e3073] [cursor=pointer]
+          - cell [ref=e3074] [cursor=pointer]
+          - cell "0" [ref=e3075] [cursor=pointer]
+          - cell "unknown" [ref=e3076] [cursor=pointer]
+          - cell [ref=e3077] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e3079] [cursor=pointer]
+          - cell [ref=e3080]
+        - row "會議區 自然光 scene.hui_yi_qu_zi_ran_guang 會議區 0 2026-01-20T15:45:02.644610+00:00 2026年02月04日 18時36分57秒" [ref=e3081]:
+          - cell [ref=e3082]:
+            - checkbox [ref=e3084] [cursor=pointer]
+          - cell "會議區 自然光" [ref=e3085] [cursor=pointer]
+          - cell "scene.hui_yi_qu_zi_ran_guang" [ref=e3086] [cursor=pointer]
+          - cell "會議區" [ref=e3087] [cursor=pointer]
+          - cell "0" [ref=e3088] [cursor=pointer]
+          - cell "2026-01-20T15:45:02.644610+00:00" [ref=e3089] [cursor=pointer]
+          - cell [ref=e3090] [cursor=pointer]
+          - cell "2026年02月04日 18時36分57秒" [ref=e3092] [cursor=pointer]
+          - cell [ref=e3093]
+        - row "Aaaaa scene.aaa 接待區 1 unknown" [ref=e3094]:
+          - cell [ref=e3095]:
+            - checkbox [ref=e3097] [cursor=pointer]
+          - cell "Aaaaa" [ref=e3098] [cursor=pointer]
+          - cell "scene.aaa" [ref=e3099] [cursor=pointer]
+          - cell "接待區" [ref=e3100] [cursor=pointer]
+          - cell "1" [ref=e3101] [cursor=pointer]
+          - cell "unknown" [ref=e3102] [cursor=pointer]
+          - cell [ref=e3103] [cursor=pointer]
+          - cell [ref=e3105] [cursor=pointer]
+          - cell [ref=e3106]
+        - row "測試區域同步場景 scene.test_area_sync_scene 會議區 1 unknown" [ref=e3107]:
+          - cell [ref=e3108]:
+            - checkbox [ref=e3110] [cursor=pointer]
+          - cell "測試區域同步場景" [ref=e3111] [cursor=pointer]
+          - cell "scene.test_area_sync_scene" [ref=e3112] [cursor=pointer]
+          - cell "會議區" [ref=e3113] [cursor=pointer]
+          - cell "1" [ref=e3114] [cursor=pointer]
+          - cell "unknown" [ref=e3115] [cursor=pointer]
+          - cell [ref=e3116] [cursor=pointer]
+          - cell [ref=e3118] [cursor=pointer]
+          - cell [ref=e3119]
+        - row "其次喔 scene.hhhhhb 地下區 2 unknown" [ref=e3120]:
+          - cell [ref=e3121]:
+            - checkbox [ref=e3123] [cursor=pointer]
+          - cell "其次喔" [ref=e3124] [cursor=pointer]
+          - cell "scene.hhhhhb" [ref=e3125] [cursor=pointer]
+          - cell "地下區" [ref=e3126] [cursor=pointer]
+          - cell "2" [ref=e3127] [cursor=pointer]
+          - cell "unknown" [ref=e3128] [cursor=pointer]
+          - cell [ref=e3129] [cursor=pointer]
+          - cell [ref=e3131] [cursor=pointer]
+          - cell [ref=e3132]
+        - row "scene.qi_ci_wo 0 2026-03-01T00:57:17.667143+00:00 2026年03月01日 13時54分37秒" [ref=e3133]:
+          - cell [ref=e3134]:
+            - checkbox [ref=e3136] [cursor=pointer]
+          - cell [ref=e3137] [cursor=pointer]
+          - cell "scene.qi_ci_wo" [ref=e3138] [cursor=pointer]
+          - cell [ref=e3139] [cursor=pointer]
+          - cell "0" [ref=e3140] [cursor=pointer]
+          - cell "2026-03-01T00:57:17.667143+00:00" [ref=e3141] [cursor=pointer]
+          - cell [ref=e3142] [cursor=pointer]
+          - cell "2026年03月01日 13時54分37秒" [ref=e3144] [cursor=pointer]
+          - cell [ref=e3145]
+        - row "scene.aaaaa 0 unknown 2026年03月01日 13時54分37秒" [ref=e3146]:
+          - cell [ref=e3147]:
+            - checkbox [ref=e3149] [cursor=pointer]
+          - cell [ref=e3150] [cursor=pointer]
+          - cell "scene.aaaaa" [ref=e3151] [cursor=pointer]
+          - cell [ref=e3152] [cursor=pointer]
+          - cell "0" [ref=e3153] [cursor=pointer]
+          - cell "unknown" [ref=e3154] [cursor=pointer]
+          - cell [ref=e3155] [cursor=pointer]
+          - cell "2026年03月01日 13時54分37秒" [ref=e3157] [cursor=pointer]
+          - cell [ref=e3158]
+        - row "測試同步修復場景 scene.test_sync_fix 接待區 2 unknown" [ref=e3159]:
+          - cell [ref=e3160]:
+            - checkbox [ref=e3162] [cursor=pointer]
+          - cell "測試同步修復場景" [ref=e3163] [cursor=pointer]
+          - cell "scene.test_sync_fix" [ref=e3164] [cursor=pointer]
+          - cell "接待區" [ref=e3165] [cursor=pointer]
+          - cell "2" [ref=e3166] [cursor=pointer]
+          - cell "unknown" [ref=e3167] [cursor=pointer]
+          - cell [ref=e3168] [cursor=pointer]
+          - cell [ref=e3170] [cursor=pointer]
+          - cell [ref=e3171]
+        - row "scene.ce_shi_tong_bu_xiu_fu_chang_jing 0 unknown 2026年03月01日 13時54分37秒" [ref=e3172]:
+          - cell [ref=e3173]:
+            - checkbox [ref=e3175] [cursor=pointer]
+          - cell [ref=e3176] [cursor=pointer]
+          - cell "scene.ce_shi_tong_bu_xiu_fu_chang_jing" [ref=e3177] [cursor=pointer]
+          - cell [ref=e3178] [cursor=pointer]
+          - cell "0" [ref=e3179] [cursor=pointer]
+          - cell "unknown" [ref=e3180] [cursor=pointer]
+          - cell [ref=e3181] [cursor=pointer]
+          - cell "2026年03月01日 13時54分37秒" [ref=e3183] [cursor=pointer]
+          - cell [ref=e3184]
+        - row "SyncTest1772329073 scene.synctest1772329073 會議區 0 unknown" [ref=e3185]:
+          - cell [ref=e3186]:
+            - checkbox [ref=e3188] [cursor=pointer]
+          - cell "SyncTest1772329073" [ref=e3189] [cursor=pointer]
+          - cell "scene.synctest1772329073" [ref=e3190] [cursor=pointer]
+          - cell "會議區" [ref=e3191] [cursor=pointer]
+          - cell "0" [ref=e3192] [cursor=pointer]
+          - cell "unknown" [ref=e3193] [cursor=pointer]
+          - cell [ref=e3194] [cursor=pointer]
+          - cell [ref=e3196] [cursor=pointer]
+          - cell [ref=e3197]
+        - row "FullSyncTest1772329317 scene.fullsynctest1772329317_3 會議區 1 unknown 2026年03月01日 13時54分37秒" [ref=e3198]:
+          - cell [ref=e3199]:
+            - checkbox [ref=e3201] [cursor=pointer]
+          - cell "FullSyncTest1772329317" [ref=e3202] [cursor=pointer]
+          - cell "scene.fullsynctest1772329317_3" [ref=e3203] [cursor=pointer]
+          - cell "會議區" [ref=e3204] [cursor=pointer]
+          - cell "1" [ref=e3205] [cursor=pointer]
+          - cell "unknown" [ref=e3206] [cursor=pointer]
+          - cell [ref=e3207] [cursor=pointer]
+          - cell "2026年03月01日 13時54分37秒" [ref=e3209] [cursor=pointer]
+          - cell [ref=e3210]
+        - row "scene.fullsynctest1772329317_2 0 unknown 2026年03月01日 13時54分37秒" [ref=e3211]:
+          - cell [ref=e3212]:
+            - checkbox [ref=e3214] [cursor=pointer]
+          - cell [ref=e3215] [cursor=pointer]
+          - cell "scene.fullsynctest1772329317_2" [ref=e3216] [cursor=pointer]
+          - cell [ref=e3217] [cursor=pointer]
+          - cell "0" [ref=e3218] [cursor=pointer]
+          - cell "unknown" [ref=e3219] [cursor=pointer]
+          - cell [ref=e3220] [cursor=pointer]
+          - cell "2026年03月01日 13時54分37秒" [ref=e3222] [cursor=pointer]
+          - cell [ref=e3223]
+        - row "AreaTest1772329653 scene.areatest1772329653 會議區 1 unknown 2026年03月01日 13時54分37秒" [ref=e3224]:
+          - cell [ref=e3225]:
+            - checkbox [ref=e3227] [cursor=pointer]
+          - cell "AreaTest1772329653" [ref=e3228] [cursor=pointer]
+          - cell "scene.areatest1772329653" [ref=e3229] [cursor=pointer]
+          - cell "會議區" [ref=e3230] [cursor=pointer]
+          - cell "1" [ref=e3231] [cursor=pointer]
+          - cell "unknown" [ref=e3232] [cursor=pointer]
+          - cell [ref=e3233] [cursor=pointer]
+          - cell "2026年03月01日 13時54分37秒" [ref=e3235] [cursor=pointer]
+          - cell [ref=e3236]
+        - row "FreshTest1772329900 scene.freshtest1772329900 會議區 1 unknown 2026年03月01日 13時54分37秒" [ref=e3237]:
+          - cell [ref=e3238]:
+            - checkbox [ref=e3240] [cursor=pointer]
+          - cell "FreshTest1772329900" [ref=e3241] [cursor=pointer]
+          - cell "scene.freshtest1772329900" [ref=e3242] [cursor=pointer]
+          - cell "會議區" [ref=e3243] [cursor=pointer]
+          - cell "1" [ref=e3244] [cursor=pointer]
+          - cell "unknown" [ref=e3245] [cursor=pointer]
+          - cell [ref=e3246] [cursor=pointer]
+          - cell "2026年03月01日 13時54分37秒" [ref=e3248] [cursor=pointer]
+          - cell [ref=e3249]
+        - row "scene.fullsynctest1772329317 0 unknown 2026年03月01日 13時54分37秒" [ref=e3250]:
+          - cell [ref=e3251]:
+            - checkbox [ref=e3253] [cursor=pointer]
+          - cell [ref=e3254] [cursor=pointer]
+          - cell "scene.fullsynctest1772329317" [ref=e3255] [cursor=pointer]
+          - cell [ref=e3256] [cursor=pointer]
+          - cell "0" [ref=e3257] [cursor=pointer]
+          - cell "unknown" [ref=e3258] [cursor=pointer]
+          - cell [ref=e3259] [cursor=pointer]
+          - cell "2026年03月01日 13時54分37秒" [ref=e3261] [cursor=pointer]
+          - cell [ref=e3262]
+        - row "scene.freshtest1772329900_2 0 unknown 2026年03月01日 13時54分37秒" [ref=e3263]:
+          - cell [ref=e3264]:
+            - checkbox [ref=e3266] [cursor=pointer]
+          - cell [ref=e3267] [cursor=pointer]
+          - cell "scene.freshtest1772329900_2" [ref=e3268] [cursor=pointer]
+          - cell [ref=e3269] [cursor=pointer]
+          - cell "0" [ref=e3270] [cursor=pointer]
+          - cell "unknown" [ref=e3271] [cursor=pointer]
+          - cell [ref=e3272] [cursor=pointer]
+          - cell "2026年03月01日 13時54分37秒" [ref=e3274] [cursor=pointer]
+          - cell [ref=e3275]
+        - row "AutoSync1772329937 scene.autosync1772329937 會議區 1 unknown 2026年03月01日 13時54分37秒" [ref=e3276]:
+          - cell [ref=e3277]:
+            - checkbox [ref=e3279] [cursor=pointer]
+          - cell "AutoSync1772329937" [ref=e3280] [cursor=pointer]
+          - cell "scene.autosync1772329937" [ref=e3281] [cursor=pointer]
+          - cell "會議區" [ref=e3282] [cursor=pointer]
+          - cell "1" [ref=e3283] [cursor=pointer]
+          - cell "unknown" [ref=e3284] [cursor=pointer]
+          - cell [ref=e3285] [cursor=pointer]
+          - cell "2026年03月01日 13時54分37秒" [ref=e3287] [cursor=pointer]
+          - cell [ref=e3288]
+        - row "CommitTest1772330067 scene.committest1772330067 會議區 1 unknown 2026年03月01日 13時54分37秒" [ref=e3289]:
+          - cell [ref=e3290]:
+            - checkbox [ref=e3292] [cursor=pointer]
+          - cell "CommitTest1772330067" [ref=e3293] [cursor=pointer]
+          - cell "scene.committest1772330067" [ref=e3294] [cursor=pointer]
+          - cell "會議區" [ref=e3295] [cursor=pointer]
+          - cell "1" [ref=e3296] [cursor=pointer]
+          - cell "unknown" [ref=e3297] [cursor=pointer]
+          - cell [ref=e3298] [cursor=pointer]
+          - cell "2026年03月01日 13時54分37秒" [ref=e3300] [cursor=pointer]
+          - cell [ref=e3301]
+        - row "LogTest1772330157 scene.logtest1772330157 會議區 1 unknown 2026年03月01日 13時54分37秒" [ref=e3302]:
+          - cell [ref=e3303]:
+            - checkbox [ref=e3305] [cursor=pointer]
+          - cell "LogTest1772330157" [ref=e3306] [cursor=pointer]
+          - cell "scene.logtest1772330157" [ref=e3307] [cursor=pointer]
+          - cell "會議區" [ref=e3308] [cursor=pointer]
+          - cell "1" [ref=e3309] [cursor=pointer]
+          - cell "unknown" [ref=e3310] [cursor=pointer]
+          - cell [ref=e3311] [cursor=pointer]
+          - cell "2026年03月01日 13時54分37秒" [ref=e3313] [cursor=pointer]
+          - cell [ref=e3314]
+      - rowgroup [ref=e3315]:
+        - row [ref=e3316]:
+          - cell [ref=e3317]
+          - cell [ref=e3318]
+          - cell [ref=e3319]
+          - cell [ref=e3320]
+          - cell [ref=e3321]
+          - cell [ref=e3322]
+          - cell [ref=e3323]
+          - cell [ref=e3324]
+          - cell [ref=e3325]
+  - generic:
+    - menu [ref=e3326]:
+      - generic [ref=e3327]:
+        - generic [ref=e3328]:
+          - generic [ref=e3329]: 
+          - heading "篩選" [level=5] [ref=e3330]
+        - menuitem "加入自訂準則" [ref=e3331] [cursor=pointer]
+      - generic [ref=e3332]:
+        - generic [ref=e3333]:
+          - generic [ref=e3334]: 
+          - heading "分組依據" [level=5] [ref=e3335]
+        - menuitemcheckbox "HA Instance" [ref=e3336] [cursor=pointer]
+        - menuitemcheckbox "Area" [ref=e3337] [cursor=pointer]
+        - separator [ref=e3338]
+        - combobox [ref=e3339] [cursor=pointer]:
+          - option "Activity State"
+          - option "Area"
+          - option "Created by"
+          - option "Created on"
+          - option "Device"
+          - option "Display Area"
+          - option "Domain"
+          - option "Enable Record"
+          - option "Entity ID"
+          - option "Entity State"
+          - option "Follows Device Area"
+          - option "Groups"
+          - option "HA Instance"
+          - option "HA Scene ID"
+          - option "Labels"
+          - option "Last Changed"
+          - option "Last Updated by"
+          - option "Last Updated on"
+          - option "Name"
+          - option "Scene Entities"
+          - option "Tags"
+      - generic [ref=e3340]:
+        - generic [ref=e3341]:
+          - generic [ref=e3342]: 
+          - heading "最愛" [level=5] [ref=e3343]
+        - button "儲存目前搜尋" [ref=e3345] [cursor=pointer]
+    - generic:
+      - paragraph: 按 esc 離開全螢幕
+    - generic [ref=e1162]:
+      - button "" [ref=e1163] [cursor=pointer]
+      - generic [ref=e1164]:
+        - generic [ref=e1166]: 
+        - text: 
+        - button "對話串圖片" [ref=e1167] [cursor=pointer]:
+          - img "對話串圖片" [ref=e1168]
+      - generic [ref=e1169]:
+        - generic [ref=e1171]: 
+        - text: 
+        - button "對話串圖片" [ref=e1172] [cursor=pointer]:
+          - img "對話串圖片" [ref=e1173]

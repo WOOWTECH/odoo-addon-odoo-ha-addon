@@ -516,3 +516,105 @@ class HassRestApi:
                 raise ValueError(f"HA API endpoint not found (404): {url}")
             else:
                 raise ConnectionError(f"HA API history request failed: HTTP {response.status_code}")
+
+    def update_entity_registry(self, entity_id: str, area_id: str = None, labels: list = None) -> dict:
+        """
+        Update entity registry in Home Assistant via direct WebSocket call.
+
+        This method creates a short-lived WebSocket connection directly to HA,
+        bypassing the database queue mechanism to avoid transaction conflicts
+        when called from background threads.
+
+        Uses the 'config/entity_registry/update' WebSocket API.
+
+        Args:
+            entity_id: The entity ID to update (e.g., 'scene.living_room')
+            area_id: The HA area ID to assign (or None to clear)
+            labels: List of label IDs to assign (optional)
+
+        Returns:
+            dict: The updated entity registry entry from HA
+
+        Raises:
+            Exception: If the WebSocket call fails
+        """
+        import asyncio
+        import json
+
+        ha_info = self.__refetch_ha_info()
+        ha_url = ha_info["ha_url"]
+        ha_token = ha_info["ha_token"]
+
+        # Convert http(s) URL to ws(s) URL
+        ws_url = ha_url.replace("https://", "wss://").replace("http://", "ws://")
+        ws_url = f"{ws_url}/api/websocket"
+
+        async def _call_websocket():
+            import websockets
+
+            _logger.info(f"[DIRECT_WS] Connecting to {ws_url} for entity_registry/update")
+
+            async with websockets.connect(ws_url) as ws:
+                # Wait for auth_required message
+                auth_required = await asyncio.wait_for(ws.recv(), timeout=5)
+                auth_required_data = json.loads(auth_required)
+                if auth_required_data.get("type") != "auth_required":
+                    raise Exception(f"Unexpected message: {auth_required_data}")
+
+                # Send auth
+                auth_msg = {"type": "auth", "access_token": ha_token}
+                await ws.send(json.dumps(auth_msg))
+
+                # Wait for auth_ok
+                auth_result = await asyncio.wait_for(ws.recv(), timeout=5)
+                auth_result_data = json.loads(auth_result)
+                if auth_result_data.get("type") != "auth_ok":
+                    raise Exception(f"Authentication failed: {auth_result_data}")
+
+                _logger.info(f"[DIRECT_WS] Authenticated successfully")
+
+                # Build the entity_registry/update payload
+                payload = {
+                    "id": 1,
+                    "type": "config/entity_registry/update",
+                    "entity_id": entity_id,
+                }
+                if area_id is not None:
+                    payload["area_id"] = area_id
+                else:
+                    payload["area_id"] = None  # Explicitly clear area
+
+                if labels is not None:
+                    payload["labels"] = labels
+
+                _logger.info(f"[DIRECT_WS] Sending: {payload}")
+                await ws.send(json.dumps(payload))
+
+                # Wait for response
+                response = await asyncio.wait_for(ws.recv(), timeout=10)
+                response_data = json.loads(response)
+
+                _logger.info(f"[DIRECT_WS] Response: {response_data}")
+
+                if not response_data.get("success", True):
+                    error = response_data.get("error", {})
+                    raise Exception(f"HA entity_registry/update failed: {error}")
+
+                return response_data.get("result", {})
+
+        # Run the async function synchronously
+        try:
+            # Check if we're already in an event loop
+            try:
+                loop = asyncio.get_running_loop()
+                # We're in an async context, need to create a new thread
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, _call_websocket())
+                    return future.result(timeout=15)
+            except RuntimeError:
+                # No running loop, we can use asyncio.run directly
+                return asyncio.run(_call_websocket())
+        except Exception as e:
+            _logger.error(f"[DIRECT_WS] entity_registry/update failed: {e}", exc_info=True)
+            raise

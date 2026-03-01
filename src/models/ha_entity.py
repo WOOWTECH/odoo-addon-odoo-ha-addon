@@ -394,73 +394,81 @@ class HAEntity(models.Model):
                 scene_ids_to_sync.append(record.id)
 
         if scene_ids_to_sync:
-            # Use postcommit hook to sync after transaction completes
-            def sync_scenes_to_ha():
+            # Capture required data before postcommit
+            db_name = self.env.cr.dbname
+            uid = self.env.uid
+
+            def sync_scenes_in_background():
+                """
+                Background thread for HA scene sync.
+
+                This runs in a completely separate thread with its own database connection,
+                avoiding all transaction conflicts with the main Odoo process.
+
+                Key design decisions:
+                1. Use db_connect() instead of registry.cursor() - cleaner connection handling
+                2. Use READ COMMITTED isolation (default) - avoids serialization conflicts
+                3. Commit immediately after each scene - partial success is better than total failure
+                4. Use REST API for scene creation (no WebSocket queue complexity)
+                5. Use direct WebSocket call only for entity_registry updates
+                """
                 import time as time_module
-                # Brief delay to ensure the original transaction is fully released
-                # This prevents "could not serialize access" errors from PostgreSQL
-                time_module.sleep(0.1)
+                from odoo.sql_db import db_connect
 
-                _trace(f"[POSTCOMMIT] Starting sync_scenes_to_ha for scene_ids: {scene_ids_to_sync}")
+                # Wait for original transaction to fully complete
+                time_module.sleep(0.3)
+
+                _trace(f"[BG_THREAD] Starting sync for scene_ids: {scene_ids_to_sync}")
+                _logger.info(f"[BG_THREAD] Starting background sync for {len(scene_ids_to_sync)} scenes")
+
                 for scene_id in scene_ids_to_sync:
-                    # Use separate transaction for each scene to ensure partial commits
-                    # Add retry logic for serialization conflicts
-                    max_retries = 3
-                    for attempt in range(max_retries):
-                        try:
-                            with self.env.registry.cursor() as new_cr:
-                                new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+                    try:
+                        # Create fresh database connection for each scene
+                        # This ensures clean transaction state
+                        with db_connect(db_name).cursor() as cr:
+                            env = api.Environment(cr, uid, {})
+                            scene = env['ha.entity'].browse(scene_id)
 
-                                # Use SELECT FOR UPDATE NOWAIT to safely lock the row
-                                # This prevents serialization conflicts with concurrent transactions
-                                try:
-                                    new_cr.execute(
-                                        "SELECT id FROM ha_entity WHERE id = %s FOR UPDATE NOWAIT",
-                                        (scene_id,)
-                                    )
-                                except Exception as lock_error:
-                                    if 'could not obtain lock' in str(lock_error) or 'lock' in str(lock_error).lower():
-                                        _logger.warning(f"[POSTCOMMIT] Scene {scene_id} locked by another transaction, retry {attempt + 1}/{max_retries}")
-                                        if attempt < max_retries - 1:
-                                            time_module.sleep(0.5 * (attempt + 1))  # Exponential backoff
-                                            continue
-                                        else:
-                                            raise
-                                    raise
-
-                                scene = new_env['ha.entity'].browse(scene_id)
-                                _logger.info(f"[POSTCOMMIT] Processing scene {scene_id}: exists={scene.exists()}, scene_entity_ids={scene.scene_entity_ids.ids if scene.scene_entity_ids else []}, area_id={scene.area_id.id if scene.area_id else None}")
-                                _trace(f"[POSTCOMMIT] Processing scene {scene_id}: exists={scene.exists()}, scene_entity_ids={scene.scene_entity_ids.ids if scene.scene_entity_ids else []}, area_id={scene.area_id.id if scene.area_id else None}")
-                                if scene.exists() and scene.scene_entity_ids:
-                                    try:
-                                        _trace(f"[POSTCOMMIT] Calling _create_scene_in_ha for scene {scene_id}")
-                                        scene._create_scene_in_ha()
-                                        # Explicitly commit after successful sync
-                                        new_cr.commit()
-                                        _logger.info(f"[POSTCOMMIT] Scene {scene_id} sync completed and committed")
-                                        _trace(f"[POSTCOMMIT] Scene {scene_id} sync completed and committed")
-                                    except Exception as e:
-                                        _logger.error(f"Failed to create scene {scene.entity_id} in HA: {e}", exc_info=True)
-                                        _trace(f"[POSTCOMMIT] Scene {scene_id} sync FAILED: {e}")
-                                        # Rollback and try to commit partial changes
-                                        try:
-                                            new_cr.rollback()
-                                        except Exception:
-                                            pass
-                                # Success - break retry loop
-                                break
-                        except Exception as e:
-                            error_str = str(e).lower()
-                            # Retry on serialization or lock conflicts
-                            if ('serialize' in error_str or 'concurrent' in error_str) and attempt < max_retries - 1:
-                                _logger.warning(f"[POSTCOMMIT] Scene {scene_id} serialization conflict, retry {attempt + 1}/{max_retries}: {e}")
-                                time_module.sleep(0.5 * (attempt + 1))
+                            if not scene.exists():
+                                _logger.warning(f"[BG_THREAD] Scene {scene_id} no longer exists, skipping")
                                 continue
-                            _logger.error(f"Failed to sync scene {scene_id} to HA: {e}", exc_info=True)
-                            _trace(f"[POSTCOMMIT] Scene {scene_id} outer exception: {e}")
-                            break
 
-            self.env.cr.postcommit.add(sync_scenes_to_ha)
+                            if not scene.scene_entity_ids:
+                                _logger.warning(f"[BG_THREAD] Scene {scene_id} has no entities, skipping")
+                                continue
+
+                            _logger.info(f"[BG_THREAD] Processing scene {scene_id}: "
+                                        f"entity_id={scene.entity_id}, "
+                                        f"area_id={scene.area_id.area_id if scene.area_id else None}")
+                            _trace(f"[BG_THREAD] Processing scene {scene_id}")
+
+                            try:
+                                # Use _sync_scene_to_ha_internal which handles both
+                                # scene creation and area/label sync
+                                scene._sync_scene_to_ha_internal()
+                                cr.commit()
+                                _logger.info(f"[BG_THREAD] Scene {scene_id} synced successfully")
+                                _trace(f"[BG_THREAD] Scene {scene_id} sync SUCCESS")
+                            except Exception as sync_error:
+                                _logger.error(f"[BG_THREAD] Scene {scene_id} sync failed: {sync_error}", exc_info=True)
+                                _trace(f"[BG_THREAD] Scene {scene_id} sync FAILED: {sync_error}")
+                                cr.rollback()
+
+                    except Exception as e:
+                        _logger.error(f"[BG_THREAD] Error processing scene {scene_id}: {e}", exc_info=True)
+                        _trace(f"[BG_THREAD] Scene {scene_id} outer error: {e}")
+
+            def start_sync_thread():
+                """Postcommit callback to start the background sync thread."""
+                thread = threading.Thread(
+                    target=sync_scenes_in_background,
+                    name=f"ha_scene_sync_{scene_ids_to_sync[0]}",
+                    daemon=True
+                )
+                thread.start()
+                _logger.info(f"[POSTCOMMIT] Started background sync thread for scenes: {scene_ids_to_sync}")
+
+            self.env.cr.postcommit.add(start_sync_thread)
 
         return records
 
@@ -702,6 +710,11 @@ class HAEntity(models.Model):
 
         當 follows_device_area = True 時，發送 area_id = null 給 HA，
         這會讓 HA 中的實體設定為「跟隨裝置分區」。
+
+        IMPORTANT: This method uses direct WebSocket connection (via HassRestApi)
+        instead of the queue-based WebSocketClient to avoid PostgreSQL serialization
+        conflicts when called from background threads. The direct WebSocket approach
+        creates a short-lived connection that doesn't involve database commits.
         """
         self.ensure_one()
         _trace(f"[AREA_SYNC_EXEC] Starting _update_entity_area_in_ha for {self.entity_id}")
@@ -715,13 +728,6 @@ class HAEntity(models.Model):
             return
 
         try:
-            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
-            _logger.info(f"[AREA_SYNC_EXEC] Getting WebSocket client for instance {self.ha_instance_id.id}")
-            _trace(f"[AREA_SYNC_EXEC] Getting WebSocket client for instance {self.ha_instance_id.id}")
-            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
-            _logger.info(f"[AREA_SYNC_EXEC] WebSocket client obtained: {client}")
-            _trace(f"[AREA_SYNC_EXEC] WebSocket client obtained: {client}")
-
             # 當 follows_device_area = True 時，發送 null 給 HA（跟隨裝置分區）
             # 否則發送實體的 area_id
             if self.follows_device_area:
@@ -729,16 +735,22 @@ class HAEntity(models.Model):
             else:
                 ha_area_id = self.area_id.area_id if self.area_id else None
 
-            payload = {
-                'entity_id': self.entity_id,
-                'area_id': ha_area_id,
-            }
+            _logger.info(f"[AREA_SYNC_EXEC] Using direct WebSocket for entity_registry/update")
+            _trace(f"[AREA_SYNC_EXEC] Using direct WebSocket for entity_registry/update")
 
-            _logger.info(f"[AREA_SYNC_EXEC] Sending WebSocket update: entity_id={self.entity_id}, area_id={ha_area_id}")
-            _trace(f"[AREA_SYNC_EXEC] Sending WebSocket update: entity_id={self.entity_id}, area_id={ha_area_id}")
-            result = client.call_websocket_api_sync('config/entity_registry/update', payload)
-            _logger.info(f"[AREA_SYNC_EXEC] WebSocket result: {result}")
-            _trace(f"[AREA_SYNC_EXEC] WebSocket result: {result}")
+            # Use direct WebSocket via HassRestApi to avoid database queue conflicts
+            rest_api = HassRestApi(self.env, self.ha_instance_id.id)
+
+            _logger.info(f"[AREA_SYNC_EXEC] Sending direct WebSocket update: entity_id={self.entity_id}, area_id={ha_area_id}")
+            _trace(f"[AREA_SYNC_EXEC] Sending direct WebSocket update: entity_id={self.entity_id}, area_id={ha_area_id}")
+
+            result = rest_api.update_entity_registry(
+                entity_id=self.entity_id,
+                area_id=ha_area_id
+            )
+
+            _logger.info(f"[AREA_SYNC_EXEC] Direct WebSocket result: {result}")
+            _trace(f"[AREA_SYNC_EXEC] Direct WebSocket result: {result}")
 
             if result and isinstance(result, dict):
                 # Verify HA accepted the area change by checking the response
@@ -818,6 +830,10 @@ class HAEntity(models.Model):
 
         使用 WebSocket API: config/entity_registry/update
         HA Entity Registry 的 labels 欄位是 label_id 陣列
+
+        IMPORTANT: This method uses direct WebSocket connection (via HassRestApi)
+        instead of the queue-based WebSocketClient to avoid PostgreSQL serialization
+        conflicts when called from background threads.
         """
         self.ensure_one()
 
@@ -826,19 +842,17 @@ class HAEntity(models.Model):
             return
 
         try:
-            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
-            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
-
             # Convert Odoo label_ids (Many2many) to HA labels (label_id array)
             ha_labels = self.label_ids.mapped('label_id') if self.label_ids else []
 
-            payload = {
-                'entity_id': self.entity_id,
-                'labels': ha_labels,
-            }
-
             _logger.info(f"Updating entity labels in HA: {self.entity_id} -> labels={ha_labels}")
-            result = client.call_websocket_api_sync('config/entity_registry/update', payload)
+
+            # Use direct WebSocket via HassRestApi to avoid database queue conflicts
+            rest_api = HassRestApi(self.env, self.ha_instance_id.id)
+            result = rest_api.update_entity_registry(
+                entity_id=self.entity_id,
+                labels=ha_labels
+            )
 
             if result and isinstance(result, dict):
                 _logger.info(f"Entity {self.entity_id} labels updated in HA successfully")
@@ -1927,5 +1941,46 @@ class HAEntity(models.Model):
 
         except Exception as e:
             _logger.error(f"Failed to delete scene {self.entity_id} from HA: {e}", exc_info=True)
+
+    def _sync_scene_to_ha_internal(self):
+        """
+        Internal method for syncing a scene to Home Assistant.
+
+        This method is called from a background thread with its own database connection,
+        ensuring complete isolation from the main Odoo transaction.
+
+        The method handles:
+        1. Scene creation/update via REST API (config/scene/config endpoint)
+        2. Area synchronization via WebSocket API (config/entity_registry/update)
+        3. Label synchronization via WebSocket API (config/entity_registry/update)
+
+        Design rationale:
+        - Called from background thread started via postcommit callback
+        - Uses fresh db_connect() cursor, completely isolated from main transaction
+        - WebSocketClient's internal commits won't conflict with Odoo's transaction
+        - REST API for scene creation is reliable and doesn't involve transaction issues
+
+        Note: This method is specifically designed to be called from the background
+        sync thread in create(). Direct calls from other contexts should use
+        _create_scene_in_ha() directly.
+        """
+        self.ensure_one()
+
+        if self.domain != 'scene':
+            _logger.warning(f"_sync_scene_to_ha_internal called on non-scene entity: {self.entity_id}")
+            return
+
+        _logger.info(f"[SYNC_INTERNAL] Starting scene sync for {self.entity_id}")
+        _trace(f"[SYNC_INTERNAL] Starting scene sync for {self.entity_id}")
+
+        # Delegate to the existing method which handles:
+        # 1. Scene creation via REST API
+        # 2. Entity ID synchronization (HA may generate different ID)
+        # 3. Area sync via WebSocket
+        # 4. Label sync via WebSocket
+        self._create_scene_in_ha()
+
+        _logger.info(f"[SYNC_INTERNAL] Scene sync completed for {self.entity_id}")
+        _trace(f"[SYNC_INTERNAL] Scene sync completed for {self.entity_id}")
 
 
