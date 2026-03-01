@@ -186,6 +186,30 @@ class HAEntity(models.Model):
         help='Numeric ID used by Home Assistant for scene config (timestamp format). '
              'Required for scenes to be editable in HA GUI.'
     )
+    scene_source = fields.Selection(
+        [
+            ('odoo', 'Created in Odoo'),
+            ('device', 'Device Scene'),
+        ],
+        string='Scene Source',
+        compute='_compute_scene_source',
+        store=True,
+        help='Indicates where the scene was created. '
+             'Device scenes (e.g., Hue Bridge) have limited sync capabilities.'
+    )
+
+    @api.depends('domain', 'ha_scene_id', 'device_id')
+    def _compute_scene_source(self):
+        """Compute the source of the scene for display purposes."""
+        for record in self:
+            if record.domain != 'scene':
+                record.scene_source = False
+            elif record.ha_scene_id:
+                # Has ha_scene_id means it was created via Odoo or is an editable HA scene
+                record.scene_source = 'odoo'
+            else:
+                # No ha_scene_id means it's a device-created scene (Hue, etc.)
+                record.scene_source = 'device'
 
     @api.depends('tag_ids')
     def _compute_tag_count(self):
@@ -647,9 +671,19 @@ class HAEntity(models.Model):
             result = client.call_websocket_api_sync('config/entity_registry/update', payload)
 
             if result and isinstance(result, dict):
-                _logger.info(f"Entity {self.entity_id} area updated in HA successfully")
+                # Verify HA accepted the area change by checking the response
+                returned_area = result.get('area_id')
+                if returned_area == ha_area_id:
+                    _logger.info(f"Entity {self.entity_id} area updated in HA successfully: area_id={returned_area}")
+                else:
+                    # HA may reject area changes for device-owned entities
+                    _logger.warning(
+                        f"Entity {self.entity_id} area update mismatch: "
+                        f"sent area_id={ha_area_id}, HA returned area_id={returned_area}. "
+                        f"This may occur for device-owned entities (e.g., Hue scenes)."
+                    )
             else:
-                _logger.warning(f"Unexpected result from HA: {result}")
+                _logger.warning(f"Unexpected result from HA for {self.entity_id}: {result}")
 
         except Exception as e:
             _logger.error(f"Failed to update entity area {self.entity_id} in HA: {e}", exc_info=True)
