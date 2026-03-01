@@ -701,7 +701,7 @@ class HAEntity(models.Model):
 
         return result
 
-    def _update_entity_area_in_ha(self):
+    def _update_entity_area_in_ha(self, override_entity_id=None):
         """
         在 HA 中更新 Entity 的 area_id
 
@@ -715,12 +715,19 @@ class HAEntity(models.Model):
         instead of the queue-based WebSocketClient to avoid PostgreSQL serialization
         conflicts when called from background threads. The direct WebSocket approach
         creates a short-lived connection that doesn't involve database commits.
+
+        Args:
+            override_entity_id: Optional entity_id to use instead of self.entity_id.
+                               This is needed for scenes where HA generates a different
+                               entity_id than what Odoo has stored.
         """
         self.ensure_one()
-        _trace(f"[AREA_SYNC_EXEC] Starting _update_entity_area_in_ha for {self.entity_id}")
-        _logger.info(f"[AREA_SYNC_EXEC] Starting _update_entity_area_in_ha for {self.entity_id}")
-        _logger.info(f"[AREA_SYNC_EXEC] Self record: id={self.id}, entity_id={self.entity_id}, area_id={self.area_id}, follows_device_area={self.follows_device_area}")
-        _trace(f"[AREA_SYNC_EXEC] Self record: id={self.id}, entity_id={self.entity_id}, area_id={self.area_id}, follows_device_area={self.follows_device_area}")
+        # Use override_entity_id if provided (for scenes with HA-generated entity_id)
+        effective_entity_id = override_entity_id or self.entity_id
+        _trace(f"[AREA_SYNC_EXEC] Starting _update_entity_area_in_ha for {effective_entity_id}")
+        _logger.info(f"[AREA_SYNC_EXEC] Starting _update_entity_area_in_ha for {effective_entity_id}")
+        _logger.info(f"[AREA_SYNC_EXEC] Self record: id={self.id}, entity_id={self.entity_id}, effective_entity_id={effective_entity_id}, area_id={self.area_id}, follows_device_area={self.follows_device_area}")
+        _trace(f"[AREA_SYNC_EXEC] Self record: id={self.id}, entity_id={self.entity_id}, effective_entity_id={effective_entity_id}, area_id={self.area_id}, follows_device_area={self.follows_device_area}")
 
         if not self.ha_instance_id:
             _logger.warning(f"[AREA_SYNC_EXEC] Cannot sync entity area {self.entity_id}: no HA instance")
@@ -741,11 +748,11 @@ class HAEntity(models.Model):
             # Use direct WebSocket via HassRestApi to avoid database queue conflicts
             rest_api = HassRestApi(self.env, self.ha_instance_id.id)
 
-            _logger.info(f"[AREA_SYNC_EXEC] Sending direct WebSocket update: entity_id={self.entity_id}, area_id={ha_area_id}")
-            _trace(f"[AREA_SYNC_EXEC] Sending direct WebSocket update: entity_id={self.entity_id}, area_id={ha_area_id}")
+            _logger.info(f"[AREA_SYNC_EXEC] Sending direct WebSocket update: entity_id={effective_entity_id}, area_id={ha_area_id}")
+            _trace(f"[AREA_SYNC_EXEC] Sending direct WebSocket update: entity_id={effective_entity_id}, area_id={ha_area_id}")
 
             result = rest_api.update_entity_registry(
-                entity_id=self.entity_id,
+                entity_id=effective_entity_id,
                 area_id=ha_area_id
             )
 
@@ -756,19 +763,19 @@ class HAEntity(models.Model):
                 # Verify HA accepted the area change by checking the response
                 returned_area = result.get('area_id')
                 if returned_area == ha_area_id:
-                    _logger.info(f"Entity {self.entity_id} area updated in HA successfully: area_id={returned_area}")
+                    _logger.info(f"Entity {effective_entity_id} area updated in HA successfully: area_id={returned_area}")
                 else:
                     # HA may reject area changes for device-owned entities
                     _logger.warning(
-                        f"Entity {self.entity_id} area update mismatch: "
+                        f"Entity {effective_entity_id} area update mismatch: "
                         f"sent area_id={ha_area_id}, HA returned area_id={returned_area}. "
                         f"This may occur for device-owned entities (e.g., Hue scenes)."
                     )
             else:
-                _logger.warning(f"Unexpected result from HA for {self.entity_id}: {result}")
+                _logger.warning(f"Unexpected result from HA for {effective_entity_id}: {result}")
 
         except Exception as e:
-            _logger.error(f"Failed to update entity area {self.entity_id} in HA: {e}", exc_info=True)
+            _logger.error(f"Failed to update entity area {effective_entity_id} in HA: {e}", exc_info=True)
             raise
 
     def _update_entity_name_in_ha(self):
@@ -824,7 +831,7 @@ class HAEntity(models.Model):
             _logger.error(f"Failed to update entity name {self.entity_id} in HA: {e}", exc_info=True)
             raise
 
-    def _update_entity_labels_in_ha(self):
+    def _update_entity_labels_in_ha(self, override_entity_id=None):
         """
         在 HA 中更新 Entity 的 labels
 
@@ -834,33 +841,40 @@ class HAEntity(models.Model):
         IMPORTANT: This method uses direct WebSocket connection (via HassRestApi)
         instead of the queue-based WebSocketClient to avoid PostgreSQL serialization
         conflicts when called from background threads.
+
+        Args:
+            override_entity_id: Optional entity_id to use instead of self.entity_id.
+                               This is needed for scenes where HA generates a different
+                               entity_id than what Odoo has stored.
         """
         self.ensure_one()
+        # Use override_entity_id if provided (for scenes with HA-generated entity_id)
+        effective_entity_id = override_entity_id or self.entity_id
 
         if not self.ha_instance_id:
-            _logger.warning(f"Cannot sync entity labels {self.entity_id}: no HA instance")
+            _logger.warning(f"Cannot sync entity labels {effective_entity_id}: no HA instance")
             return
 
         try:
             # Convert Odoo label_ids (Many2many) to HA labels (label_id array)
             ha_labels = self.label_ids.mapped('label_id') if self.label_ids else []
 
-            _logger.info(f"Updating entity labels in HA: {self.entity_id} -> labels={ha_labels}")
+            _logger.info(f"Updating entity labels in HA: {effective_entity_id} -> labels={ha_labels}")
 
             # Use direct WebSocket via HassRestApi to avoid database queue conflicts
             rest_api = HassRestApi(self.env, self.ha_instance_id.id)
             result = rest_api.update_entity_registry(
-                entity_id=self.entity_id,
+                entity_id=effective_entity_id,
                 labels=ha_labels
             )
 
             if result and isinstance(result, dict):
-                _logger.info(f"Entity {self.entity_id} labels updated in HA successfully")
+                _logger.info(f"Entity {effective_entity_id} labels updated in HA successfully")
             else:
                 _logger.warning(f"Unexpected result from HA: {result}")
 
         except Exception as e:
-            _logger.error(f"Failed to update entity labels {self.entity_id} in HA: {e}", exc_info=True)
+            _logger.error(f"Failed to update entity labels {effective_entity_id} in HA: {e}", exc_info=True)
             raise
 
     @api.depends('attributes')
@@ -1873,9 +1887,12 @@ class HAEntity(models.Model):
             self.invalidate_recordset()
             _trace(f"[AREA_SYNC_CREATE] Starting area sync for scene")
 
-            # Re-read area_id after cache invalidation to ensure we have fresh data
+            # CRITICAL: Use the HA-confirmed entity_id for Area/Label sync
+            # After scene creation, HA may generate a different entity_id than what Odoo has
+            # We must use the actual HA entity_id for entity_registry/update calls
             current_area = self.area_id
-            current_entity_id = self.entity_id
+            # Use ha_entity_id if available, otherwise fall back to self.entity_id
+            current_entity_id = ha_entity_id if ha_entity_id else self.entity_id
             _logger.info(f"[AREA_SYNC_CREATE] Scene {current_entity_id} - area_id record: {current_area}, "
                         f"ha_area_id: {current_area.area_id if current_area else None}, "
                         f"ha_instance_id: {self.ha_instance_id.id if self.ha_instance_id else None}")
@@ -1886,7 +1903,8 @@ class HAEntity(models.Model):
                 try:
                     _logger.info(f"[AREA_SYNC_CREATE] Calling _update_entity_area_in_ha for {current_entity_id} with area {current_area.area_id}")
                     _trace(f"[AREA_SYNC_CREATE] Calling _update_entity_area_in_ha for {current_entity_id} with area {current_area.area_id}")
-                    self._update_entity_area_in_ha()
+                    # Pass the HA-confirmed entity_id to ensure correct API call
+                    self._update_entity_area_in_ha(override_entity_id=current_entity_id)
                     _logger.info(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area synced to HA successfully: {current_area.area_id}")
                     _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area synced to HA successfully: {current_area.area_id}")
                 except Exception as area_error:
@@ -1900,10 +1918,11 @@ class HAEntity(models.Model):
             # Sync labels to HA if any
             if self.label_ids:
                 try:
-                    self._update_entity_labels_in_ha()
-                    _logger.info(f"Scene {self.entity_id} labels synced to HA")
+                    # Pass the HA-confirmed entity_id to ensure correct API call
+                    self._update_entity_labels_in_ha(override_entity_id=current_entity_id)
+                    _logger.info(f"Scene {current_entity_id} labels synced to HA")
                 except Exception as label_error:
-                    _logger.warning(f"Scene {self.entity_id} created but label sync failed: {label_error}")
+                    _logger.warning(f"Scene {current_entity_id} created but label sync failed: {label_error}")
 
         except Exception as e:
             _logger.error(f"Failed to create scene {self.entity_id} in HA: {e}", exc_info=True)
