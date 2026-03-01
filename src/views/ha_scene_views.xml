@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Lightweight Entity List View for Scene Entity Selector -->
+    <!-- This view is used by many2many field to reduce data transfer -->
+    <record id="ha_entity_scene_selector_list" model="ir.ui.view">
+        <field name="name">ha.entity.scene.selector.list</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <list string="Select Entities" create="0" edit="0" delete="0">
+                <field name="name"/>
+                <field name="entity_id"/>
+                <field name="domain"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Scene List View -->
+    <record id="ha_scene_view_list" model="ir.ui.view">
+        <field name="name">ha.scene.list</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <list string="Scenes" create="1" edit="1" delete="1">
+                <field name="name"/>
+                <field name="entity_id" string="Scene ID"/>
+                <field name="ha_instance_id" optional="hide"/>
+                <field name="display_area_id" string="Area"/>
+                <field name="scene_entity_count" string="Entities"/>
+                <field name="entity_state" string="State"/>
+                <field name="label_ids" widget="many2many_tags"
+                       options="{'color_field': 'color'}"/>
+                <field name="last_changed" string="Last Activated"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Scene Form View - Extends Entity Form with Scene Entities Tab -->
+    <record id="ha_scene_view_form" model="ir.ui.view">
+        <field name="name">ha.scene.form</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form string="Scene" class="o_ha_scene_form">
+                <header>
+                    <button name="action_activate_scene" type="object" string="Activate"
+                            class="btn-primary" icon="fa-play-circle"
+                            title="Activate this scene"
+                            invisible="not id"/>
+                    <button name="action_sync_scene_to_ha" type="object" string="Sync to HA"
+                            class="btn-secondary" icon="fa-refresh"
+                            title="Sync scene to Home Assistant (captures current entity states)"
+                            invisible="not id or scene_entity_count == 0"/>
+                    <button name="action_share" type="object" string="Share"
+                            class="btn-secondary"
+                            groups="odoo_ha_addon.group_ha_manager"
+                            title="Share this scene with users"
+                            invisible="not id"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-cubes"
+                                invisible="scene_entity_count == 0">
+                            <field name="scene_entity_count" widget="statinfo" string="Entities"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Scene Name"/>
+                        <h1>
+                            <field name="name" placeholder="Scene Name" required="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <!-- entity_id: editable for new, readonly for existing -->
+                            <!-- User inputs scene name (e.g., my_scene), system adds scene. prefix -->
+                            <!-- Supports Chinese (auto-converts to pinyin) and English -->
+                            <field name="entity_id" string="Scene ID"
+                                   readonly="id"
+                                   required="1"
+                                   placeholder="e.g., my_scene or 夜間模式"
+                                   help="Enter scene name (e.g., my_scene). System auto-adds 'scene.' prefix. Chinese is converted to pinyin."/>
+                            <field name="domain" invisible="1"/>
+                            <field name="entity_state" string="State" readonly="1"
+                                   invisible="not id"/>
+                        </group>
+                        <group>
+                            <!-- ha_instance_id: editable for new, readonly for existing -->
+                            <field name="ha_instance_id"
+                                   readonly="id"
+                                   required="1"
+                                   options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="area_id"
+                                   domain="[('ha_instance_id', '=', ha_instance_id)]"
+                                   options="{'no_create': True}"/>
+                            <field name="last_changed" string="Last Activated" readonly="1"
+                                   invisible="not id"/>
+                        </group>
+                    </group>
+                    <group string="Labels" invisible="not id">
+                        <field name="label_ids" widget="many2many_tags" nolabel="1"
+                               options="{'color_field': 'color'}"
+                               context="{'default_ha_instance_id': ha_instance_id}"/>
+                    </group>
+                    <notebook>
+                        <page string="Scene Entities" name="scene_entities">
+                            <!-- Scene entity selection -->
+                            <!-- Using embedded list with pagination for better performance -->
+                            <!-- Warning: Show when ha_instance_id is not selected -->
+                            <div class="alert alert-warning" role="alert" invisible="ha_instance_id">
+                                <i class="fa fa-exclamation-triangle me-2"/>
+                                <strong>請先選擇 Home Assistant 實例</strong>才能新增場景實體。
+                            </div>
+                            <!-- Entity selector: Only visible when ha_instance_id is selected -->
+                            <field name="scene_entity_ids"
+                                   invisible="not ha_instance_id"
+                                   domain="[('ha_instance_id', '=', ha_instance_id), ('domain', 'in', ['light', 'switch', 'cover', 'fan', 'climate', 'input_boolean', 'input_number', 'media_player', 'sensor'])]"
+                                   options="{'no_create': True, 'no_create_edit': True}"
+                                   context="{'default_ha_instance_id': ha_instance_id, 'scene_entity_search_instance_id': ha_instance_id, 'list_view_ref': 'odoo_ha_addon.ha_entity_scene_selector_list'}">
+                                <list string="Scene Entities" create="0" editable="bottom" limit="20">
+                                    <field name="name" readonly="1"/>
+                                    <field name="entity_id" readonly="1"/>
+                                    <field name="domain" readonly="1"/>
+                                    <field name="entity_state" string="Current State" readonly="1"/>
+                                </list>
+                            </field>
+                            <div class="alert alert-info mt-3" role="status" invisible="not ha_instance_id">
+                                <i class="fa fa-info-circle me-2"/>
+                                <strong>Tip:</strong> Click "Add a line" to search and select entities.
+                                When you save this scene, it will capture the current state of all selected entities.
+                            </div>
+                        </page>
+                        <page string="Attributes" name="attributes" invisible="not id">
+                            <field name="attributes_str" widget="ace" readonly="1"/>
+                        </page>
+                        <page string="History" name="history" invisible="not id">
+                            <field name="history_ids" readonly="1">
+                                <list string="Activation History">
+                                    <field name="entity_state" string="State"/>
+                                    <field name="last_changed" string="Activated At"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Scene Search View -->
+    <record id="ha_scene_view_search" model="ir.ui.view">
+        <field name="name">ha.scene.search</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <search string="Scene Search">
+                <field name="name"/>
+                <field name="entity_id"/>
+                <field name="ha_instance_id"/>
+                <field name="area_id"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
+                    <filter name="group_by_area" string="Area" context="{'group_by': 'display_area_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Scene Action - Filtered to domain='scene' (MUST be after views) -->
+    <record id="ha_scene_action" model="ir.actions.act_window">
+        <field name="name">Scenes</field>
+        <field name="res_model">ha.entity</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('domain', '=', 'scene')]</field>
+        <field name="context">{
+            'default_domain': 'scene',
+            'search_default_group_by_instance': 0
+        }</field>
+        <field name="search_view_id" ref="ha_scene_view_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('ha_scene_view_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('ha_scene_view_form')})]"/>
+    </record>
+</odoo>

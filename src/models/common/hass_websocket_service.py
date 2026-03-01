@@ -8,6 +8,11 @@ from datetime import datetime
 from odoo import api
 from odoo.service import db
 import traceback
+from concurrent.futures import ThreadPoolExecutor
+
+# 全局執行緒池，限制最大執行緒數以避免資源耗盡
+# max_workers=10 足夠處理並行資料庫操作，同時避免執行緒爆炸
+_db_executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix="ws_db_")
 
 class HassWebSocketService:
     """
@@ -86,6 +91,7 @@ class HassWebSocketService:
         在 executor 中執行同步方法
 
         用於在 async context 中執行阻塞的同步操作（如資料庫操作）
+        使用全局限制的執行緒池，避免執行緒資源耗盡
 
         Args:
             func: 要執行的同步函數
@@ -95,7 +101,8 @@ class HassWebSocketService:
             函數的返回值
         """
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, func, *args)
+        # 使用全局限制的執行緒池，避免 "can't start new thread" 錯誤
+        return await loop.run_in_executor(_db_executor, func, *args)
 
     def get_websocket_url(self) -> Optional[str]:
         """
@@ -891,6 +898,7 @@ class HassWebSocketService:
         - update action 且 changes 中包含 area_id: 同步 area 到 Odoo
         - update action 且 changes 中包含 name: 同步 name 到 Odoo
         - update action 且 changes 中包含 labels: 同步 labels 到 Odoo
+        - remove action: 從 Odoo 刪除對應的 entity（包含 scene）
         """
         try:
             action = event_data.get('action')
@@ -905,7 +913,18 @@ class HassWebSocketService:
                 f"Entity registry updated: {action} - {entity_id} (instance {self.instance_id})"
             )
 
-            # 只處理 update action
+            # 處理 remove action - 從 Odoo 刪除對應的 entity
+            if action == 'remove':
+                self._logger.info(
+                    f"Entity removed in HA: {entity_id} (instance {self.instance_id})"
+                )
+                await self._run_sync(
+                    self._sync_entity_remove_from_ha,
+                    entity_id
+                )
+                return
+
+            # 處理 update action
             if action == 'update':
                 # 檢查是否有我們關心的欄位變更
                 area_changed = 'area_id' in changes
@@ -1041,6 +1060,46 @@ class HassWebSocketService:
         except Exception as e:
             self._logger.error(
                 f"Failed to delete label from Odoo for instance {self.instance_id}: {e}",
+                exc_info=True
+            )
+
+    def _sync_entity_remove_from_ha(self, entity_id: str):
+        """
+        Sync method: Delete entity from Odoo (executed in background thread)
+
+        When an entity (including scene) is deleted in Home Assistant,
+        this method removes the corresponding record from Odoo.
+
+        Args:
+            entity_id: HA entity_id (e.g., "scene.my_scene", "light.living_room")
+        """
+        try:
+            with db.db_connect(self.db_name).cursor() as cr:
+                env = api.Environment(cr, 1, {})
+
+                existing_entity = env['ha.entity'].sudo().search([
+                    ('entity_id', '=', entity_id),
+                    ('ha_instance_id', '=', self.instance_id)
+                ], limit=1)
+
+                if existing_entity:
+                    entity_name = existing_entity.name
+                    entity_domain = existing_entity.domain
+                    # Use from_ha_sync to prevent sync loop
+                    existing_entity.with_context(from_ha_sync=True).unlink()
+                    cr.commit()
+                    self._logger.info(
+                        f"Deleted {entity_domain} entity from Odoo: {entity_name} "
+                        f"(entity_id={entity_id}, instance {self.instance_id})"
+                    )
+                else:
+                    self._logger.debug(
+                        f"Entity {entity_id} not found in Odoo, skipping delete (instance {self.instance_id})"
+                    )
+
+        except Exception as e:
+            self._logger.error(
+                f"Failed to delete entity from Odoo for instance {self.instance_id}: {e}",
                 exc_info=True
             )
 
@@ -2279,12 +2338,17 @@ class HassWebSocketService:
                     ('ha_instance_id', '=', self.instance_id)
                 ], limit=1)
 
+                # 從 attributes 中取得 friendly_name 作為顯示名稱
+                attributes = new_state_data.get('attributes', {})
+                friendly_name = attributes.get('friendly_name')
+
                 entity_values = {
                     'entity_id': entity_id,
                     'domain': entity_id.split('.')[0],
+                    'name': friendly_name,  # 使用 friendly_name 作為顯示名稱
                     'entity_state': new_state_data.get('state'),
                     'last_changed': datetime.now(),
-                    'attributes': new_state_data.get('attributes', {}),
+                    'attributes': attributes,
                     'ha_instance_id': self.instance_id  # Phase 2: 新增實例 ID
                 }
 

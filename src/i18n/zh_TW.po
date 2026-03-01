@@ -652,6 +652,16 @@ msgid "No entities in this device"
 msgstr "此裝置沒有實體"
 
 #. module: odoo_ha_addon
+#: model:ir.model,name:odoo_ha_addon.model_ha_device
+msgid "Home Assistant Device"
+msgstr "Home Assistant 裝置"
+
+#. module: odoo_ha_addon
+#: model:ir.model,name:odoo_ha_addon.model_ha_entity
+msgid "Home Assistant Entity"
+msgstr "Home Assistant 實體"
+
+#. module: odoo_ha_addon
 #: model:ir.model,name:odoo_ha_addon.model_ha_entity_tag
 msgid "Home Assistant Entity Tag"
 msgstr "Home Assistant 實體標籤"
@@ -1372,3 +1382,58 @@ msgstr "跟隨裝置"
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_view_form
 msgid "Effective Area"
 msgstr "實際分區"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_form
+msgid "Scene Entities"
+msgstr "場景實體"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_form
+msgid "Entities in this Scene"
+msgstr "此場景中的實體"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_form
+msgid "Activate"
+msgstr "啟動"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_form
+msgid "Activate this scene"
+msgstr "啟動此場景"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_form
+msgid "Scene Name"
+msgstr "場景名稱"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_form
+msgid "Scene ID"
+msgstr "場景 ID"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_form
+msgid "Last Activated"
+msgstr "最後啟動"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_form
+msgid "Current State"
+msgstr "目前狀態"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_form
+msgid "Activation History"
+msgstr "啟動歷史"
+
+#. module: odoo_ha_addon
+#: model:ir.actions.act_window,name:odoo_ha_addon.ha_scene_action
+msgid "Scenes"
+msgstr "場景"
+
+#. module: odoo_ha_addon
+#: model:ir.ui.menu,name:odoo_ha_addon.config_scene_menu
+msgid "Scene"
+msgstr "場景"

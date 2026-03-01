@@ -2,10 +2,65 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, AccessError
 import logging
 import json
+import re
+import threading
+import unicodedata
 from .common.utils import parse_iso_datetime, parse_domain_from_entitiy_id
 from .common.hass_rest_api import HassRestApi
 
 _logger = logging.getLogger(__name__)
+
+# File-based tracing for debugging area sync
+def _trace(msg):
+    """Write trace message to file for debugging"""
+    import datetime
+    with open('/tmp/area_sync_trace.log', 'a') as f:
+        f.write(f"[{datetime.datetime.now().isoformat()}] {msg}\n")
+
+
+def _name_to_entity_id(name, domain='scene'):
+    """
+    Convert a display name to a valid Home Assistant entity_id.
+
+    Uses pinyin conversion for Chinese characters (if pypinyin available),
+    otherwise falls back to unicode normalization.
+
+    Args:
+        name: Display name (e.g., "測試場景", "My Scene")
+        domain: Entity domain (default: 'scene')
+
+    Returns:
+        Valid entity_id (e.g., "scene.ce_shi_chang_jing", "scene.my_scene")
+    """
+    if not name:
+        return None
+
+    # Try to use pypinyin for Chinese character conversion
+    try:
+        from pypinyin import lazy_pinyin, Style
+        # Convert to pinyin (without tones)
+        pinyin_parts = lazy_pinyin(name, style=Style.NORMAL)
+        slug = '_'.join(pinyin_parts)
+    except ImportError:
+        # Fallback: Use unicode normalization and keep only ASCII
+        # This handles Latin characters well but Chinese will be removed
+        slug = unicodedata.normalize('NFKD', name)
+        slug = slug.encode('ascii', 'ignore').decode('ascii')
+        if not slug:
+            # If nothing left after normalization, use a hash-based ID
+            import hashlib
+            slug = 'scene_' + hashlib.md5(name.encode('utf-8')).hexdigest()[:8]
+
+    # Clean up the slug
+    slug = slug.lower()
+    slug = re.sub(r'[^a-z0-9]+', '_', slug)  # Replace non-alphanumeric with underscore
+    slug = re.sub(r'_+', '_', slug)  # Collapse multiple underscores
+    slug = slug.strip('_')  # Remove leading/trailing underscores
+
+    if not slug:
+        slug = 'unnamed'
+
+    return f"{domain}.{slug}"
 
 
 class HAEntity(models.Model):
@@ -117,10 +172,65 @@ class HAEntity(models.Model):
         help='Number of tags'
     )
 
+    # Scene-specific fields (only applicable when domain='scene')
+    scene_entity_ids = fields.Many2many(
+        'ha.entity',
+        'ha_scene_entity_rel',
+        'scene_id',
+        'entity_id',
+        string='Scene Entities',
+        domain="[('domain', '!=', 'scene')]",
+        help='Entities included in this scene (only for domain=scene)'
+    )
+    scene_entity_count = fields.Integer(
+        string='Scene Entity Count',
+        compute='_compute_scene_entity_count',
+        help='Number of entities in this scene'
+    )
+    ha_scene_id = fields.Char(
+        string='HA Scene ID',
+        copy=False,
+        help='Numeric ID used by Home Assistant for scene config (timestamp format). '
+             'Required for scenes to be editable in HA GUI.'
+    )
+    scene_source = fields.Selection(
+        [
+            ('odoo', 'Created in Odoo'),
+            ('device', 'Device Scene'),
+        ],
+        string='Scene Source',
+        compute='_compute_scene_source',
+        store=False,
+        help='Indicates where the scene was created. '
+             'Device scenes (e.g., Hue Bridge) have limited sync capabilities.'
+    )
+
+    @api.depends('domain', 'ha_scene_id', 'device_id')
+    def _compute_scene_source(self):
+        """Compute the source of the scene for display purposes."""
+        for record in self:
+            if record.domain != 'scene':
+                record.scene_source = False
+            elif record.ha_scene_id:
+                # Has ha_scene_id means it was created via Odoo or is an editable HA scene
+                record.scene_source = 'odoo'
+            else:
+                # No ha_scene_id means it's a device-created scene (Hue, etc.)
+                record.scene_source = 'device'
+
     @api.depends('tag_ids')
     def _compute_tag_count(self):
         for entity in self:
             entity.tag_count = len(entity.tag_ids)
+
+    @api.depends('scene_entity_ids')
+    def _compute_scene_entity_count(self):
+        """Compute the number of entities in this scene"""
+        for entity in self:
+            if entity.domain == 'scene':
+                entity.scene_entity_count = len(entity.scene_entity_ids)
+            else:
+                entity.scene_entity_count = 0
 
     @api.depends('area_id', 'follows_device_area', 'device_id.area_id')
     def _compute_display_area_id(self):
@@ -159,7 +269,324 @@ class HAEntity(models.Model):
     # - label_ids: Entity 標籤（雙向同步到 HA Entity Registry）
     # - tag_ids: Entity 標籤（Odoo 內部分類，不同步到 HA）
     # - note: 使用者備註
-    _USER_EDITABLE_FIELDS = {'enable_record', 'area_id', 'follows_device_area', 'name', 'label_ids', 'tag_ids', 'note', 'properties'}
+    # - scene_entity_ids: Scene 包含的實體（雙向同步到 HA，僅適用於 domain='scene'）
+    _USER_EDITABLE_FIELDS = {'enable_record', 'area_id', 'follows_device_area', 'name', 'label_ids', 'tag_ids', 'note', 'properties', 'scene_entity_ids'}
+
+    @api.model
+    def default_get(self, fields_list):
+        """
+        Override default_get to auto-select HA instance when creating new entities.
+
+        If there's only one HA instance, automatically select it.
+        This improves UX for single-instance setups.
+        """
+        defaults = super().default_get(fields_list)
+
+        # Auto-select HA instance if creating a new entity
+        if 'ha_instance_id' in fields_list and not defaults.get('ha_instance_id'):
+            # Check context for default instance
+            if self.env.context.get('default_ha_instance_id'):
+                defaults['ha_instance_id'] = self.env.context['default_ha_instance_id']
+            else:
+                # Get all accessible instances
+                instances = self.env['ha.instance'].search([], limit=2)
+                if len(instances) == 1:
+                    # Only one instance - auto-select it
+                    defaults['ha_instance_id'] = instances.id
+
+        return defaults
+
+    @api.model
+    def _search(self, domain, offset=0, limit=None, order=None):
+        """
+        Override _search to handle scene entity search with instance filtering.
+
+        When searching for entities to add to a scene, the domain may contain
+        ha_instance_id = False in create mode. We use the context to get the
+        correct instance_id.
+
+        Context keys:
+        - scene_entity_search_instance_id: The instance ID for filtering scene entities
+        """
+        # Check if this is a scene entity search with a False instance_id
+        scene_instance_id = self.env.context.get('scene_entity_search_instance_id')
+        if scene_instance_id:
+            # Build a new domain with the correct instance_id
+            new_domain = []
+            for clause in domain:
+                if isinstance(clause, (list, tuple)) and len(clause) >= 3:
+                    field, op, value = clause[0], clause[1], clause[2]
+                    # Replace ha_instance_id = False with the correct instance_id
+                    if field == 'ha_instance_id' and op == '=' and not value:
+                        new_domain.append(('ha_instance_id', '=', scene_instance_id))
+                        continue
+                new_domain.append(clause)
+            domain = new_domain
+
+        return super()._search(domain, offset=offset, limit=limit, order=order)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """
+        Override create to process entity_id for new scenes.
+
+        For entities with domain='scene':
+        - Process user-provided entity_id: add scene. prefix, convert Chinese to pinyin
+        - If entity_id is not provided, generate it from the name
+        - Auto-select ha_instance_id if only one instance exists
+        - Sync new scene to Home Assistant after creation
+        """
+        for vals in vals_list:
+            # Handle scene-specific logic
+            if vals.get('domain') == 'scene':
+                # Get instance_id for uniqueness check
+                instance_id = vals.get('ha_instance_id')
+                if not instance_id:
+                    instance_id = self.env.context.get('default_ha_instance_id')
+                    if not instance_id:
+                        instances = self.env['ha.instance'].search([], limit=1)
+                        if instances:
+                            instance_id = instances.id
+                            vals['ha_instance_id'] = instance_id
+
+                # Process entity_id
+                if vals.get('entity_id'):
+                    # User provided entity_id - process it
+                    user_input = vals['entity_id'].strip()
+
+                    # Remove scene. prefix if user included it (we'll add it back)
+                    if user_input.startswith('scene.'):
+                        user_input = user_input[6:]
+
+                    # Convert to valid entity_id format (handles Chinese -> pinyin)
+                    base_entity_id = _name_to_entity_id(user_input, 'scene')
+                    vals['entity_id'] = base_entity_id
+
+                elif vals.get('name'):
+                    # No entity_id provided - generate from name
+                    base_entity_id = _name_to_entity_id(vals['name'], 'scene')
+                    vals['entity_id'] = base_entity_id
+
+                # Ensure entity_id is unique within the instance
+                if instance_id and vals.get('entity_id'):
+                    base_entity_id = vals['entity_id']
+                    entity_id = base_entity_id
+                    counter = 1
+                    while self.search([
+                        ('entity_id', '=', entity_id),
+                        ('ha_instance_id', '=', instance_id)
+                    ], limit=1):
+                        entity_id = f"{base_entity_id}_{counter}"
+                        counter += 1
+                    vals['entity_id'] = entity_id
+
+                # Set initial state
+                if not vals.get('entity_state'):
+                    vals['entity_state'] = 'unknown'
+
+        records = super().create(vals_list)
+
+        # Schedule HA sync for new scenes after transaction commits
+        # This ensures Many2many relations (scene_entity_ids) are fully persisted
+        scene_ids_to_sync = []
+        for record in records:
+            if record.domain == 'scene':
+                scene_ids_to_sync.append(record.id)
+
+        if scene_ids_to_sync:
+            # Capture required data before postcommit
+            db_name = self.env.cr.dbname
+            uid = self.env.uid
+
+            def sync_scenes_in_background():
+                """
+                Background thread for HA scene sync.
+
+                This runs in a completely separate thread with its own database connection,
+                avoiding all transaction conflicts with the main Odoo process.
+
+                Key design decisions:
+                1. Use db_connect() instead of registry.cursor() - cleaner connection handling
+                2. Use READ COMMITTED isolation (default) - avoids serialization conflicts
+                3. Commit immediately after each scene - partial success is better than total failure
+                4. Use REST API for scene creation (no WebSocket queue complexity)
+                5. Use direct WebSocket call only for entity_registry updates
+                """
+                import time as time_module
+                from odoo.sql_db import db_connect
+
+                # Wait for original transaction to fully complete
+                time_module.sleep(0.3)
+
+                _trace(f"[BG_THREAD] Starting sync for scene_ids: {scene_ids_to_sync}")
+                _logger.info(f"[BG_THREAD] Starting background sync for {len(scene_ids_to_sync)} scenes")
+
+                for scene_id in scene_ids_to_sync:
+                    try:
+                        # Create fresh database connection for each scene
+                        # This ensures clean transaction state
+                        with db_connect(db_name).cursor() as cr:
+                            env = api.Environment(cr, uid, {})
+                            scene = env['ha.entity'].browse(scene_id)
+
+                            if not scene.exists():
+                                _logger.warning(f"[BG_THREAD] Scene {scene_id} no longer exists, skipping")
+                                continue
+
+                            if not scene.scene_entity_ids:
+                                _logger.warning(f"[BG_THREAD] Scene {scene_id} has no entities, skipping")
+                                continue
+
+                            _logger.info(f"[BG_THREAD] Processing scene {scene_id}: "
+                                        f"entity_id={scene.entity_id}, "
+                                        f"area_id={scene.area_id.area_id if scene.area_id else None}")
+                            _trace(f"[BG_THREAD] Processing scene {scene_id}")
+
+                            try:
+                                # Use _sync_scene_to_ha_internal which handles both
+                                # scene creation and area/label sync
+                                scene._sync_scene_to_ha_internal()
+                                cr.commit()
+                                _logger.info(f"[BG_THREAD] Scene {scene_id} synced successfully")
+                                _trace(f"[BG_THREAD] Scene {scene_id} sync SUCCESS")
+                            except Exception as sync_error:
+                                _logger.error(f"[BG_THREAD] Scene {scene_id} sync failed: {sync_error}", exc_info=True)
+                                _trace(f"[BG_THREAD] Scene {scene_id} sync FAILED: {sync_error}")
+                                cr.rollback()
+
+                    except Exception as e:
+                        _logger.error(f"[BG_THREAD] Error processing scene {scene_id}: {e}", exc_info=True)
+                        _trace(f"[BG_THREAD] Scene {scene_id} outer error: {e}")
+
+            def start_sync_thread():
+                """Postcommit callback to start the background sync thread."""
+                thread = threading.Thread(
+                    target=sync_scenes_in_background,
+                    name=f"ha_scene_sync_{scene_ids_to_sync[0]}",
+                    daemon=True
+                )
+                thread.start()
+                _logger.info(f"[POSTCOMMIT] Started background sync thread for scenes: {scene_ids_to_sync}")
+
+            self.env.cr.postcommit.add(start_sync_thread)
+
+        return records
+
+    def unlink(self):
+        """
+        Override unlink to delete scenes from Home Assistant when deleted in Odoo.
+
+        HA deletion is scheduled via postcommit + background thread to:
+        1. Not block the Odoo delete operation if HA is slow/unreachable
+        2. Only execute after the Odoo transaction successfully commits
+        3. Not block Odoo's HTTP worker threads (prevents bus/longpolling interruption)
+
+        Handles both cases:
+        - Scenes with ha_scene_id: Delete directly using the stored ID
+        - Scenes without ha_scene_id: Query HA to get the config ID first
+
+        If called with context 'from_ha_sync=True', skips HA deletion to prevent
+        sync loops when entity is removed from HA first.
+        """
+        # Skip HA deletion if this unlink is triggered by HA sync
+        # (entity was already deleted in HA, no need to delete again)
+        from_ha_sync = self.env.context.get('from_ha_sync', False)
+
+        # Collect scene info before deletion
+        scenes_to_delete = []
+        scenes_to_lookup = []  # Scenes that need ID lookup from HA
+
+        if not from_ha_sync:
+            for record in self:
+                if record.domain == 'scene' and record.ha_instance_id:
+                    if record.ha_scene_id:
+                        # Scene has stored ha_scene_id, can delete directly
+                        scenes_to_delete.append({
+                            'entity_id': record.entity_id,
+                            'ha_scene_id': record.ha_scene_id,
+                            'ha_instance_id': record.ha_instance_id.id,
+                        })
+                    else:
+                        # Scene needs ID lookup from HA before deletion
+                        scenes_to_lookup.append({
+                            'entity_id': record.entity_id,
+                            'ha_instance_id': record.ha_instance_id.id,
+                        })
+
+        # Perform the actual deletion in Odoo
+        result = super().unlink()
+
+        # Schedule HA scene deletion via postcommit + background thread (truly non-blocking)
+        # This runs after the transaction commits successfully, in a separate thread
+        # to avoid blocking Odoo's HTTP workers (which would cause bus/longpolling interruption)
+        if scenes_to_delete or scenes_to_lookup:
+            # Capture necessary info for the background thread
+            db_name = self.env.cr.dbname
+            uid = self.env.uid
+
+            def delete_scenes_from_ha_thread():
+                """Background thread function to delete scenes from HA."""
+                try:
+                    from odoo import registry
+                    from odoo.sql_db import db_connect
+
+                    with db_connect(db_name).cursor() as new_cr:
+                        new_env = api.Environment(new_cr, uid, {})
+
+                        # First, lookup IDs for scenes that need it
+                        for scene_info in scenes_to_lookup:
+                            try:
+                                rest_api = HassRestApi(new_env, scene_info['ha_instance_id'])
+                                ha_scene_id = rest_api.get_scene_config_id(scene_info['entity_id'])
+                                if ha_scene_id:
+                                    scenes_to_delete.append({
+                                        'entity_id': scene_info['entity_id'],
+                                        'ha_scene_id': ha_scene_id,
+                                        'ha_instance_id': scene_info['ha_instance_id'],
+                                    })
+                                    _logger.info(
+                                        f"Found ha_scene_id for {scene_info['entity_id']}: {ha_scene_id}"
+                                    )
+                                else:
+                                    _logger.info(
+                                        f"Scene {scene_info['entity_id']} has no config ID in HA "
+                                        f"(may be a device-created scene like Hue), skipping HA deletion"
+                                    )
+                            except Exception as e:
+                                _logger.warning(
+                                    f"Failed to lookup scene config ID for {scene_info['entity_id']}: {e}"
+                                )
+
+                        # Now delete all scenes with known IDs
+                        for scene_info in scenes_to_delete:
+                            try:
+                                rest_api = HassRestApi(new_env, scene_info['ha_instance_id'])
+                                rest_api.delete_scene_config(scene_info['ha_scene_id'])
+                                _logger.info(
+                                    f"Deleted scene {scene_info['entity_id']} "
+                                    f"(ha_scene_id={scene_info['ha_scene_id']}) from HA"
+                                )
+                            except Exception as e:
+                                # Log error but don't fail - Odoo deletion was already successful
+                                _logger.error(
+                                    f"Failed to delete scene {scene_info['entity_id']} from HA: {e}"
+                                )
+                except Exception as e:
+                    _logger.error(f"Error in background scene deletion thread: {e}")
+
+            def start_delete_thread():
+                """Postcommit callback to start the background thread."""
+                thread = threading.Thread(
+                    target=delete_scenes_from_ha_thread,
+                    name=f"ha_scene_delete_{scenes_to_delete[0]['entity_id'] if scenes_to_delete else 'lookup'}",
+                    daemon=True
+                )
+                thread.start()
+                _logger.debug(f"Started background thread for HA scene deletion")
+
+            self.env.cr.postcommit.add(start_delete_thread)
+
+        return result
 
     @api.constrains('ha_instance_id', 'group_ids', 'tag_ids')
     def _check_instance_consistency(self):
@@ -227,6 +654,7 @@ class HAEntity(models.Model):
         follows_device_area_changed = 'follows_device_area' in vals
         name_changed = 'name' in vals
         label_ids_changed = 'label_ids' in vals
+        scene_entity_ids_changed = 'scene_entity_ids' in vals
 
         result = super().write(vals)
 
@@ -258,9 +686,22 @@ class HAEntity(models.Model):
                     except Exception as e:
                         _logger.error(f"Failed to sync entity labels {record.entity_id} to HA: {e}")
 
+                # 當 scene_entity_ids 變更時，更新 Scene 到 HA
+                if scene_entity_ids_changed and record.domain == 'scene':
+                    _logger.info(f"Scene entity_ids changed for {record.entity_id}, triggering sync to HA")
+                    _logger.debug(f"Scene {record.entity_id} has {len(record.scene_entity_ids)} entities: {record.scene_entity_ids.mapped('entity_id')}")
+                    if record.scene_entity_ids:
+                        try:
+                            record._create_scene_in_ha()
+                            _logger.info(f"Scene {record.entity_id} synced to HA successfully")
+                        except Exception as e:
+                            _logger.error(f"Failed to sync scene {record.entity_id} to HA: {e}", exc_info=True)
+                    else:
+                        _logger.info(f"Scene {record.entity_id} has no entities, skipping sync to HA")
+
         return result
 
-    def _update_entity_area_in_ha(self):
+    def _update_entity_area_in_ha(self, override_entity_id=None):
         """
         在 HA 中更新 Entity 的 area_id
 
@@ -269,17 +710,31 @@ class HAEntity(models.Model):
 
         當 follows_device_area = True 時，發送 area_id = null 給 HA，
         這會讓 HA 中的實體設定為「跟隨裝置分區」。
+
+        IMPORTANT: This method uses direct WebSocket connection (via HassRestApi)
+        instead of the queue-based WebSocketClient to avoid PostgreSQL serialization
+        conflicts when called from background threads. The direct WebSocket approach
+        creates a short-lived connection that doesn't involve database commits.
+
+        Args:
+            override_entity_id: Optional entity_id to use instead of self.entity_id.
+                               This is needed for scenes where HA generates a different
+                               entity_id than what Odoo has stored.
         """
         self.ensure_one()
+        # Use override_entity_id if provided (for scenes with HA-generated entity_id)
+        effective_entity_id = override_entity_id or self.entity_id
+        _trace(f"[AREA_SYNC_EXEC] Starting _update_entity_area_in_ha for {effective_entity_id}")
+        _logger.info(f"[AREA_SYNC_EXEC] Starting _update_entity_area_in_ha for {effective_entity_id}")
+        _logger.info(f"[AREA_SYNC_EXEC] Self record: id={self.id}, entity_id={self.entity_id}, effective_entity_id={effective_entity_id}, area_id={self.area_id}, follows_device_area={self.follows_device_area}")
+        _trace(f"[AREA_SYNC_EXEC] Self record: id={self.id}, entity_id={self.entity_id}, effective_entity_id={effective_entity_id}, area_id={self.area_id}, follows_device_area={self.follows_device_area}")
 
         if not self.ha_instance_id:
-            _logger.warning(f"Cannot sync entity area {self.entity_id}: no HA instance")
+            _logger.warning(f"[AREA_SYNC_EXEC] Cannot sync entity area {self.entity_id}: no HA instance")
+            _trace(f"[AREA_SYNC_EXEC] Cannot sync entity area {self.entity_id}: no HA instance")
             return
 
         try:
-            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
-            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
-
             # 當 follows_device_area = True 時，發送 null 給 HA（跟隨裝置分區）
             # 否則發送實體的 area_id
             if self.follows_device_area:
@@ -287,21 +742,40 @@ class HAEntity(models.Model):
             else:
                 ha_area_id = self.area_id.area_id if self.area_id else None
 
-            payload = {
-                'entity_id': self.entity_id,
-                'area_id': ha_area_id,
-            }
+            _logger.info(f"[AREA_SYNC_EXEC] Using direct WebSocket for entity_registry/update")
+            _trace(f"[AREA_SYNC_EXEC] Using direct WebSocket for entity_registry/update")
 
-            _logger.info(f"Updating entity area in HA: {self.entity_id} -> area_id={ha_area_id} (follows_device_area={self.follows_device_area})")
-            result = client.call_websocket_api_sync('config/entity_registry/update', payload)
+            # Use direct WebSocket via HassRestApi to avoid database queue conflicts
+            rest_api = HassRestApi(self.env, self.ha_instance_id.id)
+
+            _logger.info(f"[AREA_SYNC_EXEC] Sending direct WebSocket update: entity_id={effective_entity_id}, area_id={ha_area_id}")
+            _trace(f"[AREA_SYNC_EXEC] Sending direct WebSocket update: entity_id={effective_entity_id}, area_id={ha_area_id}")
+
+            result = rest_api.update_entity_registry(
+                entity_id=effective_entity_id,
+                area_id=ha_area_id
+            )
+
+            _logger.info(f"[AREA_SYNC_EXEC] Direct WebSocket result: {result}")
+            _trace(f"[AREA_SYNC_EXEC] Direct WebSocket result: {result}")
 
             if result and isinstance(result, dict):
-                _logger.info(f"Entity {self.entity_id} area updated in HA successfully")
+                # Verify HA accepted the area change by checking the response
+                returned_area = result.get('area_id')
+                if returned_area == ha_area_id:
+                    _logger.info(f"Entity {effective_entity_id} area updated in HA successfully: area_id={returned_area}")
+                else:
+                    # HA may reject area changes for device-owned entities
+                    _logger.warning(
+                        f"Entity {effective_entity_id} area update mismatch: "
+                        f"sent area_id={ha_area_id}, HA returned area_id={returned_area}. "
+                        f"This may occur for device-owned entities (e.g., Hue scenes)."
+                    )
             else:
-                _logger.warning(f"Unexpected result from HA: {result}")
+                _logger.warning(f"Unexpected result from HA for {effective_entity_id}: {result}")
 
         except Exception as e:
-            _logger.error(f"Failed to update entity area {self.entity_id} in HA: {e}", exc_info=True)
+            _logger.error(f"Failed to update entity area {effective_entity_id} in HA: {e}", exc_info=True)
             raise
 
     def _update_entity_name_in_ha(self):
@@ -357,41 +831,50 @@ class HAEntity(models.Model):
             _logger.error(f"Failed to update entity name {self.entity_id} in HA: {e}", exc_info=True)
             raise
 
-    def _update_entity_labels_in_ha(self):
+    def _update_entity_labels_in_ha(self, override_entity_id=None):
         """
         在 HA 中更新 Entity 的 labels
 
         使用 WebSocket API: config/entity_registry/update
         HA Entity Registry 的 labels 欄位是 label_id 陣列
+
+        IMPORTANT: This method uses direct WebSocket connection (via HassRestApi)
+        instead of the queue-based WebSocketClient to avoid PostgreSQL serialization
+        conflicts when called from background threads.
+
+        Args:
+            override_entity_id: Optional entity_id to use instead of self.entity_id.
+                               This is needed for scenes where HA generates a different
+                               entity_id than what Odoo has stored.
         """
         self.ensure_one()
+        # Use override_entity_id if provided (for scenes with HA-generated entity_id)
+        effective_entity_id = override_entity_id or self.entity_id
 
         if not self.ha_instance_id:
-            _logger.warning(f"Cannot sync entity labels {self.entity_id}: no HA instance")
+            _logger.warning(f"Cannot sync entity labels {effective_entity_id}: no HA instance")
             return
 
         try:
-            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
-            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
-
             # Convert Odoo label_ids (Many2many) to HA labels (label_id array)
             ha_labels = self.label_ids.mapped('label_id') if self.label_ids else []
 
-            payload = {
-                'entity_id': self.entity_id,
-                'labels': ha_labels,
-            }
+            _logger.info(f"Updating entity labels in HA: {effective_entity_id} -> labels={ha_labels}")
 
-            _logger.info(f"Updating entity labels in HA: {self.entity_id} -> labels={ha_labels}")
-            result = client.call_websocket_api_sync('config/entity_registry/update', payload)
+            # Use direct WebSocket via HassRestApi to avoid database queue conflicts
+            rest_api = HassRestApi(self.env, self.ha_instance_id.id)
+            result = rest_api.update_entity_registry(
+                entity_id=effective_entity_id,
+                labels=ha_labels
+            )
 
             if result and isinstance(result, dict):
-                _logger.info(f"Entity {self.entity_id} labels updated in HA successfully")
+                _logger.info(f"Entity {effective_entity_id} labels updated in HA successfully")
             else:
                 _logger.warning(f"Unexpected result from HA: {result}")
 
         except Exception as e:
-            _logger.error(f"Failed to update entity labels {self.entity_id} in HA: {e}", exc_info=True)
+            _logger.error(f"Failed to update entity labels {effective_entity_id} in HA: {e}", exc_info=True)
             raise
 
     @api.depends('attributes')
@@ -478,6 +961,9 @@ class HAEntity(models.Model):
                     self.env['ha.device'].sudo().sync_devices_from_ha(instance_id=instance_id)
 
                 self._sync_entity_registry_relations(instance_id)
+
+                # 同步 Scene 的實體清單（從 Scene attributes.entity_id 取得）
+                self._sync_scene_entity_relations(instance_id)
 
             # 更新實例的 last_sync_date（批量同步完成時間）
             try:
@@ -678,6 +1164,101 @@ class HAEntity(models.Model):
             f"{device_updated_count} device relations updated "
             f"(SET: {device_set_count}, CLEARED: {device_clear_count}, NOT_IN_MAP: {device_not_in_map_count})"
         )
+
+    def _sync_scene_entity_relations(self, instance_id):
+        """
+        同步 Scene 的實體清單關聯
+        從 Scene 的 attributes.entity_id 取得包含的實體清單並更新 scene_entity_ids
+        同時也同步 ha_scene_id（HA 場景的數字 ID）
+
+        Home Assistant Scene 的 attributes 中包含 entity_id 欄位，
+        這是一個包含 Scene 所控制的所有實體 ID 的列表。
+        attributes 中的 'id' 欄位是場景的配置 ID（用於 GUI 編輯）。
+
+        Args:
+            instance_id: HA 實例 ID
+        """
+        _logger.info(f"=== Starting sync scene entity relations (instance {instance_id}) ===")
+
+        try:
+            # 查找所有 Scene 實體
+            scenes = self.env['ha.entity'].sudo().search([
+                ('domain', '=', 'scene'),
+                ('ha_instance_id', '=', instance_id)
+            ])
+
+            if not scenes:
+                _logger.debug("No scene entities found to sync")
+                return
+
+            _logger.info(f"Found {len(scenes)} scene entities to sync")
+
+            # 建立 entity_id -> ha.entity record ID 的映射（只包含此實例的 entities）
+            all_entities = self.env['ha.entity'].sudo().search([
+                ('ha_instance_id', '=', instance_id),
+                ('domain', '!=', 'scene')  # Scene 不能包含其他 Scene
+            ])
+            entity_map = {entity.entity_id: entity.id for entity in all_entities}
+            _logger.debug(f"Entity map size: {len(entity_map)} entities")
+
+            updated_count = 0
+            ha_scene_id_updated_count = 0
+            for scene in scenes:
+                try:
+                    # 從 Scene 的 attributes 中取得資訊
+                    attributes = scene.attributes or {}
+                    ha_entity_ids = attributes.get('entity_id', [])
+                    # HA scene 的 'id' 欄位（數字時間戳，用於 GUI 編輯）
+                    ha_scene_id_from_attr = attributes.get('id')
+
+                    if not isinstance(ha_entity_ids, list):
+                        # 有時可能是單一字串
+                        ha_entity_ids = [ha_entity_ids] if ha_entity_ids else []
+
+                    # 將 HA entity_id 轉換為 Odoo record IDs
+                    odoo_entity_ids = []
+                    for ha_entity_id in ha_entity_ids:
+                        if ha_entity_id in entity_map:
+                            odoo_entity_ids.append(entity_map[ha_entity_id])
+                        else:
+                            _logger.debug(f"Scene {scene.entity_id}: entity {ha_entity_id} not found in map")
+
+                    # 準備更新資料
+                    update_vals = {}
+
+                    # 比較並更新 scene_entity_ids
+                    current_ids = set(scene.scene_entity_ids.ids)
+                    new_ids = set(odoo_entity_ids)
+
+                    if current_ids != new_ids:
+                        update_vals['scene_entity_ids'] = [(6, 0, odoo_entity_ids)]
+                        updated_count += 1
+                        _logger.debug(
+                            f"Updated scene {scene.entity_id}: "
+                            f"{len(current_ids)} -> {len(new_ids)} entities"
+                        )
+
+                    # 同步 ha_scene_id（如果 HA 有提供且 Odoo 尚未有）
+                    if ha_scene_id_from_attr and not scene.ha_scene_id:
+                        update_vals['ha_scene_id'] = str(ha_scene_id_from_attr)
+                        ha_scene_id_updated_count += 1
+                        _logger.debug(
+                            f"Synced ha_scene_id for {scene.entity_id}: {ha_scene_id_from_attr}"
+                        )
+
+                    if update_vals:
+                        scene.with_context(from_ha_sync=True).write(update_vals)
+
+                except Exception as e:
+                    _logger.error(f"Error syncing scene {scene.entity_id} entities: {e}")
+
+            _logger.info(
+                f"Scene entity relations sync completed (instance {instance_id}): "
+                f"{updated_count} scene entity lists updated, {ha_scene_id_updated_count} ha_scene_ids synced"
+            )
+
+        except Exception as e:
+            _logger.error(f"Failed to sync scene entity relations: {e}", exc_info=True)
 
     def fetch_states(self):
         """
@@ -1038,5 +1619,387 @@ class HAEntity(models.Model):
                 'default_entity_id': self.id,
             },
         }
+
+    # ========== Scene-specific Methods ==========
+
+    def action_activate_scene(self):
+        """
+        Activate a scene in Home Assistant.
+
+        Calls HA service: scene.turn_on
+        Only applicable for entities with domain='scene'.
+        """
+        self.ensure_one()
+
+        if self.domain != 'scene':
+            raise ValidationError(_('This action is only available for scene entities.'))
+
+        if not self.ha_instance_id:
+            raise ValidationError(_('No HA instance configured for this entity.'))
+
+        try:
+            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
+            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
+
+            payload = {
+                'domain': 'scene',
+                'service': 'turn_on',
+                'target': {
+                    'entity_id': self.entity_id
+                }
+            }
+
+            _logger.info(f"Activating scene: {self.entity_id}")
+            client.call_websocket_api_sync('call_service', payload)
+            _logger.info(f"Scene {self.entity_id} activated successfully")
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Scene Activated'),
+                    'message': _('Scene "%s" has been activated.') % (self.name or self.entity_id),
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f"Failed to activate scene {self.entity_id}: {e}", exc_info=True)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Activation Failed'),
+                    'message': _('Failed to activate scene: %s') % str(e),
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    def action_sync_scene_to_ha(self):
+        """
+        Public action to sync scene to Home Assistant.
+        This creates/updates the scene in HA with current entity states.
+
+        Can be called from UI button or programmatically.
+        """
+        self.ensure_one()
+
+        if self.domain != 'scene':
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Error'),
+                    'message': _('This action is only available for scenes.'),
+                    'type': 'warning',
+                }
+            }
+
+        if not self.scene_entity_ids:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('No Entities'),
+                    'message': _('Please add entities to the scene before syncing.'),
+                    'type': 'warning',
+                }
+            }
+
+        try:
+            self._create_scene_in_ha()
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Scene Synced'),
+                    'message': _('Scene "%s" has been synced to Home Assistant.') % (self.name or self.entity_id),
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+        except Exception as e:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Sync Failed'),
+                    'message': _('Failed to sync scene: %s') % str(e),
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    def action_batch_sync_scenes_to_ha(self):
+        """
+        Batch action to sync multiple scenes to Home Assistant.
+
+        This is useful for re-syncing existing scenes to ensure they have
+        the correct metadata (entity_only: true) for proper display in HA.
+
+        Can be called from:
+        - Tree view action menu (multi-select)
+        - Server action
+        - Programmatically
+        """
+        scenes = self.filtered(lambda r: r.domain == 'scene')
+
+        if not scenes:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('No Scenes Selected'),
+                    'message': _('Please select scene entities to sync.'),
+                    'type': 'warning',
+                }
+            }
+
+        success_count = 0
+        failed_scenes = []
+        skipped_scenes = []
+
+        for scene in scenes:
+            if not scene.scene_entity_ids:
+                skipped_scenes.append(scene.name or scene.entity_id)
+                continue
+
+            try:
+                scene._create_scene_in_ha()
+                success_count += 1
+            except Exception as e:
+                _logger.error(f"Failed to sync scene {scene.entity_id}: {e}")
+                failed_scenes.append(f"{scene.name or scene.entity_id}: {str(e)}")
+
+        # Build result message
+        messages = []
+        if success_count:
+            messages.append(_('%d scene(s) synced successfully.') % success_count)
+        if skipped_scenes:
+            messages.append(_('Skipped (no entities): %s') % ', '.join(skipped_scenes))
+        if failed_scenes:
+            messages.append(_('Failed: %s') % ', '.join(failed_scenes))
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Batch Scene Sync Complete'),
+                'message': ' '.join(messages),
+                'type': 'success' if not failed_scenes else 'warning',
+                'sticky': bool(failed_scenes),
+            }
+        }
+
+    def _create_scene_in_ha(self):
+        """
+        Create or update a scene in Home Assistant via config API.
+
+        Uses the /api/config/scene/config/{id} endpoint to create scenes
+        that are editable in the HA GUI (stored in scenes.yaml).
+
+        IMPORTANT: HA requires a numeric timestamp ID (e.g., '1709123456789') for scenes
+        to be editable in the GUI. This is how the HA frontend creates scenes.
+
+        This method:
+        1. Generates or reuses a numeric ha_scene_id (timestamp format)
+        2. Gets current states of all scene entities
+        3. Creates/updates scene config via HA config API
+        4. Scene will be editable in HA Settings > Automations & Scenes
+
+        Uses REST API to avoid WebSocket connection issues in async contexts.
+        Only applicable for entities with domain='scene'.
+        """
+        self.ensure_one()
+
+        if self.domain != 'scene':
+            return
+
+        if not self.ha_instance_id or not self.scene_entity_ids:
+            _logger.warning(f"Cannot create scene {self.entity_id}: missing instance or entities")
+            return
+
+        try:
+            import time
+
+            rest_api = HassRestApi(self.env, self.ha_instance_id.id)
+
+            # Generate or reuse numeric HA scene ID (timestamp in milliseconds)
+            # This format matches how HA frontend creates scenes
+            if not self.ha_scene_id:
+                # Generate new timestamp ID
+                ha_scene_id = str(int(time.time() * 1000))
+                # Save it for future updates
+                self.sudo().write({'ha_scene_id': ha_scene_id})
+                _logger.info(f"Generated new ha_scene_id for {self.entity_id}: {ha_scene_id}")
+            else:
+                ha_scene_id = self.ha_scene_id
+                _logger.info(f"Reusing existing ha_scene_id for {self.entity_id}: {ha_scene_id}")
+
+            # Get entity_ids for the scene
+            entity_ids = self.scene_entity_ids.mapped('entity_id')
+
+            # Get current states of all entities
+            _logger.info(f"Getting current states for scene entities: {entity_ids}")
+            entity_states = rest_api.get_entity_states(entity_ids)
+            _logger.debug(f"Entity states for scene {self.entity_id}: {entity_states}")
+
+            if not entity_states:
+                _logger.warning(f"No entity states retrieved for scene {self.entity_id}, skipping sync")
+                return
+
+            # Create scene config via HA config API (editable in GUI)
+            scene_name = self.name or self.entity_id.replace('scene.', '')
+            _logger.info(f"Creating scene config in HA: ha_scene_id={ha_scene_id}, name={scene_name}, entities={len(entity_states)}")
+            result = rest_api.create_scene_config(
+                ha_scene_id=ha_scene_id,
+                name=scene_name,
+                entities=entity_states
+            )
+            _logger.info(f"Scene {self.entity_id} (ha_scene_id={ha_scene_id}) created in HA successfully. Result: {result}")
+
+            # HA generates entity_id based on scene name, which may differ from Odoo's entity_id
+            # We need to fetch the actual entity_id from HA and update Odoo
+            # Wait briefly for HA to register the scene, then query for it
+            import time as time_module
+            time_module.sleep(0.5)  # Brief delay for HA to process
+
+            ha_entity_id = rest_api.get_scene_entity_id_by_config_id(ha_scene_id)
+            if ha_entity_id and ha_entity_id != self.entity_id:
+                old_entity_id = self.entity_id
+                # Update entity_id to match HA's generated ID
+                self.sudo().with_context(from_ha_sync=True).write({'entity_id': ha_entity_id})
+                # Note: Do NOT call self.env.cr.commit() here - let the caller handle transaction
+                # This method is called from postcommit callback which manages its own transaction
+                # Invalidate cache to refresh entity_id for subsequent operations
+                self.invalidate_recordset(['entity_id'])
+                _logger.info(f"Updated entity_id from '{old_entity_id}' to '{ha_entity_id}' to match HA")
+            elif ha_entity_id:
+                _logger.info(f"Scene entity_id '{ha_entity_id}' matches Odoo, no update needed")
+            else:
+                _logger.warning(f"Could not determine HA entity_id for scene {ha_scene_id}, keeping '{self.entity_id}'")
+
+            # Sync area_id to HA via entity_registry/update
+            # Scene area is managed at entity registry level, not in scene config
+            # Refresh the record to ensure we have latest data after the ha_scene_id write
+            self.invalidate_recordset()
+            _trace(f"[AREA_SYNC_CREATE] Starting area sync for scene")
+
+            # CRITICAL: Use the HA-confirmed entity_id for Area/Label sync
+            # After scene creation, HA may generate a different entity_id than what Odoo has
+            # We must use the actual HA entity_id for entity_registry/update calls
+            current_area = self.area_id
+            # Use ha_entity_id if available, otherwise fall back to self.entity_id
+            current_entity_id = ha_entity_id if ha_entity_id else self.entity_id
+            _logger.info(f"[AREA_SYNC_CREATE] Scene {current_entity_id} - area_id record: {current_area}, "
+                        f"ha_area_id: {current_area.area_id if current_area else None}, "
+                        f"ha_instance_id: {self.ha_instance_id.id if self.ha_instance_id else None}")
+            _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} - area_id record: {current_area}, "
+                        f"ha_area_id: {current_area.area_id if current_area else None}")
+
+            if current_area:
+                try:
+                    _logger.info(f"[AREA_SYNC_CREATE] Calling _update_entity_area_in_ha for {current_entity_id} with area {current_area.area_id}")
+                    _trace(f"[AREA_SYNC_CREATE] Calling _update_entity_area_in_ha for {current_entity_id} with area {current_area.area_id}")
+                    # Pass the HA-confirmed entity_id to ensure correct API call
+                    self._update_entity_area_in_ha(override_entity_id=current_entity_id)
+                    _logger.info(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area synced to HA successfully: {current_area.area_id}")
+                    _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area synced to HA successfully: {current_area.area_id}")
+                except Exception as area_error:
+                    # Log warning but don't fail the entire scene creation
+                    _logger.warning(f"[AREA_SYNC_CREATE] Scene {current_entity_id} created but area sync failed: {area_error}", exc_info=True)
+                    _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area sync FAILED: {area_error}")
+            else:
+                _logger.info(f"[AREA_SYNC_CREATE] Scene {current_entity_id} has no area_id, skipping area sync")
+                _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} has no area_id, skipping area sync")
+
+            # Sync labels to HA if any
+            if self.label_ids:
+                try:
+                    # Pass the HA-confirmed entity_id to ensure correct API call
+                    self._update_entity_labels_in_ha(override_entity_id=current_entity_id)
+                    _logger.info(f"Scene {current_entity_id} labels synced to HA")
+                except Exception as label_error:
+                    _logger.warning(f"Scene {current_entity_id} created but label sync failed: {label_error}")
+
+        except Exception as e:
+            _logger.error(f"Failed to create scene {self.entity_id} in HA: {e}", exc_info=True)
+            raise
+
+    def _delete_scene_in_ha(self):
+        """
+        Delete a scene from Home Assistant via config API.
+
+        Uses the DELETE /api/config/scene/config/{ha_scene_id} endpoint.
+        Only applicable for entities with domain='scene' that have ha_scene_id set.
+        """
+        self.ensure_one()
+
+        if self.domain != 'scene':
+            return
+
+        if not self.ha_instance_id:
+            _logger.warning(f"Cannot delete scene {self.entity_id}: missing instance")
+            return
+
+        if not self.ha_scene_id:
+            _logger.warning(f"Cannot delete scene {self.entity_id}: no ha_scene_id (scene may not exist in HA)")
+            return
+
+        try:
+            rest_api = HassRestApi(self.env, self.ha_instance_id.id)
+
+            _logger.info(f"Deleting scene config from HA: {self.entity_id} (ha_scene_id={self.ha_scene_id})")
+            rest_api.delete_scene_config(self.ha_scene_id)
+            _logger.info(f"Scene {self.entity_id} (ha_scene_id={self.ha_scene_id}) deleted from HA successfully")
+
+            # Clear ha_scene_id after successful deletion
+            self.sudo().write({'ha_scene_id': False})
+
+        except Exception as e:
+            _logger.error(f"Failed to delete scene {self.entity_id} from HA: {e}", exc_info=True)
+
+    def _sync_scene_to_ha_internal(self):
+        """
+        Internal method for syncing a scene to Home Assistant.
+
+        This method is called from a background thread with its own database connection,
+        ensuring complete isolation from the main Odoo transaction.
+
+        The method handles:
+        1. Scene creation/update via REST API (config/scene/config endpoint)
+        2. Area synchronization via WebSocket API (config/entity_registry/update)
+        3. Label synchronization via WebSocket API (config/entity_registry/update)
+
+        Design rationale:
+        - Called from background thread started via postcommit callback
+        - Uses fresh db_connect() cursor, completely isolated from main transaction
+        - WebSocketClient's internal commits won't conflict with Odoo's transaction
+        - REST API for scene creation is reliable and doesn't involve transaction issues
+
+        Note: This method is specifically designed to be called from the background
+        sync thread in create(). Direct calls from other contexts should use
+        _create_scene_in_ha() directly.
+        """
+        self.ensure_one()
+
+        if self.domain != 'scene':
+            _logger.warning(f"_sync_scene_to_ha_internal called on non-scene entity: {self.entity_id}")
+            return
+
+        _logger.info(f"[SYNC_INTERNAL] Starting scene sync for {self.entity_id}")
+        _trace(f"[SYNC_INTERNAL] Starting scene sync for {self.entity_id}")
+
+        # Delegate to the existing method which handles:
+        # 1. Scene creation via REST API
+        # 2. Entity ID synchronization (HA may generate different ID)
+        # 3. Area sync via WebSocket
+        # 4. Label sync via WebSocket
+        self._create_scene_in_ha()
+
+        _logger.info(f"[SYNC_INTERNAL] Scene sync completed for {self.entity_id}")
+        _trace(f"[SYNC_INTERNAL] Scene sync completed for {self.entity_id}")
 
 

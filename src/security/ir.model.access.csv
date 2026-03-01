@@ -1,7 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_ha_instance_manager,HA Instance (Manager),odoo_ha_addon.model_ha_instance,odoo_ha_addon.group_ha_manager,1,1,1,1
 access_ha_instance_user,HA Instance (User Read-Only),odoo_ha_addon.model_ha_instance,odoo_ha_addon.group_ha_user,1,0,0,0
-access_ha_entity_manager,HA Entity (Manager),odoo_ha_addon.model_ha_entity,odoo_ha_addon.group_ha_manager,1,1,0,0
+access_ha_entity_manager,HA Entity (Manager),odoo_ha_addon.model_ha_entity,odoo_ha_addon.group_ha_manager,1,1,1,1
 access_ha_entity_user,HA Entity (User Read-Only),odoo_ha_addon.model_ha_entity,odoo_ha_addon.group_ha_user,1,0,0,0
 access_ha_entity_history_manager,HA Entity History (Manager),odoo_ha_addon.model_ha_entity_history,odoo_ha_addon.group_ha_manager,1,1,1,1
 access_ha_entity_history_user,HA Entity History (User Read-Only),odoo_ha_addon.model_ha_entity_history,odoo_ha_addon.group_ha_user,1,0,0,0
