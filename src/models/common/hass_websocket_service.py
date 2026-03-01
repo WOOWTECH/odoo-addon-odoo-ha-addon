@@ -8,6 +8,11 @@ from datetime import datetime
 from odoo import api
 from odoo.service import db
 import traceback
+from concurrent.futures import ThreadPoolExecutor
+
+# 全局執行緒池，限制最大執行緒數以避免資源耗盡
+# max_workers=10 足夠處理並行資料庫操作，同時避免執行緒爆炸
+_db_executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix="ws_db_")
 
 class HassWebSocketService:
     """
@@ -86,6 +91,7 @@ class HassWebSocketService:
         在 executor 中執行同步方法
 
         用於在 async context 中執行阻塞的同步操作（如資料庫操作）
+        使用全局限制的執行緒池，避免執行緒資源耗盡
 
         Args:
             func: 要執行的同步函數
@@ -95,7 +101,8 @@ class HassWebSocketService:
             函數的返回值
         """
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, func, *args)
+        # 使用全局限制的執行緒池，避免 "can't start new thread" 錯誤
+        return await loop.run_in_executor(_db_executor, func, *args)
 
     def get_websocket_url(self) -> Optional[str]:
         """

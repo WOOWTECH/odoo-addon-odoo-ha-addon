@@ -396,34 +396,69 @@ class HAEntity(models.Model):
         if scene_ids_to_sync:
             # Use postcommit hook to sync after transaction completes
             def sync_scenes_to_ha():
+                import time as time_module
+                # Brief delay to ensure the original transaction is fully released
+                # This prevents "could not serialize access" errors from PostgreSQL
+                time_module.sleep(0.1)
+
                 _trace(f"[POSTCOMMIT] Starting sync_scenes_to_ha for scene_ids: {scene_ids_to_sync}")
                 for scene_id in scene_ids_to_sync:
                     # Use separate transaction for each scene to ensure partial commits
-                    try:
-                        with self.env.registry.cursor() as new_cr:
-                            new_env = api.Environment(new_cr, self.env.uid, self.env.context)
-                            scene = new_env['ha.entity'].browse(scene_id)
-                            _logger.info(f"[POSTCOMMIT] Processing scene {scene_id}: exists={scene.exists()}, scene_entity_ids={scene.scene_entity_ids.ids if scene.scene_entity_ids else []}, area_id={scene.area_id.id if scene.area_id else None}")
-                            _trace(f"[POSTCOMMIT] Processing scene {scene_id}: exists={scene.exists()}, scene_entity_ids={scene.scene_entity_ids.ids if scene.scene_entity_ids else []}, area_id={scene.area_id.id if scene.area_id else None}")
-                            if scene.exists() and scene.scene_entity_ids:
+                    # Add retry logic for serialization conflicts
+                    max_retries = 3
+                    for attempt in range(max_retries):
+                        try:
+                            with self.env.registry.cursor() as new_cr:
+                                new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+
+                                # Use SELECT FOR UPDATE NOWAIT to safely lock the row
+                                # This prevents serialization conflicts with concurrent transactions
                                 try:
-                                    _trace(f"[POSTCOMMIT] Calling _create_scene_in_ha for scene {scene_id}")
-                                    scene._create_scene_in_ha()
-                                    # Explicitly commit after successful sync
-                                    new_cr.commit()
-                                    _logger.info(f"[POSTCOMMIT] Scene {scene_id} sync completed and committed")
-                                    _trace(f"[POSTCOMMIT] Scene {scene_id} sync completed and committed")
-                                except Exception as e:
-                                    _logger.error(f"Failed to create scene {scene.entity_id} in HA: {e}", exc_info=True)
-                                    _trace(f"[POSTCOMMIT] Scene {scene_id} sync FAILED: {e}")
-                                    # Still try to commit any partial changes (like ha_scene_id)
+                                    new_cr.execute(
+                                        "SELECT id FROM ha_entity WHERE id = %s FOR UPDATE NOWAIT",
+                                        (scene_id,)
+                                    )
+                                except Exception as lock_error:
+                                    if 'could not obtain lock' in str(lock_error) or 'lock' in str(lock_error).lower():
+                                        _logger.warning(f"[POSTCOMMIT] Scene {scene_id} locked by another transaction, retry {attempt + 1}/{max_retries}")
+                                        if attempt < max_retries - 1:
+                                            time_module.sleep(0.5 * (attempt + 1))  # Exponential backoff
+                                            continue
+                                        else:
+                                            raise
+                                    raise
+
+                                scene = new_env['ha.entity'].browse(scene_id)
+                                _logger.info(f"[POSTCOMMIT] Processing scene {scene_id}: exists={scene.exists()}, scene_entity_ids={scene.scene_entity_ids.ids if scene.scene_entity_ids else []}, area_id={scene.area_id.id if scene.area_id else None}")
+                                _trace(f"[POSTCOMMIT] Processing scene {scene_id}: exists={scene.exists()}, scene_entity_ids={scene.scene_entity_ids.ids if scene.scene_entity_ids else []}, area_id={scene.area_id.id if scene.area_id else None}")
+                                if scene.exists() and scene.scene_entity_ids:
                                     try:
+                                        _trace(f"[POSTCOMMIT] Calling _create_scene_in_ha for scene {scene_id}")
+                                        scene._create_scene_in_ha()
+                                        # Explicitly commit after successful sync
                                         new_cr.commit()
-                                    except Exception:
-                                        pass
-                    except Exception as e:
-                        _logger.error(f"Failed to sync scene {scene_id} to HA: {e}", exc_info=True)
-                        _trace(f"[POSTCOMMIT] Scene {scene_id} outer exception: {e}")
+                                        _logger.info(f"[POSTCOMMIT] Scene {scene_id} sync completed and committed")
+                                        _trace(f"[POSTCOMMIT] Scene {scene_id} sync completed and committed")
+                                    except Exception as e:
+                                        _logger.error(f"Failed to create scene {scene.entity_id} in HA: {e}", exc_info=True)
+                                        _trace(f"[POSTCOMMIT] Scene {scene_id} sync FAILED: {e}")
+                                        # Rollback and try to commit partial changes
+                                        try:
+                                            new_cr.rollback()
+                                        except Exception:
+                                            pass
+                                # Success - break retry loop
+                                break
+                        except Exception as e:
+                            error_str = str(e).lower()
+                            # Retry on serialization or lock conflicts
+                            if ('serialize' in error_str or 'concurrent' in error_str) and attempt < max_retries - 1:
+                                _logger.warning(f"[POSTCOMMIT] Scene {scene_id} serialization conflict, retry {attempt + 1}/{max_retries}: {e}")
+                                time_module.sleep(0.5 * (attempt + 1))
+                                continue
+                            _logger.error(f"Failed to sync scene {scene_id} to HA: {e}", exc_info=True)
+                            _trace(f"[POSTCOMMIT] Scene {scene_id} outer exception: {e}")
+                            break
 
             self.env.cr.postcommit.add(sync_scenes_to_ha)
 
@@ -1808,8 +1843,8 @@ class HAEntity(models.Model):
                 old_entity_id = self.entity_id
                 # Update entity_id to match HA's generated ID
                 self.sudo().with_context(from_ha_sync=True).write({'entity_id': ha_entity_id})
-                # Commit the entity_id change immediately so WebSocket operations can use it
-                self.env.cr.commit()
+                # Note: Do NOT call self.env.cr.commit() here - let the caller handle transaction
+                # This method is called from postcommit callback which manages its own transaction
                 # Invalidate cache to refresh entity_id for subsequent operations
                 self.invalidate_recordset(['entity_id'])
                 _logger.info(f"Updated entity_id from '{old_entity_id}' to '{ha_entity_id}' to match HA")
