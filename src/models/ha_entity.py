@@ -10,6 +10,13 @@ from .common.hass_rest_api import HassRestApi
 
 _logger = logging.getLogger(__name__)
 
+# File-based tracing for debugging area sync
+def _trace(msg):
+    """Write trace message to file for debugging"""
+    import datetime
+    with open('/tmp/area_sync_trace.log', 'a') as f:
+        f.write(f"[{datetime.datetime.now().isoformat()}] {msg}\n")
+
 
 def _name_to_entity_id(name, domain='scene'):
     """
@@ -193,7 +200,7 @@ class HAEntity(models.Model):
         ],
         string='Scene Source',
         compute='_compute_scene_source',
-        store=True,
+        store=False,
         help='Indicates where the scene was created. '
              'Device scenes (e.g., Hue Bridge) have limited sync capabilities.'
     )
@@ -389,18 +396,34 @@ class HAEntity(models.Model):
         if scene_ids_to_sync:
             # Use postcommit hook to sync after transaction completes
             def sync_scenes_to_ha():
-                try:
-                    with self.env.registry.cursor() as new_cr:
-                        new_env = api.Environment(new_cr, self.env.uid, self.env.context)
-                        scenes = new_env['ha.entity'].browse(scene_ids_to_sync)
-                        for scene in scenes:
+                _trace(f"[POSTCOMMIT] Starting sync_scenes_to_ha for scene_ids: {scene_ids_to_sync}")
+                for scene_id in scene_ids_to_sync:
+                    # Use separate transaction for each scene to ensure partial commits
+                    try:
+                        with self.env.registry.cursor() as new_cr:
+                            new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+                            scene = new_env['ha.entity'].browse(scene_id)
+                            _logger.info(f"[POSTCOMMIT] Processing scene {scene_id}: exists={scene.exists()}, scene_entity_ids={scene.scene_entity_ids.ids if scene.scene_entity_ids else []}, area_id={scene.area_id.id if scene.area_id else None}")
+                            _trace(f"[POSTCOMMIT] Processing scene {scene_id}: exists={scene.exists()}, scene_entity_ids={scene.scene_entity_ids.ids if scene.scene_entity_ids else []}, area_id={scene.area_id.id if scene.area_id else None}")
                             if scene.exists() and scene.scene_entity_ids:
                                 try:
+                                    _trace(f"[POSTCOMMIT] Calling _create_scene_in_ha for scene {scene_id}")
                                     scene._create_scene_in_ha()
+                                    # Explicitly commit after successful sync
+                                    new_cr.commit()
+                                    _logger.info(f"[POSTCOMMIT] Scene {scene_id} sync completed and committed")
+                                    _trace(f"[POSTCOMMIT] Scene {scene_id} sync completed and committed")
                                 except Exception as e:
-                                    _logger.error(f"Failed to create scene {scene.entity_id} in HA: {e}")
-                except Exception as e:
-                    _logger.error(f"Failed to sync scenes to HA: {e}")
+                                    _logger.error(f"Failed to create scene {scene.entity_id} in HA: {e}", exc_info=True)
+                                    _trace(f"[POSTCOMMIT] Scene {scene_id} sync FAILED: {e}")
+                                    # Still try to commit any partial changes (like ha_scene_id)
+                                    try:
+                                        new_cr.commit()
+                                    except Exception:
+                                        pass
+                    except Exception as e:
+                        _logger.error(f"Failed to sync scene {scene_id} to HA: {e}", exc_info=True)
+                        _trace(f"[POSTCOMMIT] Scene {scene_id} outer exception: {e}")
 
             self.env.cr.postcommit.add(sync_scenes_to_ha)
 
@@ -646,14 +669,23 @@ class HAEntity(models.Model):
         這會讓 HA 中的實體設定為「跟隨裝置分區」。
         """
         self.ensure_one()
+        _trace(f"[AREA_SYNC_EXEC] Starting _update_entity_area_in_ha for {self.entity_id}")
+        _logger.info(f"[AREA_SYNC_EXEC] Starting _update_entity_area_in_ha for {self.entity_id}")
+        _logger.info(f"[AREA_SYNC_EXEC] Self record: id={self.id}, entity_id={self.entity_id}, area_id={self.area_id}, follows_device_area={self.follows_device_area}")
+        _trace(f"[AREA_SYNC_EXEC] Self record: id={self.id}, entity_id={self.entity_id}, area_id={self.area_id}, follows_device_area={self.follows_device_area}")
 
         if not self.ha_instance_id:
-            _logger.warning(f"Cannot sync entity area {self.entity_id}: no HA instance")
+            _logger.warning(f"[AREA_SYNC_EXEC] Cannot sync entity area {self.entity_id}: no HA instance")
+            _trace(f"[AREA_SYNC_EXEC] Cannot sync entity area {self.entity_id}: no HA instance")
             return
 
         try:
             from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
+            _logger.info(f"[AREA_SYNC_EXEC] Getting WebSocket client for instance {self.ha_instance_id.id}")
+            _trace(f"[AREA_SYNC_EXEC] Getting WebSocket client for instance {self.ha_instance_id.id}")
             client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
+            _logger.info(f"[AREA_SYNC_EXEC] WebSocket client obtained: {client}")
+            _trace(f"[AREA_SYNC_EXEC] WebSocket client obtained: {client}")
 
             # 當 follows_device_area = True 時，發送 null 給 HA（跟隨裝置分區）
             # 否則發送實體的 area_id
@@ -667,8 +699,11 @@ class HAEntity(models.Model):
                 'area_id': ha_area_id,
             }
 
-            _logger.info(f"Updating entity area in HA: {self.entity_id} -> area_id={ha_area_id} (follows_device_area={self.follows_device_area})")
+            _logger.info(f"[AREA_SYNC_EXEC] Sending WebSocket update: entity_id={self.entity_id}, area_id={ha_area_id}")
+            _trace(f"[AREA_SYNC_EXEC] Sending WebSocket update: entity_id={self.entity_id}, area_id={ha_area_id}")
             result = client.call_websocket_api_sync('config/entity_registry/update', payload)
+            _logger.info(f"[AREA_SYNC_EXEC] WebSocket result: {result}")
+            _trace(f"[AREA_SYNC_EXEC] WebSocket result: {result}")
 
             if result and isinstance(result, dict):
                 # Verify HA accepted the area change by checking the response
@@ -1762,15 +1797,64 @@ class HAEntity(models.Model):
             )
             _logger.info(f"Scene {self.entity_id} (ha_scene_id={ha_scene_id}) created in HA successfully. Result: {result}")
 
+            # HA generates entity_id based on scene name, which may differ from Odoo's entity_id
+            # We need to fetch the actual entity_id from HA and update Odoo
+            # Wait briefly for HA to register the scene, then query for it
+            import time as time_module
+            time_module.sleep(0.5)  # Brief delay for HA to process
+
+            ha_entity_id = rest_api.get_scene_entity_id_by_config_id(ha_scene_id)
+            if ha_entity_id and ha_entity_id != self.entity_id:
+                old_entity_id = self.entity_id
+                # Update entity_id to match HA's generated ID
+                self.sudo().with_context(from_ha_sync=True).write({'entity_id': ha_entity_id})
+                # Commit the entity_id change immediately so WebSocket operations can use it
+                self.env.cr.commit()
+                # Invalidate cache to refresh entity_id for subsequent operations
+                self.invalidate_recordset(['entity_id'])
+                _logger.info(f"Updated entity_id from '{old_entity_id}' to '{ha_entity_id}' to match HA")
+            elif ha_entity_id:
+                _logger.info(f"Scene entity_id '{ha_entity_id}' matches Odoo, no update needed")
+            else:
+                _logger.warning(f"Could not determine HA entity_id for scene {ha_scene_id}, keeping '{self.entity_id}'")
+
             # Sync area_id to HA via entity_registry/update
             # Scene area is managed at entity registry level, not in scene config
-            if self.area_id:
+            # Refresh the record to ensure we have latest data after the ha_scene_id write
+            self.invalidate_recordset()
+            _trace(f"[AREA_SYNC_CREATE] Starting area sync for scene")
+
+            # Re-read area_id after cache invalidation to ensure we have fresh data
+            current_area = self.area_id
+            current_entity_id = self.entity_id
+            _logger.info(f"[AREA_SYNC_CREATE] Scene {current_entity_id} - area_id record: {current_area}, "
+                        f"ha_area_id: {current_area.area_id if current_area else None}, "
+                        f"ha_instance_id: {self.ha_instance_id.id if self.ha_instance_id else None}")
+            _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} - area_id record: {current_area}, "
+                        f"ha_area_id: {current_area.area_id if current_area else None}")
+
+            if current_area:
                 try:
+                    _logger.info(f"[AREA_SYNC_CREATE] Calling _update_entity_area_in_ha for {current_entity_id} with area {current_area.area_id}")
+                    _trace(f"[AREA_SYNC_CREATE] Calling _update_entity_area_in_ha for {current_entity_id} with area {current_area.area_id}")
                     self._update_entity_area_in_ha()
-                    _logger.info(f"Scene {self.entity_id} area synced to HA: {self.area_id.area_id}")
+                    _logger.info(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area synced to HA successfully: {current_area.area_id}")
+                    _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area synced to HA successfully: {current_area.area_id}")
                 except Exception as area_error:
                     # Log warning but don't fail the entire scene creation
-                    _logger.warning(f"Scene {self.entity_id} created but area sync failed: {area_error}")
+                    _logger.warning(f"[AREA_SYNC_CREATE] Scene {current_entity_id} created but area sync failed: {area_error}", exc_info=True)
+                    _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area sync FAILED: {area_error}")
+            else:
+                _logger.info(f"[AREA_SYNC_CREATE] Scene {current_entity_id} has no area_id, skipping area sync")
+                _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} has no area_id, skipping area sync")
+
+            # Sync labels to HA if any
+            if self.label_ids:
+                try:
+                    self._update_entity_labels_in_ha()
+                    _logger.info(f"Scene {self.entity_id} labels synced to HA")
+                except Exception as label_error:
+                    _logger.warning(f"Scene {self.entity_id} created but label sync failed: {label_error}")
 
         except Exception as e:
             _logger.error(f"Failed to create scene {self.entity_id} in HA: {e}", exc_info=True)

@@ -316,6 +316,50 @@ class HassRestApi:
             )
             raise ConnectionError(f"HA scene config delete failed: HTTP {response.status_code}")
 
+    def get_scene_entity_id_by_config_id(self, ha_scene_id: str) -> str:
+        """
+        Get the entity_id of a scene by its config ID (ha_scene_id).
+
+        HA generates entity_id based on the scene name when creating via config API.
+        This method queries all states and finds the scene with matching 'id' attribute.
+
+        Args:
+            ha_scene_id: Numeric timestamp ID used when creating the scene
+
+        Returns:
+            str: The entity_id (e.g., 'scene.living_room') or None if not found
+        """
+        ha_info = self.__refetch_ha_info()
+        ha_url = ha_info["ha_url"]
+        ha_token = ha_info["ha_token"]
+
+        url = f"{ha_url}/api/states"
+        headers = {
+            "Authorization": f"Bearer {ha_token}",
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.get(url, headers=headers, timeout=DEFAULT_TIMEOUT)
+            if response.status_code == 200:
+                states = response.json()
+                # Find scene with matching 'id' attribute
+                for state in states:
+                    if state.get('entity_id', '').startswith('scene.'):
+                        attrs = state.get('attributes', {})
+                        if str(attrs.get('id')) == str(ha_scene_id):
+                            entity_id = state.get('entity_id')
+                            _logger.debug(f"Found scene entity_id '{entity_id}' for config_id '{ha_scene_id}'")
+                            return entity_id
+                _logger.warning(f"No scene found with config_id '{ha_scene_id}'")
+                return None
+            else:
+                _logger.error(f"Failed to fetch states: HTTP {response.status_code}")
+                return None
+        except Exception as e:
+            _logger.error(f"Error fetching scene entity_id: {e}")
+            return None
+
     def get_entity_states(self, entity_ids: list):
         """
         Get current states of multiple entities using a single API call.
