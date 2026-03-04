@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Script List View -->
+    <record id="ha_script_view_list" model="ir.ui.view">
+        <field name="name">ha.script.list</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <list string="Scripts" create="0" edit="1" delete="0">
+                <header>
+                    <button name="%(ha_blueprint_wizard_script_action)d"
+                            string="Create from Blueprint"
+                            type="action"
+                            class="btn-primary"
+                            icon="fa-magic"/>
+                </header>
+                <field name="name"/>
+                <field name="entity_id" string="Script ID"/>
+                <field name="ha_instance_id" optional="hide"/>
+                <field name="display_area_id" string="Area"/>
+                <field name="entity_state" string="State"
+                       decoration-info="entity_state == 'on'"
+                       decoration-muted="entity_state == 'off'"/>
+                <field name="is_blueprint_based" string="Blueprint" widget="boolean"/>
+                <field name="blueprint_path" string="Blueprint Path" optional="show"/>
+                <field name="label_ids" widget="many2many_tags"
+                       options="{'color_field': 'color'}"/>
+                <field name="last_changed" string="Last Run"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Script Form View - Extends Entity Form with Blueprint Tab -->
+    <record id="ha_script_view_form" model="ir.ui.view">
+        <field name="name">ha.script.form</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form string="Script" class="o_ha_script_form">
+                <header>
+                    <button name="action_run_script" type="object" string="Run"
+                            class="btn-primary" icon="fa-play"
+                            title="Run this script"
+                            invisible="not id"/>
+                    <button name="action_toggle_script" type="object" string="Toggle"
+                            class="btn-secondary" icon="fa-power-off"
+                            title="Toggle script on/off"
+                            invisible="not id"/>
+                    <button name="action_sync_blueprint_from_ha" type="object" string="Refresh Blueprint"
+                            class="btn-secondary" icon="fa-refresh"
+                            title="Refresh blueprint configuration from Home Assistant"
+                            invisible="not id or not is_blueprint_based"/>
+                    <field name="entity_state" widget="badge"
+                           decoration-success="entity_state == 'on'"
+                           decoration-muted="entity_state == 'off'"
+                           invisible="not id"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-cube"
+                                invisible="not is_blueprint_based">
+                            <field name="is_blueprint_based" widget="statinfo" string="Blueprint"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Script Name"/>
+                        <h1>
+                            <field name="name" placeholder="Script Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="entity_id" string="Script ID" readonly="1"/>
+                            <field name="domain" invisible="1"/>
+                            <field name="entity_state" string="State" readonly="1"
+                                   invisible="not id"/>
+                            <field name="ha_automation_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="ha_instance_id" readonly="1"/>
+                            <field name="area_id"
+                                   domain="[('ha_instance_id', '=', ha_instance_id)]"
+                                   options="{'no_create': True}"/>
+                            <field name="last_changed" string="Last Run" readonly="1"
+                                   invisible="not id"/>
+                        </group>
+                    </group>
+                    <group string="Labels" invisible="not id">
+                        <field name="label_ids" widget="many2many_tags" nolabel="1"
+                               options="{'color_field': 'color'}"
+                               context="{'default_ha_instance_id': ha_instance_id}"/>
+                    </group>
+                    <notebook>
+                        <!-- Blueprint Tab - Only visible for blueprint-based scripts -->
+                        <page string="Blueprint" name="blueprint"
+                              invisible="not is_blueprint_based">
+                            <group>
+                                <group string="Blueprint Information">
+                                    <field name="blueprint_path" string="Blueprint Path" readonly="1"/>
+                                    <field name="is_blueprint_based" invisible="1"/>
+                                </group>
+                            </group>
+                            <separator string="Blueprint Inputs"/>
+                            <div class="alert alert-info" role="status">
+                                <i class="fa fa-info-circle me-2"/>
+                                <strong>Blueprint Inputs</strong> - Edit the parameters below and save to update the script in Home Assistant.
+                            </div>
+                            <!-- Blueprint Inputs Editor Widget -->
+                            <field name="blueprint_inputs" widget="ace"
+                                   options="{'mode': 'json'}"
+                                   placeholder='{"input_name": "value"}'/>
+                            <!-- Blueprint Metadata removed as per PRD requirements -->
+                            <field name="blueprint_metadata" invisible="1"/>
+                        </page>
+                        <!-- Non-Blueprint Notice -->
+                        <page string="Blueprint" name="blueprint_empty"
+                              invisible="is_blueprint_based or not id">
+                            <div class="alert alert-secondary" role="status">
+                                <i class="fa fa-info-circle me-2"/>
+                                This script is <strong>not based on a Blueprint</strong>.
+                                It was created directly in Home Assistant with custom sequences and actions.
+                            </div>
+                        </page>
+                        <page string="Attributes" name="attributes" invisible="not id">
+                            <field name="attributes_str" widget="ace" readonly="1"/>
+                        </page>
+                        <page string="History" name="history" invisible="not id">
+                            <field name="history_ids" readonly="1">
+                                <list string="Run History">
+                                    <field name="entity_state" string="State"/>
+                                    <field name="last_changed" string="Run At"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Script Search View -->
+    <record id="ha_script_view_search" model="ir.ui.view">
+        <field name="name">ha.script.search</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <search string="Script Search">
+                <field name="name"/>
+                <field name="entity_id"/>
+                <field name="ha_instance_id"/>
+                <field name="area_id"/>
+                <field name="blueprint_path"/>
+                <filter name="running" string="Running" domain="[('entity_state', '=', 'on')]"/>
+                <filter name="idle" string="Idle" domain="[('entity_state', '=', 'off')]"/>
+                <separator/>
+                <filter name="blueprint_based" string="Blueprint Based" domain="[('is_blueprint_based', '=', True)]"/>
+                <filter name="custom" string="Custom (No Blueprint)" domain="[('is_blueprint_based', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
+                    <filter name="group_by_area" string="Area" context="{'group_by': 'display_area_id'}"/>
+                    <filter name="group_by_blueprint" string="Blueprint" context="{'group_by': 'blueprint_path'}"/>
+                    <filter name="group_by_state" string="State" context="{'group_by': 'entity_state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Script Action - Filtered to domain='script' -->
+    <record id="ha_script_action" model="ir.actions.act_window">
+        <field name="name">Scripts</field>
+        <field name="res_model">ha.entity</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('domain', '=', 'script')]</field>
+        <field name="context">{
+            'default_domain': 'script',
+            'search_default_group_by_instance': 0
+        }</field>
+        <field name="search_view_id" ref="ha_script_view_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('ha_script_view_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('ha_script_view_form')})]"/>
+    </record>
+</odoo>

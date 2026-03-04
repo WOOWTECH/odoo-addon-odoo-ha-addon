@@ -28,6 +28,9 @@
         'views/ha_device_tag_views.xml',  # ha_device_tag_action
         'views/ha_label_views.xml',  # ha_label_action
         'views/ha_scene_views.xml',  # ha_scene_action
+        'views/ha_automation_views.xml',  # ha_automation_action
+        'views/ha_script_views.xml',  # ha_script_action
+        'views/ha_blueprint_wizard_views.xml',  # Blueprint wizard
         'views/ha_config_action.xml',  # ha_settings_action
         'views/res_config_settings.xml',
         # ha_instance 定義 action_ha_instance（引用 entity_action）

@@ -17,6 +17,8 @@
         <menuitem name="Configuration" id="odoo_ha_addon.configuration_top_menu" sequence="6">
             <menuitem name="HA Instances" id="odoo_ha_addon.menu_ha_instance" action="odoo_ha_addon.action_ha_instance" sequence="1"/>
             <menuitem name="Scene" id="odoo_ha_addon.config_scene_menu" action="odoo_ha_addon.ha_scene_action" sequence="5"/>
+            <menuitem name="Automation" id="odoo_ha_addon.config_automation_menu" action="odoo_ha_addon.ha_automation_action" sequence="6"/>
+            <menuitem name="Script" id="odoo_ha_addon.config_script_menu" action="odoo_ha_addon.ha_script_action" sequence="7"/>
             <menuitem name="Entity Tag" id="odoo_ha_addon.config_entity_tag_menu" action="odoo_ha_addon.ha_entity_tag_action" sequence="10"/>
             <menuitem name="Entity Group Tag" id="odoo_ha_addon.config_entity_group_tag_menu" action="odoo_ha_addon.ha_entity_group_tag_action" sequence="11"/>
             <menuitem name="Device Tag" id="odoo_ha_addon.config_device_tag_menu" action="odoo_ha_addon.ha_device_tag_action" sequence="12"/>

@@ -618,3 +618,334 @@ class HassRestApi:
         except Exception as e:
             _logger.error(f"[DIRECT_WS] entity_registry/update failed: {e}", exc_info=True)
             raise
+
+    # ===== Automation/Script Config API =====
+
+    def get_automation_config(self, automation_id: str) -> Optional[dict]:
+        """
+        Get automation configuration from Home Assistant.
+
+        REST API endpoint: GET /api/config/automation/config/{automation_id}
+
+        Args:
+            automation_id: The automation ID (usually the entity_id without 'automation.' prefix)
+
+        Returns:
+            dict: The automation configuration including use_blueprint if applicable
+                  Returns None if not found or error
+
+        Example response for blueprint-based automation:
+        {
+            "id": "1234567890123",
+            "alias": "Motion Light",
+            "description": "",
+            "use_blueprint": {
+                "path": "homeassistant/motion_light.yaml",
+                "input": {
+                    "motion_entity": "binary_sensor.motion",
+                    "light_target": {"entity_id": "light.living_room"},
+                    "no_motion_wait": 120
+                }
+            }
+        }
+        """
+        ha_info = self.__refetch_ha_info()
+        ha_url = ha_info["ha_url"]
+        ha_token = ha_info["ha_token"]
+
+        api_endpoint = f"/api/config/automation/config/{automation_id}"
+        url = f"{ha_url}{api_endpoint}"
+
+        _logger.info(f"Getting automation config: {automation_id}")
+
+        headers = {
+            "Authorization": f"Bearer {ha_token}",
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.get(url, headers=headers, timeout=DEFAULT_TIMEOUT)
+            if response.status_code == 200:
+                data = response.json()
+                _logger.debug(f"Automation config for {automation_id}: {data}")
+                return data
+            elif response.status_code == 404:
+                _logger.warning(f"Automation config not found: {automation_id}")
+                return None
+            else:
+                _logger.error(f"Failed to get automation config: HTTP {response.status_code}")
+                return None
+        except Exception as e:
+            _logger.error(f"Error getting automation config {automation_id}: {e}")
+            return None
+
+    def update_automation_config(self, automation_id: str, config: dict) -> dict:
+        """
+        Update automation configuration in Home Assistant.
+
+        REST API endpoint: POST /api/config/automation/config/{automation_id}
+
+        Args:
+            automation_id: The automation ID
+            config: The full automation configuration dict
+
+        Returns:
+            dict: Response from HA API
+
+        Raises:
+            ConnectionError: If API request fails
+        """
+        ha_info = self.__refetch_ha_info()
+        ha_url = ha_info["ha_url"]
+        ha_token = ha_info["ha_token"]
+
+        api_endpoint = f"/api/config/automation/config/{automation_id}"
+        url = f"{ha_url}{api_endpoint}"
+
+        _logger.info(f"Updating automation config: {automation_id}")
+
+        headers = {
+            "Authorization": f"Bearer {ha_token}",
+            "Content-Type": "application/json",
+        }
+
+        response = requests.post(url, headers=headers, json=config, timeout=DEFAULT_TIMEOUT)
+
+        if response.status_code == 200:
+            _logger.info(f"Automation config {automation_id} updated successfully")
+            return response.json() if response.text else {}
+        else:
+            _logger.error(
+                f"HA automation config update failed: status={response.status_code}, "
+                f"url={url}, response={response.text[:500] if response.text else 'empty'}"
+            )
+            if response.status_code == 401:
+                raise ConnectionError("HA API authentication failed (401)")
+            elif response.status_code == 403:
+                raise PermissionError("HA API access denied (403)")
+            else:
+                raise ConnectionError(f"HA automation config update failed: HTTP {response.status_code}")
+
+    def get_script_config(self, script_id: str) -> Optional[dict]:
+        """
+        Get script configuration from Home Assistant.
+
+        REST API endpoint: GET /api/config/script/config/{script_id}
+
+        Args:
+            script_id: The script ID (usually the entity_id without 'script.' prefix)
+
+        Returns:
+            dict: The script configuration including use_blueprint if applicable
+                  Returns None if not found or error
+        """
+        ha_info = self.__refetch_ha_info()
+        ha_url = ha_info["ha_url"]
+        ha_token = ha_info["ha_token"]
+
+        api_endpoint = f"/api/config/script/config/{script_id}"
+        url = f"{ha_url}{api_endpoint}"
+
+        _logger.info(f"Getting script config: {script_id}")
+
+        headers = {
+            "Authorization": f"Bearer {ha_token}",
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.get(url, headers=headers, timeout=DEFAULT_TIMEOUT)
+            if response.status_code == 200:
+                data = response.json()
+                _logger.debug(f"Script config for {script_id}: {data}")
+                return data
+            elif response.status_code == 404:
+                _logger.warning(f"Script config not found: {script_id}")
+                return None
+            else:
+                _logger.error(f"Failed to get script config: HTTP {response.status_code}")
+                return None
+        except Exception as e:
+            _logger.error(f"Error getting script config {script_id}: {e}")
+            return None
+
+    def update_script_config(self, script_id: str, config: dict) -> dict:
+        """
+        Update script configuration in Home Assistant.
+
+        REST API endpoint: POST /api/config/script/config/{script_id}
+
+        Args:
+            script_id: The script ID
+            config: The full script configuration dict
+
+        Returns:
+            dict: Response from HA API
+
+        Raises:
+            ConnectionError: If API request fails
+        """
+        ha_info = self.__refetch_ha_info()
+        ha_url = ha_info["ha_url"]
+        ha_token = ha_info["ha_token"]
+
+        api_endpoint = f"/api/config/script/config/{script_id}"
+        url = f"{ha_url}{api_endpoint}"
+
+        _logger.info(f"Updating script config: {script_id}")
+
+        headers = {
+            "Authorization": f"Bearer {ha_token}",
+            "Content-Type": "application/json",
+        }
+
+        response = requests.post(url, headers=headers, json=config, timeout=DEFAULT_TIMEOUT)
+
+        if response.status_code == 200:
+            _logger.info(f"Script config {script_id} updated successfully")
+            return response.json() if response.text else {}
+        else:
+            _logger.error(
+                f"HA script config update failed: status={response.status_code}, "
+                f"url={url}, response={response.text[:500] if response.text else 'empty'}"
+            )
+            if response.status_code == 401:
+                raise ConnectionError("HA API authentication failed (401)")
+            elif response.status_code == 403:
+                raise PermissionError("HA API access denied (403)")
+            else:
+                raise ConnectionError(f"HA script config update failed: HTTP {response.status_code}")
+
+    def call_websocket_command(self, command_type: str, **kwargs) -> dict:
+        """
+        Call a generic WebSocket command on Home Assistant.
+
+        This is a general-purpose method for WebSocket API calls that don't
+        have dedicated methods.
+
+        Args:
+            command_type: The WebSocket command type (e.g., 'blueprint/list')
+            **kwargs: Additional parameters for the command
+
+        Returns:
+            dict: The result from HA WebSocket API
+
+        Raises:
+            Exception: If the WebSocket call fails
+        """
+        import asyncio
+        import json
+
+        ha_info = self.__refetch_ha_info()
+        ha_url = ha_info["ha_url"]
+        ha_token = ha_info["ha_token"]
+
+        # Convert http(s) URL to ws(s) URL
+        ws_url = ha_url.replace("https://", "wss://").replace("http://", "ws://")
+        ws_url = f"{ws_url}/api/websocket"
+
+        async def _call_websocket():
+            import websockets
+
+            _logger.info(f"[DIRECT_WS] Calling {command_type}")
+
+            async with websockets.connect(ws_url) as ws:
+                # Wait for auth_required message
+                auth_required = await asyncio.wait_for(ws.recv(), timeout=5)
+                auth_required_data = json.loads(auth_required)
+                if auth_required_data.get("type") != "auth_required":
+                    raise Exception(f"Unexpected message: {auth_required_data}")
+
+                # Send auth
+                auth_msg = {"type": "auth", "access_token": ha_token}
+                await ws.send(json.dumps(auth_msg))
+
+                # Wait for auth_ok
+                auth_result = await asyncio.wait_for(ws.recv(), timeout=5)
+                auth_result_data = json.loads(auth_result)
+                if auth_result_data.get("type") != "auth_ok":
+                    raise Exception(f"Authentication failed: {auth_result_data}")
+
+                # Build command payload
+                payload = {
+                    "id": 1,
+                    "type": command_type,
+                    **kwargs
+                }
+
+                _logger.debug(f"[DIRECT_WS] Sending: {payload}")
+                await ws.send(json.dumps(payload))
+
+                # Wait for response
+                response = await asyncio.wait_for(ws.recv(), timeout=30)
+                response_data = json.loads(response)
+
+                _logger.debug(f"[DIRECT_WS] Response: {response_data}")
+
+                if not response_data.get("success", True):
+                    error = response_data.get("error", {})
+                    raise Exception(f"HA WebSocket command {command_type} failed: {error}")
+
+                return response_data.get("result", {})
+
+        # Run the async function synchronously
+        try:
+            try:
+                loop = asyncio.get_running_loop()
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, _call_websocket())
+                    return future.result(timeout=35)
+            except RuntimeError:
+                return asyncio.run(_call_websocket())
+        except Exception as e:
+            _logger.error(f"[DIRECT_WS] {command_type} failed: {e}", exc_info=True)
+            raise
+
+    def get_blueprint_list(self, domain: str) -> dict:
+        """
+        Get list of available blueprints from Home Assistant.
+
+        WebSocket command: blueprint/list
+
+        Args:
+            domain: 'automation' or 'script'
+
+        Returns:
+            dict: Blueprint paths mapped to their metadata
+                  {
+                      "homeassistant/motion_light.yaml": {
+                          "metadata": {
+                              "name": "Motion-activated Light",
+                              "description": "...",
+                              "domain": "automation",
+                              "input": {...}
+                          }
+                      },
+                      ...
+                  }
+        """
+        return self.call_websocket_command("blueprint/list", domain=domain)
+
+    def get_blueprint_metadata(self, domain: str, path: str, inputs: dict = None) -> dict:
+        """
+        Get blueprint metadata by substituting inputs.
+
+        WebSocket command: blueprint/substitute
+
+        This returns the full blueprint schema including input definitions.
+
+        Args:
+            domain: 'automation' or 'script'
+            path: Blueprint path (e.g., 'homeassistant/motion_light.yaml')
+            inputs: Optional input values to substitute
+
+        Returns:
+            dict: Substituted blueprint configuration
+        """
+        return self.call_websocket_command(
+            "blueprint/substitute",
+            domain=domain,
+            path=path,
+            input=inputs or {}
+        )

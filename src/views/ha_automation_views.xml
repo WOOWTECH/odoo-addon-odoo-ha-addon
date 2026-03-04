@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Automation List View -->
+    <record id="ha_automation_view_list" model="ir.ui.view">
+        <field name="name">ha.automation.list</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <list string="Automations" create="0" edit="1" delete="0">
+                <header>
+                    <button name="%(ha_blueprint_wizard_automation_action)d"
+                            string="Create from Blueprint"
+                            type="action"
+                            class="btn-primary"
+                            icon="fa-magic"/>
+                </header>
+                <field name="name"/>
+                <field name="entity_id" string="Automation ID"/>
+                <field name="ha_instance_id" optional="hide"/>
+                <field name="display_area_id" string="Area"/>
+                <field name="entity_state" string="State"
+                       decoration-success="entity_state == 'on'"
+                       decoration-muted="entity_state == 'off'"/>
+                <field name="is_blueprint_based" string="Blueprint" widget="boolean"/>
+                <field name="blueprint_path" string="Blueprint Path" optional="show"/>
+                <field name="label_ids" widget="many2many_tags"
+                       options="{'color_field': 'color'}"/>
+                <field name="last_changed" string="Last Triggered"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Automation Form View - Extends Entity Form with Blueprint Tab -->
+    <record id="ha_automation_view_form" model="ir.ui.view">
+        <field name="name">ha.automation.form</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form string="Automation" class="o_ha_automation_form">
+                <header>
+                    <button name="action_toggle_automation" type="object" string="Toggle"
+                            class="btn-primary" icon="fa-power-off"
+                            title="Toggle automation on/off"
+                            invisible="not id"/>
+                    <button name="action_trigger_automation" type="object" string="Trigger"
+                            class="btn-secondary" icon="fa-bolt"
+                            title="Trigger this automation manually"
+                            invisible="not id"/>
+                    <button name="action_sync_blueprint_from_ha" type="object" string="Refresh Blueprint"
+                            class="btn-secondary" icon="fa-refresh"
+                            title="Refresh blueprint configuration from Home Assistant"
+                            invisible="not id or not is_blueprint_based"/>
+                    <field name="entity_state" widget="badge"
+                           decoration-success="entity_state == 'on'"
+                           decoration-muted="entity_state == 'off'"
+                           invisible="not id"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-cube"
+                                invisible="not is_blueprint_based">
+                            <field name="is_blueprint_based" widget="statinfo" string="Blueprint"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Automation Name"/>
+                        <h1>
+                            <field name="name" placeholder="Automation Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="entity_id" string="Automation ID" readonly="1"/>
+                            <field name="domain" invisible="1"/>
+                            <field name="entity_state" string="State" readonly="1"
+                                   invisible="not id"/>
+                            <field name="ha_automation_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="ha_instance_id" readonly="1"/>
+                            <field name="area_id"
+                                   domain="[('ha_instance_id', '=', ha_instance_id)]"
+                                   options="{'no_create': True}"/>
+                            <field name="last_changed" string="Last Triggered" readonly="1"
+                                   invisible="not id"/>
+                        </group>
+                    </group>
+                    <group string="Labels" invisible="not id">
+                        <field name="label_ids" widget="many2many_tags" nolabel="1"
+                               options="{'color_field': 'color'}"
+                               context="{'default_ha_instance_id': ha_instance_id}"/>
+                    </group>
+                    <notebook>
+                        <!-- Blueprint Tab - Only visible for blueprint-based automations -->
+                        <page string="Blueprint" name="blueprint"
+                              invisible="not is_blueprint_based">
+                            <group>
+                                <group string="Blueprint Information">
+                                    <field name="blueprint_path" string="Blueprint Path" readonly="1"/>
+                                    <field name="is_blueprint_based" invisible="1"/>
+                                </group>
+                            </group>
+                            <separator string="Blueprint Inputs"/>
+                            <div class="alert alert-info" role="status">
+                                <i class="fa fa-info-circle me-2"/>
+                                <strong>Blueprint Inputs</strong> - Edit the parameters below and save to update the automation in Home Assistant.
+                            </div>
+                            <!-- Blueprint Inputs Editor Widget -->
+                            <field name="blueprint_inputs" widget="ace"
+                                   options="{'mode': 'json'}"
+                                   placeholder='{"input_name": "value"}'/>
+                            <!-- Blueprint Metadata removed as per PRD requirements -->
+                            <field name="blueprint_metadata" invisible="1"/>
+                        </page>
+                        <!-- Non-Blueprint Notice -->
+                        <page string="Blueprint" name="blueprint_empty"
+                              invisible="is_blueprint_based or not id">
+                            <div class="alert alert-secondary" role="status">
+                                <i class="fa fa-info-circle me-2"/>
+                                This automation is <strong>not based on a Blueprint</strong>.
+                                It was created directly in Home Assistant with custom triggers, conditions, and actions.
+                            </div>
+                        </page>
+                        <page string="Attributes" name="attributes" invisible="not id">
+                            <field name="attributes_str" widget="ace" readonly="1"/>
+                        </page>
+                        <page string="History" name="history" invisible="not id">
+                            <field name="history_ids" readonly="1">
+                                <list string="Trigger History">
+                                    <field name="entity_state" string="State"/>
+                                    <field name="last_changed" string="Triggered At"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Automation Search View -->
+    <record id="ha_automation_view_search" model="ir.ui.view">
+        <field name="name">ha.automation.search</field>
+        <field name="model">ha.entity</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <search string="Automation Search">
+                <field name="name"/>
+                <field name="entity_id"/>
+                <field name="ha_instance_id"/>
+                <field name="area_id"/>
+                <field name="blueprint_path"/>
+                <filter name="enabled" string="Enabled" domain="[('entity_state', '=', 'on')]"/>
+                <filter name="disabled" string="Disabled" domain="[('entity_state', '=', 'off')]"/>
+                <separator/>
+                <filter name="blueprint_based" string="Blueprint Based" domain="[('is_blueprint_based', '=', True)]"/>
+                <filter name="custom" string="Custom (No Blueprint)" domain="[('is_blueprint_based', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'ha_instance_id'}"/>
+                    <filter name="group_by_area" string="Area" context="{'group_by': 'display_area_id'}"/>
+                    <filter name="group_by_blueprint" string="Blueprint" context="{'group_by': 'blueprint_path'}"/>
+                    <filter name="group_by_state" string="State" context="{'group_by': 'entity_state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Automation Action - Filtered to domain='automation' -->
+    <record id="ha_automation_action" model="ir.actions.act_window">
+        <field name="name">Automations</field>
+        <field name="res_model">ha.entity</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('domain', '=', 'automation')]</field>
+        <field name="context">{
+            'default_domain': 'automation',
+            'search_default_group_by_instance': 0
+        }</field>
+        <field name="search_view_id" ref="ha_automation_view_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('ha_automation_view_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('ha_automation_view_form')})]"/>
+    </record>
+</odoo>

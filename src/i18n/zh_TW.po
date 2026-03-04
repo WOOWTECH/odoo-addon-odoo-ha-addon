@@ -1437,3 +1437,346 @@ msgstr "場景"
 #: model:ir.ui.menu,name:odoo_ha_addon.config_scene_menu
 msgid "Scene"
 msgstr "場景"
+
+#. ===========================================
+#. Blueprint / Automation / Script Translations
+#. ===========================================
+
+#. module: odoo_ha_addon
+#: model:ir.actions.act_window,name:odoo_ha_addon.ha_automation_action
+msgid "Automations"
+msgstr "自動化"
+
+#. module: odoo_ha_addon
+#: model:ir.ui.menu,name:odoo_ha_addon.config_automation_menu
+msgid "Automation"
+msgstr "自動化"
+
+#. module: odoo_ha_addon
+#: model:ir.actions.act_window,name:odoo_ha_addon.ha_script_action
+msgid "Scripts"
+msgstr "腳本"
+
+#. module: odoo_ha_addon
+#: model:ir.ui.menu,name:odoo_ha_addon.config_script_menu
+msgid "Script"
+msgstr "腳本"
+
+#. module: odoo_ha_addon
+#: model:ir.actions.act_window,name:odoo_ha_addon.ha_blueprint_wizard_automation_action
+msgid "Create Automation from Blueprint"
+msgstr "從藍圖建立自動化"
+
+#. module: odoo_ha_addon
+#: model:ir.actions.act_window,name:odoo_ha_addon.ha_blueprint_wizard_script_action
+msgid "Create Script from Blueprint"
+msgstr "從藍圖建立腳本"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_list
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_list
+msgid "Create from Blueprint"
+msgstr "從藍圖建立"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+msgid "Automation Name"
+msgstr "自動化名稱"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+msgid "Automation ID"
+msgstr "自動化 ID"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Script Name"
+msgstr "腳本名稱"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Script ID"
+msgstr "腳本 ID"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+msgid "Toggle automation on/off"
+msgstr "切換自動化開/關"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+msgid "Trigger this automation manually"
+msgstr "手動觸發此自動化"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Run this script"
+msgstr "執行此腳本"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Toggle script on/off"
+msgstr "切換腳本開/關"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Refresh Blueprint"
+msgstr "重新整理藍圖"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Refresh blueprint configuration from Home Assistant"
+msgstr "從 Home Assistant 重新整理藍圖設定"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+msgid "Last Triggered"
+msgstr "最後觸發"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Last Run"
+msgstr "最後執行"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__blueprint_path
+msgid "Blueprint Path"
+msgstr "藍圖路徑"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__blueprint_inputs
+msgid "Blueprint Inputs (JSON)"
+msgstr "藍圖輸入 (JSON)"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__blueprint_metadata
+msgid "Blueprint Metadata (JSON)"
+msgstr "藍圖元數據 (JSON)"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__is_blueprint_based
+msgid "Is Blueprint Based"
+msgstr "基於藍圖"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Blueprint"
+msgstr "藍圖"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Blueprint Information"
+msgstr "藍圖資訊"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Blueprint Inputs"
+msgstr "藍圖輸入"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Edit the parameters below and save to update the automation in Home Assistant."
+msgstr "編輯以下參數並儲存以更新 Home Assistant 中的自動化。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Edit the parameters below and save to update the script in Home Assistant."
+msgstr "編輯以下參數並儲存以更新 Home Assistant 中的腳本。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+msgid "This automation is not based on a Blueprint."
+msgstr "此自動化不是基於藍圖。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+msgid "It was created directly in Home Assistant with custom triggers, conditions, and actions."
+msgstr "它是直接在 Home Assistant 中建立的，包含自訂觸發器、條件和動作。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "This script is not based on a Blueprint."
+msgstr "此腳本不是基於藍圖。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "It was created directly in Home Assistant with custom sequences and actions."
+msgstr "它是直接在 Home Assistant 中建立的，包含自訂序列和動作。"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Trigger History"
+msgstr "觸發歷史"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
+msgid "Run History"
+msgstr "執行歷史"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_search
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_search
+msgid "Enabled"
+msgstr "已啟用"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_search
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_search
+msgid "Disabled"
+msgstr "已停用"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_search
+msgid "Running"
+msgstr "執行中"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_search
+msgid "Idle"
+msgstr "閒置"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_search
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_search
+msgid "Blueprint Based"
+msgstr "基於藍圖"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_search
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_search
+msgid "Custom (No Blueprint)"
+msgstr "自訂 (無藍圖)"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
+msgid "Step 1:"
+msgstr "步驟 1："
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
+msgid "Select a Blueprint template from Home Assistant"
+msgstr "從 Home Assistant 選擇藍圖範本"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
+msgid "Select Blueprint"
+msgstr "選擇藍圖"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
+msgid "Available Blueprints"
+msgstr "可用藍圖"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
+msgid "Select a blueprint..."
+msgstr "選擇藍圖..."
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
+msgid "Configuration"
+msgstr "設定"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
+msgid "Enter a name for the automation/script..."
+msgstr "輸入自動化/腳本的名稱..."
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
+msgid "Optional description..."
+msgstr "可選說明..."
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
+msgid "Next"
+msgstr "下一步"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
+msgid "Back"
+msgstr "上一步"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
+msgid "Create"
+msgstr "建立"
+
+#. module: odoo_ha_addon
+#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
+msgid "Refresh"
+msgstr "重新整理"
+
+#. module: odoo_ha_addon
+#: model:ir.model,name:odoo_ha_addon.model_ha_blueprint_wizard
+msgid "Create Automation/Script from Blueprint"
+msgstr "從藍圖建立自動化/腳本"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_blueprint_wizard__domain
+msgid "Type"
+msgstr "類型"
+
+#. module: odoo_ha_addon
+#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_blueprint_wizard__blueprint_name
+msgid "Blueprint Name"
+msgstr "藍圖名稱"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
+msgid "Please select a Blueprint template."
+msgstr "請選擇藍圖範本。"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
+msgid "Selected blueprint not found. Please refresh the list."
+msgstr "找不到選定的藍圖。請重新整理列表。"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
+msgid "Please enter a name."
+msgstr "請輸入名稱。"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
+msgid "No blueprint selected."
+msgstr "未選擇藍圖。"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
+msgid "Success"
+msgstr "成功"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
+msgid "Created %s '%s'. Please sync entities to see it in the list."
+msgstr "已建立 %s「%s」。請同步實體以在列表中查看。"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
+msgid "Invalid JSON in Blueprint Inputs: %s"
+msgstr "藍圖輸入中的 JSON 無效：%s"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
+msgid "Failed to create %s in Home Assistant: %s"
+msgstr "無法在 Home Assistant 中建立 %s：%s"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
+msgid "Failed to load blueprints from Home Assistant: %s"
+msgstr "無法從 Home Assistant 載入藍圖：%s"
+
+#. module: odoo_ha_addon
+#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
+msgid "Failed to load blueprint details: %s"
+msgstr "無法載入藍圖詳細資訊：%s"

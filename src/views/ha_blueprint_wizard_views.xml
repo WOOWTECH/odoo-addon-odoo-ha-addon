@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Blueprint Wizard Form View - Step 1: Select Blueprint -->
+    <record id="ha_blueprint_wizard_form_select" model="ir.ui.view">
+        <field name="name">ha.blueprint.wizard.form.select</field>
+        <field name="model">ha.blueprint.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Create from Blueprint">
+                <sheet>
+                    <div class="alert alert-info" role="status">
+                        <i class="fa fa-magic me-2" title="Blueprint"/>
+                        <strong>Step 1:</strong> Select a Blueprint template from Home Assistant
+                    </div>
+
+                    <group>
+                        <group string="Select Blueprint">
+                            <field name="domain" readonly="state != 'select'"/>
+                            <field name="ha_instance_id" readonly="state != 'select'"/>
+                        </group>
+                    </group>
+
+                    <!-- Blueprint Selection -->
+                    <group string="Available Blueprints" invisible="state != 'select'">
+                        <field name="blueprint_path"
+                               widget="blueprint_selector"
+                               placeholder="Select a blueprint..."
+                               options="{'list_field': 'blueprint_list_json'}"/>
+                        <field name="blueprint_list_json" invisible="1"/>
+                    </group>
+
+                    <!-- Configuration Form - Step 2 -->
+                    <div invisible="state != 'configure'">
+                        <div class="alert alert-success mb-3" role="status">
+                            <i class="fa fa-check-circle me-2"/>
+                            <strong>Blueprint:</strong> <field name="blueprint_name" nolabel="1" class="d-inline"/>
+                            <span class="text-muted ms-2">(<field name="blueprint_path" nolabel="1" class="d-inline"/>)</span>
+                        </div>
+
+                        <group string="Configuration">
+                            <group>
+                                <field name="name" placeholder="Enter a name for the automation/script..." required="state == 'configure'"/>
+                                <field name="description" placeholder="Optional description..."/>
+                            </group>
+                        </group>
+
+                        <group string="Blueprint Inputs">
+                            <field name="blueprint_inputs_json"
+                                   widget="blueprint_inputs"
+                                   options="{'schema_field': 'blueprint_schema_json'}"/>
+                            <field name="blueprint_schema_json" invisible="1"/>
+                        </group>
+                    </div>
+
+                    <field name="state" invisible="1"/>
+                </sheet>
+
+                <footer>
+                    <!-- Step 1 buttons -->
+                    <button name="action_select_blueprint"
+                            type="object"
+                            string="Next"
+                            class="btn-primary"
+                            invisible="state != 'select'"/>
+                    <button name="action_refresh_blueprints"
+                            type="object"
+                            string="Refresh"
+                            class="btn-secondary"
+                            invisible="state != 'select'"/>
+
+                    <!-- Step 2 buttons -->
+                    <button name="action_back"
+                            type="object"
+                            string="Back"
+                            class="btn-secondary"
+                            invisible="state != 'configure'"/>
+                    <button name="action_create"
+                            type="object"
+                            string="Create"
+                            class="btn-primary"
+                            invisible="state != 'configure'"/>
+
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Window Action for Blueprint Wizard (Automation) -->
+    <record id="ha_blueprint_wizard_automation_action" model="ir.actions.act_window">
+        <field name="name">Create Automation from Blueprint</field>
+        <field name="res_model">ha.blueprint.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_domain': 'automation'}</field>
+    </record>
+
+    <!-- Window Action for Blueprint Wizard (Script) -->
+    <record id="ha_blueprint_wizard_script_action" model="ir.actions.act_window">
+        <field name="name">Create Script from Blueprint</field>
+        <field name="res_model">ha.blueprint.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_domain': 'script'}</field>
+    </record>
+</odoo>

@@ -218,6 +218,39 @@ class HAEntity(models.Model):
                 # No ha_scene_id means it's a device-created scene (Hue, etc.)
                 record.scene_source = 'device'
 
+    # Blueprint-specific fields (only applicable when domain='automation' or 'script')
+    blueprint_path = fields.Char(
+        string='Blueprint Path',
+        help='Path to the blueprint (e.g., homeassistant/motion_light.yaml). '
+             'Only applicable for automation/script entities based on blueprints.'
+    )
+    blueprint_inputs = fields.Text(
+        string='Blueprint Inputs (JSON)',
+        help='User-provided input values for the blueprint in JSON format.'
+    )
+    blueprint_metadata = fields.Text(
+        string='Blueprint Metadata (JSON)',
+        help='Cached blueprint schema including inputs definition, name, and description.'
+    )
+    is_blueprint_based = fields.Boolean(
+        string='Is Blueprint Based',
+        compute='_compute_is_blueprint_based',
+        store=True,
+        help='Whether this automation/script is based on a blueprint'
+    )
+    ha_automation_id = fields.Char(
+        string='HA Automation/Script ID',
+        copy=False,
+        help='The ID used by Home Assistant for automation/script config. '
+             'Usually matches the entity_id without domain prefix.'
+    )
+
+    @api.depends('blueprint_path')
+    def _compute_is_blueprint_based(self):
+        """Compute whether this entity is based on a blueprint."""
+        for record in self:
+            record.is_blueprint_based = bool(record.blueprint_path)
+
     @api.depends('tag_ids')
     def _compute_tag_count(self):
         for entity in self:
@@ -270,7 +303,8 @@ class HAEntity(models.Model):
     # - tag_ids: Entity 標籤（Odoo 內部分類，不同步到 HA）
     # - note: 使用者備註
     # - scene_entity_ids: Scene 包含的實體（雙向同步到 HA，僅適用於 domain='scene'）
-    _USER_EDITABLE_FIELDS = {'enable_record', 'area_id', 'follows_device_area', 'name', 'label_ids', 'tag_ids', 'note', 'properties', 'scene_entity_ids'}
+    # - blueprint_inputs: Blueprint 參數（雙向同步到 HA，僅適用於 domain='automation'/'script'）
+    _USER_EDITABLE_FIELDS = {'enable_record', 'area_id', 'follows_device_area', 'name', 'label_ids', 'tag_ids', 'note', 'properties', 'scene_entity_ids', 'blueprint_inputs'}
 
     @api.model
     def default_get(self, fields_list):
@@ -655,6 +689,7 @@ class HAEntity(models.Model):
         name_changed = 'name' in vals
         label_ids_changed = 'label_ids' in vals
         scene_entity_ids_changed = 'scene_entity_ids' in vals
+        blueprint_inputs_changed = 'blueprint_inputs' in vals
 
         result = super().write(vals)
 
@@ -698,6 +733,18 @@ class HAEntity(models.Model):
                             _logger.error(f"Failed to sync scene {record.entity_id} to HA: {e}", exc_info=True)
                     else:
                         _logger.info(f"Scene {record.entity_id} has no entities, skipping sync to HA")
+
+                # 當 blueprint_inputs 變更時，更新 Automation/Script 到 HA
+                if blueprint_inputs_changed and record.domain in ['automation', 'script']:
+                    if record.is_blueprint_based:
+                        _logger.info(f"Blueprint inputs changed for {record.entity_id}, triggering sync to HA")
+                        try:
+                            record._sync_blueprint_inputs_to_ha()
+                            _logger.info(f"Blueprint inputs synced for {record.entity_id}")
+                        except Exception as e:
+                            _logger.error(f"Failed to sync blueprint inputs for {record.entity_id}: {e}", exc_info=True)
+                    else:
+                        _logger.warning(f"Blueprint inputs changed for non-blueprint entity {record.entity_id}, skipping sync")
 
         return result
 
@@ -2001,5 +2048,271 @@ class HAEntity(models.Model):
 
         _logger.info(f"[SYNC_INTERNAL] Scene sync completed for {self.entity_id}")
         _trace(f"[SYNC_INTERNAL] Scene sync completed for {self.entity_id}")
+
+    # ========== Blueprint Sync Methods ==========
+
+    def action_sync_blueprint_from_ha(self):
+        """
+        Sync blueprint configuration from Home Assistant.
+
+        Fetches the automation/script config and blueprint metadata from HA
+        and updates the local blueprint_* fields.
+
+        Only applicable for blueprint-based automation/script entities.
+        """
+        self.ensure_one()
+
+        if self.domain not in ['automation', 'script']:
+            raise ValidationError(_('This action is only available for automation/script entities.'))
+
+        if not self.ha_instance_id:
+            raise ValidationError(_('No HA instance configured for this entity.'))
+
+        try:
+            self._sync_blueprint_config_from_ha()
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Blueprint Refreshed'),
+                    'message': _('Blueprint configuration for "%s" has been refreshed from Home Assistant.') % (self.name or self.entity_id),
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+        except Exception as e:
+            _logger.error(f"Failed to sync blueprint for {self.entity_id}: {e}", exc_info=True)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Sync Failed'),
+                    'message': _('Failed to refresh blueprint: %s') % str(e),
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    def _sync_blueprint_config_from_ha(self):
+        """
+        Internal method to sync blueprint configuration from Home Assistant.
+
+        Fetches:
+        1. Automation/script config to get use_blueprint.path and use_blueprint.input
+        2. Blueprint metadata from blueprint/list WebSocket command
+
+        Updates: blueprint_path, blueprint_inputs, blueprint_metadata, ha_automation_id
+        """
+        self.ensure_one()
+
+        if self.domain not in ['automation', 'script']:
+            return
+
+        if not self.ha_instance_id:
+            _logger.warning(f"Cannot sync blueprint for {self.entity_id}: no HA instance")
+            return
+
+        rest_api = HassRestApi(self.env, self.ha_instance_id.id)
+
+        # Get config_id from attributes - HA stores the actual config ID in the 'id' attribute
+        config_id = None
+        _logger.info(f"[Blueprint Sync] Processing {self.entity_id}, attributes type: {type(self.attributes)}")
+
+        # For fields.Json, Odoo automatically deserializes JSONB to Python dict
+        if self.attributes:
+            attrs = self.attributes
+            _logger.info(f"[Blueprint Sync] Attributes for {self.entity_id}: {attrs}")
+            if isinstance(attrs, dict):
+                config_id = attrs.get('id')
+                _logger.info(f"[Blueprint Sync] Got config_id from attributes: {config_id}")
+
+        # Fallback: Extract from entity_id if attributes don't have id
+        if not config_id:
+            entity_id_parts = self.entity_id.split('.', 1)
+            if len(entity_id_parts) == 2:
+                config_id = entity_id_parts[1]
+                _logger.info(f"[Blueprint Sync] Using fallback config_id from entity_id: {config_id}")
+
+        if not config_id:
+            _logger.warning(f"Cannot determine config_id for {self.entity_id}")
+            return
+
+        vals = {'ha_automation_id': str(config_id)}
+        _logger.info(f"[Blueprint Sync] Fetching config for {self.entity_id} with config_id: {config_id}")
+
+        # Fetch automation/script config
+        if self.domain == 'automation':
+            config = rest_api.get_automation_config(config_id)
+        else:
+            config = rest_api.get_script_config(config_id)
+
+        if not config:
+            _logger.warning(f"[Blueprint Sync] Could not fetch config for {self.entity_id} (config_id={config_id})")
+            # Clear blueprint fields if config not found
+            vals.update({
+                'blueprint_path': False,
+                'blueprint_inputs': False,
+                'blueprint_metadata': False,
+            })
+            self.sudo().write(vals)
+            return
+
+        _logger.info(f"[Blueprint Sync] Config fetched for {self.entity_id}: {config}")
+
+        # Check if it's blueprint-based
+        if 'use_blueprint' in config:
+            blueprint_info = config['use_blueprint']
+            blueprint_path = blueprint_info.get('path', '')
+            blueprint_inputs = blueprint_info.get('input', {})
+
+            vals['blueprint_path'] = blueprint_path
+            vals['blueprint_inputs'] = json.dumps(blueprint_inputs, ensure_ascii=False, indent=2)
+
+            # Fetch blueprint metadata
+            try:
+                blueprints = rest_api.get_blueprint_list(self.domain)
+                if blueprint_path in blueprints:
+                    blueprint_data = blueprints[blueprint_path]
+                    # The blueprint list returns metadata under 'metadata' key
+                    metadata = blueprint_data.get('metadata', blueprint_data)
+                    vals['blueprint_metadata'] = json.dumps(metadata, ensure_ascii=False, indent=2)
+                else:
+                    _logger.warning(f"Blueprint {blueprint_path} not found in blueprint list")
+                    vals['blueprint_metadata'] = False
+            except Exception as e:
+                _logger.warning(f"Failed to fetch blueprint metadata: {e}")
+                vals['blueprint_metadata'] = False
+        else:
+            # Not blueprint-based
+            _logger.info(f"[Blueprint Sync] {self.entity_id} is NOT blueprint-based (no use_blueprint in config)")
+            vals.update({
+                'blueprint_path': False,
+                'blueprint_inputs': False,
+                'blueprint_metadata': False,
+            })
+
+        self.sudo().write(vals)
+        _logger.info(f"[Blueprint Sync] Wrote vals to {self.entity_id}: blueprint_path={vals.get('blueprint_path', 'N/A')}")
+
+    def _sync_blueprint_inputs_to_ha(self):
+        """
+        Sync modified blueprint inputs back to Home Assistant.
+
+        This method:
+        1. Reads current automation/script config from HA
+        2. Updates the use_blueprint.input with new values
+        3. Posts the updated config back to HA
+
+        Only applicable for blueprint-based automation/script entities.
+        """
+        self.ensure_one()
+
+        if self.domain not in ['automation', 'script']:
+            return
+
+        if not self.ha_instance_id:
+            _logger.warning(f"Cannot sync blueprint inputs for {self.entity_id}: no HA instance")
+            return
+
+        if not self.blueprint_path:
+            _logger.warning(f"Cannot sync blueprint inputs for {self.entity_id}: not blueprint-based")
+            return
+
+        # Get or extract the HA config ID
+        config_id = self.ha_automation_id
+        if not config_id:
+            # Try to extract from entity_id
+            entity_id_parts = self.entity_id.split('.', 1)
+            if len(entity_id_parts) == 2:
+                config_id = entity_id_parts[1]
+                self.sudo().write({'ha_automation_id': config_id})
+            else:
+                _logger.warning(f"Cannot determine automation/script ID for {self.entity_id}")
+                return
+
+        rest_api = HassRestApi(self.env, self.ha_instance_id.id)
+
+        # Parse the blueprint inputs
+        try:
+            inputs = json.loads(self.blueprint_inputs) if self.blueprint_inputs else {}
+        except json.JSONDecodeError as e:
+            _logger.error(f"Invalid blueprint_inputs JSON for {self.entity_id}: {e}")
+            raise ValidationError(_('Invalid blueprint inputs JSON format.'))
+
+        # Fetch current config to preserve other fields
+        if self.domain == 'automation':
+            current_config = rest_api.get_automation_config(config_id)
+        else:
+            current_config = rest_api.get_script_config(config_id)
+
+        if not current_config:
+            _logger.warning(f"Could not fetch current config for {self.entity_id}")
+            raise ValidationError(_('Could not fetch current configuration from Home Assistant.'))
+
+        # Update the use_blueprint.input
+        if 'use_blueprint' not in current_config:
+            current_config['use_blueprint'] = {}
+
+        current_config['use_blueprint']['path'] = self.blueprint_path
+        current_config['use_blueprint']['input'] = inputs
+
+        # Post updated config
+        try:
+            if self.domain == 'automation':
+                rest_api.update_automation_config(config_id, current_config)
+            else:
+                rest_api.update_script_config(config_id, current_config)
+
+            _logger.info(f"Blueprint inputs synced to HA for {self.entity_id}")
+        except Exception as e:
+            _logger.error(f"Failed to sync blueprint inputs to HA for {self.entity_id}: {e}")
+            raise
+
+    def _sync_automation_blueprint_configs(self, instance_id):
+        """
+        同步所有 Automation/Script 的 Blueprint 配置
+        從 HA 取得 automation/script config，檢測 use_blueprint 並更新本地欄位
+
+        Args:
+            instance_id: HA 實例 ID
+        """
+        _trace(f"[BLUEPRINT DEBUG] _sync_automation_blueprint_configs CALLED for instance {instance_id}")
+        _logger.info(f"=== Starting sync automation/script blueprint configs (instance {instance_id}) ===")
+
+        try:
+            # 查找所有 automation/script entities for this instance
+            entities = self.env['ha.entity'].sudo().search([
+                ('ha_instance_id', '=', instance_id),
+                ('domain', 'in', ['automation', 'script']),
+            ])
+
+            if not entities:
+                _logger.info("No automation/script entities found, skipping blueprint sync")
+                return
+
+            _logger.info(f"Found {len(entities)} automation/script entities to check for blueprints")
+
+            updated_count = 0
+            for entity in entities:
+                try:
+                    # 使用現有的 _sync_blueprint_config_from_ha 方法
+                    entity._sync_blueprint_config_from_ha()
+
+                    # 檢查是否有 blueprint_path 被設定
+                    if entity.blueprint_path:
+                        updated_count += 1
+                        _logger.debug(f"Blueprint detected for {entity.entity_id}: {entity.blueprint_path}")
+
+                except Exception as e:
+                    _logger.warning(f"Failed to sync blueprint for {entity.entity_id}: {e}")
+                    continue
+
+            _logger.info(
+                f"Blueprint config sync completed (instance {instance_id}): "
+                f"{updated_count}/{len(entities)} entities have blueprint configurations"
+            )
+
+        except Exception as e:
+            _logger.error(f"Failed to sync automation blueprint configs: {e}", exc_info=True)
 
 
