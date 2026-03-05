@@ -118,6 +118,12 @@
             'odoo_ha_addon/static/src/components/glances_block/glances_block.js',
             'odoo_ha_addon/static/src/components/glances_block/glances_block.xml',
 
+            # Blueprint Wizard Widgets - Dynamic form for Blueprint inputs
+            'odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_selector.js',
+            'odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_selector.xml',
+            'odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.js',
+            'odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml',
+
             # 6. Views - 按依賴順序載入
             # HaHistory 視圖 (Model -> Renderer -> Parser -> Controller -> View)
             'odoo_ha_addon/static/src/views/hahistory/hahistory_model.js',

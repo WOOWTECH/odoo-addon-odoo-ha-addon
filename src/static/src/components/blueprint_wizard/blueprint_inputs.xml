@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ha_addon.BlueprintInputs">
+        <div class="o_blueprint_inputs">
+            <t t-if="Object.keys(state.schema).length === 0">
+                <div class="alert alert-secondary">
+                    <i class="fa fa-info-circle me-2"/>
+                    No configurable inputs for this Blueprint.
+                </div>
+            </t>
+            <t t-else="">
+                <div class="row">
+                    <t t-foreach="inputFields" t-as="field" t-key="field.key">
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">
+                                <t t-esc="field.name"/>
+                                <span t-if="field.required" class="text-danger ms-1">*</span>
+                            </label>
+                            <div t-if="field.description" class="text-muted small mb-1" t-esc="field.description"/>
+
+                            <!-- Entity Selector -->
+                            <t t-if="getSelectorType(field.selector) === 'entity'">
+                                <t t-set="entityConfig" t-value="field.selector.entity || {}"/>
+                                <t t-if="entityConfig.multiple">
+                                    <!-- Multi-select entity -->
+                                    <select class="form-select"
+                                            multiple="multiple"
+                                            style="height: 150px;"
+                                            t-on-change="(ev) => this.onMultiEntitySelect(field.key, ev)">
+                                        <t t-foreach="getFilteredEntities(field.selector)" t-as="entity" t-key="entity.id">
+                                            <option t-att-value="entity.entity_id"
+                                                    t-att-selected="(field.value || []).includes(entity.entity_id)">
+                                                <t t-esc="entity.name || entity.entity_id"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                    <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                                </t>
+                                <t t-else="">
+                                    <!-- Single entity select -->
+                                    <select class="form-select"
+                                            t-att-value="field.value || ''"
+                                            t-on-change="(ev) => this.onEntitySelect(field.key, ev)">
+                                        <option value="">-- Select entity --</option>
+                                        <t t-foreach="getFilteredEntities(field.selector)" t-as="entity" t-key="entity.id">
+                                            <option t-att-value="entity.entity_id"
+                                                    t-att-selected="field.value === entity.entity_id">
+                                                <t t-esc="entity.name || entity.entity_id"/>
+                                                (<t t-esc="entity.entity_id"/>)
+                                            </option>
+                                        </t>
+                                    </select>
+                                </t>
+                            </t>
+
+                            <!-- Target Selector (entity/area/device) -->
+                            <t t-elif="getSelectorType(field.selector) === 'target'">
+                                <div class="border rounded p-2">
+                                    <div class="mb-2">
+                                        <label class="form-label small">Target Entity</label>
+                                        <select class="form-select form-select-sm"
+                                                t-att-value="field.value?.entity_id || ''"
+                                                t-on-change="(ev) => this.onTargetEntitySelect(field.key, ev)">
+                                            <option value="">-- Select target entity --</option>
+                                            <t t-foreach="getFilteredEntities(field.selector.target)" t-as="entity" t-key="entity.id">
+                                                <option t-att-value="entity.entity_id"
+                                                        t-att-selected="field.value?.entity_id === entity.entity_id">
+                                                    <t t-esc="entity.name || entity.entity_id"/>
+                                                </option>
+                                            </t>
+                                        </select>
+                                    </div>
+                                    <div class="text-muted small">
+                                        <i class="fa fa-info-circle me-1"/>
+                                        Or specify area/device target in advanced mode
+                                    </div>
+                                </div>
+                            </t>
+
+                            <!-- Area Selector -->
+                            <t t-elif="getSelectorType(field.selector) === 'area'">
+                                <select class="form-select"
+                                        t-att-value="field.value || ''"
+                                        t-on-change="(ev) => this.onAreaSelect(field.key, ev)">
+                                    <option value="">-- Select area --</option>
+                                    <t t-foreach="state.areas" t-as="area" t-key="area.id">
+                                        <option t-att-value="area.area_id"
+                                                t-att-selected="field.value === area.area_id">
+                                            <t t-esc="area.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </t>
+
+                            <!-- Number Selector -->
+                            <t t-elif="getSelectorType(field.selector) === 'number'">
+                                <t t-set="numConfig" t-value="getNumberConfig(field.selector)"/>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="range"
+                                           class="form-range flex-grow-1"
+                                           t-att-min="numConfig.min"
+                                           t-att-max="numConfig.max"
+                                           t-att-step="numConfig.step"
+                                           t-att-value="field.value ?? field.default ?? numConfig.min"
+                                           t-on-input="(ev) => this.onNumberInput(field.key, ev)"
+                                           t-if="numConfig.mode !== 'box'"/>
+                                    <input type="number"
+                                           class="form-control"
+                                           style="width: 100px;"
+                                           t-att-min="numConfig.min"
+                                           t-att-max="numConfig.max"
+                                           t-att-step="numConfig.step"
+                                           t-att-value="field.value ?? field.default ?? ''"
+                                           t-on-input="(ev) => this.onNumberInput(field.key, ev)"/>
+                                    <span t-if="numConfig.unit" class="text-muted" t-esc="numConfig.unit"/>
+                                </div>
+                            </t>
+
+                            <!-- Boolean Selector -->
+                            <t t-elif="getSelectorType(field.selector) === 'boolean'">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           role="switch"
+                                           t-att-id="'bp_bool_' + field.key"
+                                           t-att-checked="field.value ?? field.default ?? false"
+                                           t-on-change="(ev) => this.onBooleanChange(field.key, ev)"/>
+                                    <label class="form-check-label" t-att-for="'bp_bool_' + field.key">
+                                        <t t-if="field.value ?? field.default">Enabled</t>
+                                        <t t-else="">Disabled</t>
+                                    </label>
+                                </div>
+                            </t>
+
+                            <!-- Select Selector (dropdown) -->
+                            <t t-elif="getSelectorType(field.selector) === 'select'">
+                                <select class="form-select"
+                                        t-att-value="field.value ?? field.default ?? ''"
+                                        t-on-change="(ev) => this.onSelectChange(field.key, ev)">
+                                    <option value="">-- Select option --</option>
+                                    <t t-foreach="getSelectOptions(field.selector)" t-as="opt" t-key="opt.value">
+                                        <option t-att-value="opt.value"
+                                                t-att-selected="(field.value ?? field.default) === opt.value">
+                                            <t t-esc="opt.label"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </t>
+
+                            <!-- Time Selector -->
+                            <t t-elif="getSelectorType(field.selector) === 'time'">
+                                <input type="time"
+                                       class="form-control"
+                                       t-att-value="field.value ?? field.default ?? ''"
+                                       t-on-input="(ev) => this.onTimeInput(field.key, ev)"/>
+                            </t>
+
+                            <!-- Date Selector -->
+                            <t t-elif="getSelectorType(field.selector) === 'date'">
+                                <input type="date"
+                                       class="form-control"
+                                       t-att-value="field.value ?? field.default ?? ''"
+                                       t-on-input="(ev) => this.onDateInput(field.key, ev)"/>
+                            </t>
+
+                            <!-- Datetime Selector -->
+                            <t t-elif="getSelectorType(field.selector) === 'datetime'">
+                                <input type="datetime-local"
+                                       class="form-control"
+                                       t-att-value="field.value ?? field.default ?? ''"
+                                       t-on-input="(ev) => this.onDatetimeInput(field.key, ev)"/>
+                            </t>
+
+                            <!-- Duration Selector -->
+                            <t t-elif="getSelectorType(field.selector) === 'duration'">
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <label class="form-label small text-muted">Hours</label>
+                                        <input type="number"
+                                               class="form-control"
+                                               min="0"
+                                               max="23"
+                                               t-att-value="field.value?.hours ?? 0"
+                                               t-on-input="(ev) => this.onDurationChange(field.key, 'hours', ev)"/>
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label small text-muted">Minutes</label>
+                                        <input type="number"
+                                               class="form-control"
+                                               min="0"
+                                               max="59"
+                                               t-att-value="field.value?.minutes ?? 0"
+                                               t-on-input="(ev) => this.onDurationChange(field.key, 'minutes', ev)"/>
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label small text-muted">Seconds</label>
+                                        <input type="number"
+                                               class="form-control"
+                                               min="0"
+                                               max="59"
+                                               t-att-value="field.value?.seconds ?? 0"
+                                               t-on-input="(ev) => this.onDurationChange(field.key, 'seconds', ev)"/>
+                                    </div>
+                                </div>
+                            </t>
+
+                            <!-- Text Selector (with multiline support) -->
+                            <t t-elif="getSelectorType(field.selector) === 'text'">
+                                <t t-set="textConfig" t-value="getTextConfig(field.selector)"/>
+                                <t t-if="textConfig.multiline">
+                                    <textarea class="form-control"
+                                              rows="3"
+                                              t-att-value="field.value ?? field.default ?? ''"
+                                              t-on-input="(ev) => this.onTextInput(field.key, ev)"
+                                              t-att-placeholder="field.default ? 'Default: ' + field.default : ''"/>
+                                </t>
+                                <t t-else="">
+                                    <div class="input-group">
+                                        <span t-if="textConfig.prefix" class="input-group-text" t-esc="textConfig.prefix"/>
+                                        <input t-att-type="textConfig.type"
+                                               class="form-control"
+                                               t-att-value="field.value ?? field.default ?? ''"
+                                               t-on-input="(ev) => this.onTextInput(field.key, ev)"
+                                               t-att-placeholder="field.default ? 'Default: ' + field.default : ''"/>
+                                        <span t-if="textConfig.suffix" class="input-group-text" t-esc="textConfig.suffix"/>
+                                    </div>
+                                </t>
+                            </t>
+
+                            <!-- Action Selector (advanced - JSON for now) -->
+                            <t t-elif="getSelectorType(field.selector) === 'action'">
+                                <div class="alert alert-info mb-2 py-2">
+                                    <i class="fa fa-code me-1"/>
+                                    Action sequences - Enter as JSON array
+                                </div>
+                                <textarea class="form-control font-monospace"
+                                          rows="4"
+                                          t-att-value="formatJsonValue(field.value)"
+                                          t-on-change="(ev) => this.onJsonInput(field.key, ev)"
+                                          placeholder='[{"service": "light.turn_on", "target": {"entity_id": "light.example"}}]'/>
+                            </t>
+
+                            <!-- Condition Selector (advanced - JSON for now) -->
+                            <t t-elif="getSelectorType(field.selector) === 'condition'">
+                                <div class="alert alert-info mb-2 py-2">
+                                    <i class="fa fa-code me-1"/>
+                                    Conditions - Enter as JSON array
+                                </div>
+                                <textarea class="form-control font-monospace"
+                                          rows="4"
+                                          t-att-value="formatJsonValue(field.value)"
+                                          t-on-change="(ev) => this.onJsonInput(field.key, ev)"
+                                          placeholder='[{"condition": "state", "entity_id": "sensor.example", "state": "on"}]'/>
+                            </t>
+
+                            <!-- Trigger Selector (advanced - JSON for now) -->
+                            <t t-elif="getSelectorType(field.selector) === 'trigger'">
+                                <div class="alert alert-info mb-2 py-2">
+                                    <i class="fa fa-code me-1"/>
+                                    Triggers - Enter as JSON array
+                                </div>
+                                <textarea class="form-control font-monospace"
+                                          rows="4"
+                                          t-att-value="formatJsonValue(field.value)"
+                                          t-on-change="(ev) => this.onJsonInput(field.key, ev)"
+                                          placeholder='[{"platform": "state", "entity_id": "binary_sensor.motion"}]'/>
+                            </t>
+
+                            <!-- Template Selector (code input) -->
+                            <t t-elif="getSelectorType(field.selector) === 'template'">
+                                <div class="alert alert-info mb-2 py-2">
+                                    <i class="fa fa-code me-1"/>
+                                    Jinja2 Template
+                                </div>
+                                <textarea class="form-control font-monospace"
+                                          rows="3"
+                                          t-att-value="field.value ?? field.default ?? ''"
+                                          t-on-input="(ev) => this.onTextInput(field.key, ev)"
+                                          placeholder="{{ states('sensor.example') }}"/>
+                            </t>
+
+                            <!-- Object Selector (JSON) -->
+                            <t t-elif="getSelectorType(field.selector) === 'object'">
+                                <textarea class="form-control font-monospace"
+                                          rows="4"
+                                          t-att-value="formatJsonValue(field.value)"
+                                          t-on-change="(ev) => this.onJsonInput(field.key, ev)"
+                                          placeholder='{"key": "value"}'/>
+                            </t>
+
+                            <!-- Icon Selector -->
+                            <t t-elif="getSelectorType(field.selector) === 'icon'">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i t-att-class="'fa ' + (field.value || 'fa-question')"/>
+                                    </span>
+                                    <input type="text"
+                                           class="form-control"
+                                           t-att-value="field.value ?? field.default ?? ''"
+                                           t-on-input="(ev) => this.onTextInput(field.key, ev)"
+                                           placeholder="mdi:lightbulb"/>
+                                </div>
+                                <small class="text-muted">Enter icon name (e.g., mdi:lightbulb)</small>
+                            </t>
+
+                            <!-- Unsupported Selector Types - Fallback to text/JSON -->
+                            <t t-else="">
+                                <t t-set="selectorType" t-value="getSelectorType(field.selector)"/>
+                                <div class="alert alert-warning mb-2 py-2">
+                                    <i class="fa fa-exclamation-triangle me-1"/>
+                                    <span>Selector type "<t t-esc="selectorType"/>" - using text input</span>
+                                </div>
+                                <input type="text"
+                                       class="form-control"
+                                       t-att-value="field.value ?? field.default ?? ''"
+                                       t-on-input="(ev) => this.onTextInput(field.key, ev)"
+                                       t-att-placeholder="field.default ? 'Default: ' + field.default : ''"/>
+                            </t>
+                        </div>
+                    </t>
+                </div>
+            </t>
+
+            <!-- Loading indicator -->
+            <div t-if="state.loadingEntities" class="text-center text-muted py-3">
+                <i class="fa fa-spinner fa-spin me-2"/>
+                Loading entities...
+            </div>
+        </div>
+    </t>
+</templates>

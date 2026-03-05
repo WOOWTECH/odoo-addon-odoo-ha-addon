@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ha_addon.BlueprintSelector">
+        <div class="o_blueprint_selector">
+            <!-- Search box -->
+            <div class="mb-2">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Search blueprints..."
+                       t-att-value="state.searchText"
+                       t-on-input="onSearchInput"/>
+            </div>
+
+            <!-- Selected blueprint display -->
+            <div t-if="selectedBlueprint" class="alert alert-success d-flex align-items-center mb-2">
+                <i class="fa fa-check-circle me-2"/>
+                <div class="flex-grow-1">
+                    <strong t-esc="selectedBlueprint.name"/>
+                    <div class="text-muted small" t-esc="selectedBlueprint.path"/>
+                </div>
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        t-on-click="onClearSelection"
+                        title="Clear selection">
+                    <i class="fa fa-times"/>
+                </button>
+            </div>
+
+            <!-- Blueprint list -->
+            <div class="o_blueprint_list border rounded" style="max-height: 300px; overflow-y: auto;">
+                <t t-if="filteredBlueprints.length === 0">
+                    <div class="p-3 text-center text-muted">
+                        <i class="fa fa-inbox fa-2x mb-2 d-block"/>
+                        <span t-if="state.blueprintList.length === 0">
+                            No blueprints available. Click "Refresh" to load from Home Assistant.
+                        </span>
+                        <span t-else="">
+                            No blueprints match your search.
+                        </span>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-foreach="filteredBlueprints" t-as="blueprint" t-key="blueprint.path">
+                        <div class="o_blueprint_item p-2 border-bottom cursor-pointer"
+                             t-att-class="{ 'bg-primary-subtle': state.selectedPath === blueprint.path }"
+                             t-on-click="() => this.onSelectBlueprint(blueprint)">
+                            <div class="d-flex align-items-start">
+                                <i class="fa fa-magic me-2 mt-1 text-primary"/>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold" t-esc="blueprint.name"/>
+                                    <div class="text-muted small text-truncate"
+                                         t-if="blueprint.description"
+                                         t-att-title="blueprint.description"
+                                         t-esc="blueprint.description"/>
+                                    <div class="text-muted small opacity-50" t-esc="blueprint.path"/>
+                                </div>
+                                <i t-if="state.selectedPath === blueprint.path"
+                                   class="fa fa-check text-success ms-2"/>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </div>
+
+            <div class="mt-2 text-muted small">
+                <i class="fa fa-info-circle me-1"/>
+                <span t-esc="filteredBlueprints.length"/> blueprint(s) available
+            </div>
+        </div>
+    </t>
+</templates>
