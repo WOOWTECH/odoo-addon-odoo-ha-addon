@@ -105,9 +105,10 @@
                                 <i class="fa fa-info-circle me-2"/>
                                 <strong>Blueprint Inputs</strong> - Edit the parameters below and save to update the script in Home Assistant.
                             </div>
-                            <!-- Blueprint Inputs Editor Widget - Dynamic Form -->
-                            <field name="blueprint_inputs" widget="blueprint_inputs"
-                                   options="{'schema_field': 'blueprint_metadata'}"/>
+                            <!-- Blueprint Inputs Editor Widget - Using ACE temporarily for debugging -->
+                            <field name="blueprint_inputs" widget="ace"
+                                   options="{'mode': 'json'}"
+                                   placeholder='{"input_name": "value"}'/>
                             <!-- Blueprint Metadata removed as per PRD requirements -->
                             <field name="blueprint_metadata" invisible="1"/>
                         </page>

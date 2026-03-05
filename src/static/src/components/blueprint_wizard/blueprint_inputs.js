@@ -27,7 +27,7 @@ import { useService } from "@web/core/utils/hooks";
 import { rpc } from "@web/core/network/rpc";
 import { _t } from "@web/core/l10n/translation";
 
-const { Component, useState, onWillStart, onWillUpdateProps } = owl;
+const { Component, useState, onWillUpdateProps } = owl;
 
 export class BlueprintInputs extends Component {
     static template = "odoo_ha_addon.BlueprintInputs";
@@ -46,20 +46,68 @@ export class BlueprintInputs extends Component {
             areas: [],
             devices: [],
             loadingEntities: false,
+            loadingAreas: false,
+            entitiesLoaded: false,
+            areasLoaded: false,
         });
 
         this._parseSchema();
         this._parseInputValues();
 
-        onWillStart(async () => {
-            await this._loadEntities();
-            await this._loadAreas();
-        });
-
+        // Don't load entities/areas on mount - load lazily when needed
+        // This significantly improves initial load time
         onWillUpdateProps((nextProps) => {
             this._parseSchema(nextProps);
             this._parseInputValues(nextProps);
         });
+    }
+
+    /**
+     * Check if schema needs entity data (lazy loading)
+     */
+    _needsEntityData() {
+        const types = ["entity", "target"];
+        for (const def of Object.values(this.state.schema)) {
+            const selectorType = this.getSelectorType(def.selector);
+            if (types.includes(selectorType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if schema needs area data (lazy loading)
+     */
+    _needsAreaData() {
+        const types = ["area", "target"];
+        for (const def of Object.values(this.state.schema)) {
+            const selectorType = this.getSelectorType(def.selector);
+            if (types.includes(selectorType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Ensure entities are loaded (lazy load on first access)
+     */
+    async ensureEntitiesLoaded() {
+        if (this.state.entitiesLoaded || this.state.loadingEntities) {
+            return;
+        }
+        await this._loadEntities();
+    }
+
+    /**
+     * Ensure areas are loaded (lazy load on first access)
+     */
+    async ensureAreasLoaded() {
+        if (this.state.areasLoaded || this.state.loadingAreas) {
+            return;
+        }
+        await this._loadAreas();
     }
 
     _parseSchema(props = this.props) {
@@ -97,12 +145,16 @@ export class BlueprintInputs extends Component {
     }
 
     async _loadEntities() {
+        if (this.state.entitiesLoaded || this.state.loadingEntities) {
+            return;
+        }
         this.state.loadingEntities = true;
         try {
             // Get instance ID from record
             const instanceId = this.props.record.data.ha_instance_id?.[0];
             if (!instanceId) {
                 this.state.entities = [];
+                this.state.entitiesLoaded = true;
                 return;
             }
 
@@ -118,6 +170,7 @@ export class BlueprintInputs extends Component {
             });
 
             this.state.entities = result || [];
+            this.state.entitiesLoaded = true;
         } catch (e) {
             console.error("Failed to load entities:", e);
             this.state.entities = [];
@@ -127,10 +180,15 @@ export class BlueprintInputs extends Component {
     }
 
     async _loadAreas() {
+        if (this.state.areasLoaded || this.state.loadingAreas) {
+            return;
+        }
+        this.state.loadingAreas = true;
         try {
             const instanceId = this.props.record.data.ha_instance_id?.[0];
             if (!instanceId) {
                 this.state.areas = [];
+                this.state.areasLoaded = true;
                 return;
             }
 
@@ -146,15 +204,30 @@ export class BlueprintInputs extends Component {
             });
 
             this.state.areas = result || [];
+            this.state.areasLoaded = true;
         } catch (e) {
             console.error("Failed to load areas:", e);
             this.state.areas = [];
+        } finally {
+            this.state.loadingAreas = false;
         }
     }
 
     get inputFields() {
         const fields = [];
+        let needsEntities = false;
+        let needsAreas = false;
+
         for (const [key, def] of Object.entries(this.state.schema)) {
+            const selectorType = this.getSelectorType(def.selector);
+            // Track what data we need
+            if (["entity", "target"].includes(selectorType)) {
+                needsEntities = true;
+            }
+            if (["area", "target"].includes(selectorType)) {
+                needsAreas = true;
+            }
+
             fields.push({
                 key,
                 name: def.name || key,
@@ -165,6 +238,15 @@ export class BlueprintInputs extends Component {
                 value: this.state.inputValues[key],
             });
         }
+
+        // Trigger lazy loading if needed (non-blocking)
+        if (needsEntities && !this.state.entitiesLoaded && !this.state.loadingEntities) {
+            this._loadEntities();
+        }
+        if (needsAreas && !this.state.areasLoaded && !this.state.loadingAreas) {
+            this._loadAreas();
+        }
+
         return fields;
     }
 
