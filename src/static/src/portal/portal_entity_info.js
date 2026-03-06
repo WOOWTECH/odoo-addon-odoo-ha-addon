@@ -41,6 +41,10 @@ export class PortalEntityInfo extends Component {
         this.pollTimer = null;
         this.pollInterval = 5000; // 5 seconds
 
+        // IMPORTANT: Bind visibility handler BEFORE registering event listeners
+        // This ensures the same function reference is used for both add and remove
+        this.onVisibilityChange = this.onVisibilityChange.bind(this);
+
         // Lifecycle hooks
         onMounted(() => {
             this.startPolling();
@@ -51,9 +55,6 @@ export class PortalEntityInfo extends Component {
             this.stopPolling();
             document.removeEventListener("visibilitychange", this.onVisibilityChange);
         });
-
-        // Bind visibility handler
-        this.onVisibilityChange = this.onVisibilityChange.bind(this);
     }
 
     // ========================================

@@ -422,10 +422,11 @@ class HAPortalController(http.Controller):
                 }
 
         except Exception as e:
-            _logger.exception(f"Portal call-service error for entity {record_id}")
+            _logger.exception(f"Portal call-service error for entity {record_id}: {e}")
+            # Return generic error message to avoid exposing internal details
             return {
                 'success': False,
-                'error': str(e),
+                'error': _('An unexpected error occurred. Please try again.'),
                 'error_code': 'system_error'
             }
 

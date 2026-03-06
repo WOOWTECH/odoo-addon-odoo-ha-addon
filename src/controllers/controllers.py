@@ -10,6 +10,28 @@ from odoo.addons.odoo_ha_addon.models.common.instance_helper import HAInstanceHe
 _logger = logging.getLogger(__name__)
 
 
+def _safe_int(value, field_name):
+    """
+    Safely convert a value to int with user-friendly error handling.
+
+    Args:
+        value: The value to convert
+        field_name: Human-readable field name for error messages
+
+    Returns:
+        int: The converted integer value
+
+    Raises:
+        ValueError: If conversion fails, with user-friendly message
+    """
+    if value is None:
+        raise ValueError(_("%(field)s is required") % {'field': field_name})
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        raise ValueError(_("Invalid %(field)s: must be a numeric ID") % {'field': field_name})
+
+
 class AwesomeDashboard(http.Controller):
 
     def _get_current_instance(self):
@@ -765,6 +787,15 @@ class AwesomeDashboard(http.Controller):
                     'error': 'area_id is required'
                 })
 
+            # Validate area_id is a valid integer
+            try:
+                area_id_int = _safe_int(area_id, 'area_id')
+            except ValueError as ve:
+                return self._standardize_response({
+                    'success': False,
+                    'error': str(ve)
+                })
+
             # Phase 3: 如果沒指定實例 ID，使用當前實例
             if ha_instance_id is None:
                 ha_instance_id = self._get_current_instance()
@@ -777,7 +808,7 @@ class AwesomeDashboard(http.Controller):
             # 查詢該 area 下的所有 entities (Phase 3: 加上 ha_instance_id 過濾)
             # 移除 .sudo() 以尊重 ir.rule 權限控制（HA User 只能看到授權的 entities）
             entities = request.env['ha.entity'].search([
-                ('area_id', '=', int(area_id)),
+                ('area_id', '=', area_id_int),
                 ('ha_instance_id', '=', ha_instance_id)
             ])
 
@@ -888,7 +919,14 @@ class AwesomeDashboard(http.Controller):
                 # 「未分區」虛擬區域
                 return self._get_unassigned_area_data(ha_instance_id)
 
-            area_id = int(area_id)
+            # Validate area_id is a valid integer
+            try:
+                area_id = _safe_int(area_id, 'area_id')
+            except ValueError as ve:
+                return self._standardize_response({
+                    'success': False,
+                    'error': str(ve)
+                })
 
             # 取得 Area 資訊
             area = request.env['ha.area'].search([
@@ -1309,8 +1347,18 @@ class AwesomeDashboard(http.Controller):
                     'error_type': 'validation_error'
                 })
 
+            # Validate instance_id is a valid integer
+            try:
+                instance_id_int = _safe_int(instance_id, 'instance_id')
+            except ValueError as ve:
+                return self._standardize_response({
+                    'success': False,
+                    'error': str(ve),
+                    'error_type': 'validation_error'
+                })
+
             # Phase 2.2: 使用統一的驗證方法
-            validation = self._validate_instance(int(instance_id))
+            validation = self._validate_instance(instance_id_int)
             if not validation['valid']:
                 return self._standardize_response({
                     'success': False,
