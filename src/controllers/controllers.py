@@ -1311,9 +1311,10 @@ class AwesomeDashboard(http.Controller):
 
         except Exception as e:
             _logger.error(f"Failed to get HA instances: {e}", exc_info=True)
+            # Return generic error message to avoid exposing internal details
             return self._standardize_response({
                 'success': False,
-                'error': str(e)
+                'error': _('Failed to load HA instances. Please try again.')
             })
 
     @http.route('/odoo_ha_addon/switch_instance', type='json', auth='user')

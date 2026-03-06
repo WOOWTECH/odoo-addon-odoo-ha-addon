@@ -176,30 +176,57 @@ class HAInstance(models.Model):
 
         修復: 直接信任 is_websocket_service_running() 的結果
         該方法已經檢查了 heartbeat（15秒閾值），避免 transaction isolation 問題
+
+        Phase 3: 加入 timeout 防止 API 阻塞
+        - 使用 threading 實現 timeout
+        - 預設 3 秒 timeout，避免阻塞整個 get_instances API
         """
         from .common.websocket_thread_manager import is_websocket_service_running
         import os
+        import threading
+
+        # Timeout 設定（秒）
+        WS_STATUS_CHECK_TIMEOUT = 3
 
         for record in self:
             try:
-                # 檢查該實例的 WebSocket 服務是否在運行（透過 heartbeat）
-                # is_websocket_service_running() 使用獨立的 DB cursor，
-                # 能看到最新的 heartbeat 數據（避免 transaction isolation）
-                is_running = is_websocket_service_running(
-                    env=self.env,
-                    instance_id=record.id
-                )
+                # 使用 threading 實現 timeout
+                result = {'status': 'disconnected'}
 
-                if is_running:
-                    record.websocket_status = 'connected'
-                    _logger.info(
-                        f"[PID {os.getpid()}] ✅ Instance {record.id} ({record.name}): Connected"
+                def check_status():
+                    try:
+                        is_running = is_websocket_service_running(
+                            env=self.env,
+                            instance_id=record.id
+                        )
+                        result['status'] = 'connected' if is_running else 'disconnected'
+                    except Exception as e:
+                        _logger.warning(f"WebSocket status check failed for instance {record.id}: {e}")
+                        result['status'] = 'disconnected'
+
+                # 在獨立線程中執行檢查
+                check_thread = threading.Thread(target=check_status)
+                check_thread.start()
+                check_thread.join(timeout=WS_STATUS_CHECK_TIMEOUT)
+
+                if check_thread.is_alive():
+                    # Timeout - 線程仍在運行，返回 disconnected 並記錄警告
+                    _logger.warning(
+                        f"[PID {os.getpid()}] ⏱️ WebSocket status check timed out for instance {record.id} "
+                        f"({record.name}) after {WS_STATUS_CHECK_TIMEOUT}s"
                     )
-                else:
                     record.websocket_status = 'disconnected'
-                    _logger.info(
-                        f"[PID {os.getpid()}] ❌ Instance {record.id} ({record.name}): Disconnected"
-                    )
+                else:
+                    # 正常完成
+                    record.websocket_status = result['status']
+                    if result['status'] == 'connected':
+                        _logger.debug(
+                            f"[PID {os.getpid()}] ✅ Instance {record.id} ({record.name}): Connected"
+                        )
+                    else:
+                        _logger.debug(
+                            f"[PID {os.getpid()}] ❌ Instance {record.id} ({record.name}): Disconnected"
+                        )
 
             except Exception as e:
                 _logger.error(f"Failed to compute WebSocket status for instance {record.id}: {e}")

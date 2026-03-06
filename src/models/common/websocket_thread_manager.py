@@ -339,8 +339,12 @@ def is_websocket_service_running(env=None, instance_id=None):
             )
 
     # Phase 2: 跨 process 檢查 - 使用心跳機制
+    # Phase 3: 加入 statement_timeout 防止 DB 查詢阻塞
     from datetime import datetime, timedelta, timezone
     from odoo.sql_db import db_connect
+
+    # DB 查詢 timeout（毫秒）
+    DB_QUERY_TIMEOUT_MS = 2000  # 2 seconds
 
     try:
         if instance_id:
@@ -348,6 +352,8 @@ def is_websocket_service_running(env=None, instance_id=None):
             heartbeat_key = f'odoo_ha_addon.ws_heartbeat_{db_name}_instance_{instance_id}'
 
             with db_connect(db_name).cursor() as cr:
+                # 設定 statement timeout 防止長時間阻塞
+                cr.execute(f"SET LOCAL statement_timeout = {DB_QUERY_TIMEOUT_MS}")
                 cr.execute(
                     "SELECT value FROM ir_config_parameter WHERE key = %s",
                     (heartbeat_key,)
@@ -373,7 +379,7 @@ def is_websocket_service_running(env=None, instance_id=None):
                 # 心跳檢查閾值：heartbeat_interval * 1.5 = 10 * 1.5 = 15 秒
                 # 給 heartbeat 更新一些緩衝時間，但不要太寬鬆
                 is_running = time_diff < 15
-                _logger.info(
+                _logger.debug(
                     f"[PID {os.getpid()}] ⏱️  Heartbeat Check - Instance {instance_id}: "
                     f"time_diff={time_diff:.2f}s, threshold=15s, is_running={is_running}"
                 )
@@ -384,6 +390,8 @@ def is_websocket_service_running(env=None, instance_id=None):
             heartbeat_pattern = f'odoo_ha_addon.ws_heartbeat_{db_name}_instance_%'
 
             with db_connect(db_name).cursor() as cr:
+                # 設定 statement timeout 防止長時間阻塞
+                cr.execute(f"SET LOCAL statement_timeout = {DB_QUERY_TIMEOUT_MS}")
                 cr.execute(
                     "SELECT key, value FROM ir_config_parameter WHERE key LIKE %s",
                     (heartbeat_pattern,)
@@ -417,9 +425,8 @@ def is_websocket_service_running(env=None, instance_id=None):
                 return running_count > 0
 
     except Exception as e:
-        _logger.error(
-            f"[PID {os.getpid()}] Error checking WebSocket service status: {e}",
-            exc_info=True
+        _logger.warning(
+            f"[PID {os.getpid()}] WebSocket status check failed (returning False): {e}"
         )
         return False
 
