@@ -6,6 +6,11 @@ import threading
 import asyncio
 import logging
 from odoo import api, _
+from odoo.addons.odoo_ha_addon.models.common.ws_config import (
+    WS_CONNECT_TIMEOUT,
+    WS_RETRY_SLEEP,
+    WS_THREAD_JOIN_TIMEOUT,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -59,7 +64,7 @@ def _run_websocket_in_thread(db_name, instance_id, ha_url, ha_token, stop_event)
 
                 # 同時監聽該資料庫專用的停止事件
                 while not stop_event.is_set():
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(WS_RETRY_SLEEP)
 
                 # 收到停止信號，停止服務
                 _logger.info(f"Stop signal received for {db_name} instance {instance_id}, shutting down WebSocket service...")
@@ -67,7 +72,7 @@ def _run_websocket_in_thread(db_name, instance_id, ha_url, ha_token, stop_event)
 
                 # 等待連線任務完成
                 try:
-                    await asyncio.wait_for(connect_task, timeout=5)
+                    await asyncio.wait_for(connect_task, timeout=WS_CONNECT_TIMEOUT)
                 except asyncio.TimeoutError:
                     _logger.warning(f"WebSocket service shutdown timed out for {db_name} instance {instance_id}")
 
@@ -251,8 +256,8 @@ def _stop_single_connection(db_name, instance_id, conn):
 
     stop_event.set()
 
-    # 等待執行緒結束（最多 10 秒）
-    thread.join(timeout=10)
+    # 等待執行緒結束
+    thread.join(timeout=WS_THREAD_JOIN_TIMEOUT)
 
     if thread.is_alive():
         _logger.warning(f"WebSocket thread for {db_name} instance {instance_id} ({instance_name}) did not stop gracefully")
@@ -569,7 +574,7 @@ def restart_websocket_service(env, instance_id=None, force=False):
         try:
             # 停止服務
             stop_websocket_service(db_name, instance_id)
-            time.sleep(1)  # 等待執行緒完全停止
+            time.sleep(WS_RETRY_SLEEP)  # 等待執行緒完全停止
 
             # 啟動服務
             start_websocket_service(env, instance_id)
@@ -607,7 +612,7 @@ def restart_websocket_service(env, instance_id=None, force=False):
         try:
             # 停止所有實例
             stop_websocket_service(db_name)
-            time.sleep(1)  # 等待執行緒完全停止
+            time.sleep(WS_RETRY_SLEEP)  # 等待執行緒完全停止
 
             # 啟動所有活躍實例
             start_websocket_service(env)

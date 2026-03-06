@@ -3,6 +3,10 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, AccessError
 import logging
+from odoo.addons.odoo_ha_addon.models.common.ws_config import (
+    WS_CLOSE_TIMEOUT,
+    WS_AUTH_TIMEOUT,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -39,6 +43,8 @@ class HAInstance(models.Model):
     api_token = fields.Char(
         string='Access Token',
         required=True,
+        copy=False,  # Prevent token from being copied during record duplication
+        groups='odoo_ha_addon.group_ha_admin',  # Only HA admins can view/edit token
         help='Home Assistant Long-Lived Access Token'
     )
 
@@ -434,10 +440,10 @@ class HAInstance(models.Model):
                 _logger.info(f"Testing WebSocket connection to: {ws_url}")
 
                 try:
-                    # 連接到 WebSocket（10秒超時）
-                    async with websockets.connect(ws_url, ping_interval=None, close_timeout=5) as websocket:
+                    # 連接到 WebSocket
+                    async with websockets.connect(ws_url, ping_interval=None, close_timeout=WS_CLOSE_TIMEOUT) as websocket:
                         # 1. 接收 auth_required 訊息
-                        auth_required = await asyncio.wait_for(websocket.recv(), timeout=5)
+                        auth_required = await asyncio.wait_for(websocket.recv(), timeout=WS_AUTH_TIMEOUT)
                         auth_msg = json.loads(auth_required)
 
                         _logger.info(f"Received auth_required: {auth_msg}")
@@ -459,7 +465,7 @@ class HAInstance(models.Model):
                         await websocket.send(json.dumps(auth_payload))
 
                         # 3. 接收認證結果
-                        auth_response = await asyncio.wait_for(websocket.recv(), timeout=5)
+                        auth_response = await asyncio.wait_for(websocket.recv(), timeout=WS_AUTH_TIMEOUT)
                         auth_result = json.loads(auth_response)
 
                         _logger.info(f"Auth result: {auth_result}")

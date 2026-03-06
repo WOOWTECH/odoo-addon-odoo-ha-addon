@@ -1,4 +1,5 @@
 import asyncio
+import atexit
 import json
 import logging
 import time
@@ -10,9 +11,91 @@ from odoo.service import db
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 
+_module_logger = logging.getLogger(__name__)
+
 # 全局執行緒池，限制最大執行緒數以避免資源耗盡
 # max_workers=10 足夠處理並行資料庫操作，同時避免執行緒爆炸
-_db_executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix="ws_db_")
+_db_executor = None
+_db_executor_lock = __import__('threading').Lock()
+
+
+def _get_db_executor() -> ThreadPoolExecutor:
+    """
+    Lazily initialize and return the global ThreadPoolExecutor.
+    Thread-safe initialization with proper lifecycle management.
+    """
+    global _db_executor
+    if _db_executor is None:
+        with _db_executor_lock:
+            if _db_executor is None:  # Double-check locking
+                _db_executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix="ws_db_")
+                _module_logger.debug("Created ThreadPoolExecutor for WebSocket database operations")
+    return _db_executor
+
+
+def shutdown_db_executor(wait: bool = True) -> None:
+    """
+    Shutdown the global ThreadPoolExecutor.
+    Should be called during module uninstall or Odoo shutdown.
+
+    Args:
+        wait: If True, wait for pending futures to complete.
+    """
+    global _db_executor
+    with _db_executor_lock:
+        if _db_executor is not None:
+            _module_logger.info("Shutting down WebSocket database ThreadPoolExecutor...")
+            try:
+                _db_executor.shutdown(wait=wait)
+                _module_logger.info("ThreadPoolExecutor shutdown complete")
+            except Exception as e:
+                _module_logger.error(f"Error during ThreadPoolExecutor shutdown: {e}")
+            finally:
+                _db_executor = None
+
+
+# Register atexit handler for graceful shutdown when Python exits
+atexit.register(lambda: shutdown_db_executor(wait=False))
+
+# Entity ID validation regex pattern: domain.object_id
+# Domain can be letters, object_id can be letters, numbers, underscore
+import re
+_ENTITY_ID_PATTERN = re.compile(r'^[a-z_]+\.[a-z0-9_]+$')
+
+# Import centralized timeout configuration
+from odoo.addons.odoo_ha_addon.models.common.ws_config import (
+    WS_AREA_LIST_TIMEOUT,
+    WS_AREA_CREATE_TIMEOUT,
+    WS_DEVICE_LIST_TIMEOUT,
+    WS_DEFAULT_TIMEOUT,
+    WS_LABEL_LIST_TIMEOUT,
+    WS_ENTITY_REGISTRY_TIMEOUT,
+    WS_SERVICE_CALL_TIMEOUT,
+    WS_SCENE_TIMEOUT,
+    WS_POLL_DELAY_SHORT,
+    WS_POLL_DELAY_STANDARD,
+    WS_RETRY_SLEEP,
+)
+
+
+def is_valid_entity_id(entity_id: str) -> bool:
+    """
+    Validate Home Assistant entity_id format.
+
+    Valid format: domain.object_id
+    - domain: lowercase letters and underscores (e.g., light, binary_sensor)
+    - object_id: lowercase letters, numbers, and underscores
+
+    Args:
+        entity_id: The entity ID string to validate
+
+    Returns:
+        True if valid, False otherwise
+    """
+    if not entity_id or not isinstance(entity_id, str):
+        return False
+    return bool(_ENTITY_ID_PATTERN.match(entity_id))
+
 
 class HassWebSocketService:
     """
@@ -75,16 +158,16 @@ class HassWebSocketService:
         self._pending_area_syncs: dict = {}  # {area_id: asyncio.Task}
         self._area_sync_debounce_delay = 0.5  # 500ms
 
-        # Area sync timeout 常數
-        self._area_list_timeout = 15  # 取得 area list 的 timeout（秒）
-        self._area_create_timeout = 10  # 建立 area 的 timeout（秒）
+        # Area sync timeout 常數 (from ws_config)
+        self._area_list_timeout = WS_AREA_LIST_TIMEOUT
+        self._area_create_timeout = WS_AREA_CREATE_TIMEOUT
 
         # Device sync debounce 機制
         self._pending_device_syncs: dict = {}  # {device_id: asyncio.Task}
-        self._device_sync_debounce_delay = 0.5  # 500ms
+        self._device_sync_debounce_delay = WS_POLL_DELAY_STANDARD  # 500ms
 
-        # Device sync timeout 常數
-        self._device_list_timeout = 15  # 取得 device list 的 timeout（秒）
+        # Device sync timeout 常數 (from ws_config)
+        self._device_list_timeout = WS_DEVICE_LIST_TIMEOUT
 
     async def _run_sync(self, func, *args):
         """
@@ -102,7 +185,7 @@ class HassWebSocketService:
         """
         loop = asyncio.get_event_loop()
         # 使用全局限制的執行緒池，避免 "can't start new thread" 錯誤
-        return await loop.run_in_executor(_db_executor, func, *args)
+        return await loop.run_in_executor(_get_db_executor(), func, *args)
 
     def get_websocket_url(self) -> Optional[str]:
         """
@@ -172,7 +255,7 @@ class HassWebSocketService:
                 self._logger.error(f"Failed to read HA instance token: {e}")
                 return None
         else:
-            self._logger.error(f"No HA token available (env={self.env}, instance_id={self.instance_id}, ha_token={self.ha_token})")
+            self._logger.error(f"No HA token available (env={self.env}, instance_id={self.instance_id}, ha_token={'[SET]' if self.ha_token else '[NOT SET]'})")
             return None
 
     def get_heartbeat_interval(self) -> int:
@@ -739,6 +822,11 @@ class HassWebSocketService:
             if not entity_id or not new_state:
                 return
 
+            # Validate entity_id format to prevent injection attacks
+            if not is_valid_entity_id(entity_id):
+                self._logger.warning(f"Invalid entity_id format received: {entity_id!r}")
+                return
+
             self._logger.debug(f"State changed: {entity_id} -> {new_state.get('state')}")
 
             # 在新的資料庫連線中更新實體狀態
@@ -1002,7 +1090,7 @@ class HassWebSocketService:
         """
         try:
             # Get label list from HA (no single label get API)
-            label_list = await self.send_request('config/label_registry/list', timeout=10)
+            label_list = await self.send_request('config/label_registry/list', timeout=WS_LABEL_LIST_TIMEOUT)
 
             if label_list and isinstance(label_list, list):
                 # Find target label
@@ -1173,7 +1261,7 @@ class HassWebSocketService:
             result = await self.send_request(
                 'config/entity_registry/get',
                 entity_id=entity_id,
-                timeout=10
+                timeout=WS_ENTITY_REGISTRY_TIMEOUT
             )
 
             if result and isinstance(result, dict):
@@ -1453,7 +1541,7 @@ class HassWebSocketService:
             # Fetch all labels from HA
             label_list = await self.send_request(
                 'config/label_registry/list',
-                timeout=15
+                timeout=WS_AREA_LIST_TIMEOUT  # Use same timeout for registry list operations
             )
 
             if label_list and isinstance(label_list, list):
@@ -1927,7 +2015,7 @@ class HassWebSocketService:
         """
         try:
             # 使用已建立的 WebSocket 連線發送請求
-            area_list = await self.send_request('config/area_registry/list', timeout=10)
+            area_list = await self.send_request('config/area_registry/list', timeout=WS_AREA_LIST_TIMEOUT)
 
             if area_list and isinstance(area_list, list):
                 # 找到目標 area
@@ -2074,7 +2162,7 @@ class HassWebSocketService:
         """
         try:
             # Use established WebSocket connection to send request
-            device_list = await self.send_request('config/device_registry/list', timeout=10)
+            device_list = await self.send_request('config/device_registry/list', timeout=WS_DEVICE_LIST_TIMEOUT)
 
             if device_list and isinstance(device_list, list):
                 # Find target device
@@ -2114,7 +2202,7 @@ class HassWebSocketService:
             # 從 HA 查詢 entity registry
             entity_list = await self.send_request(
                 'config/entity_registry/list',
-                timeout=15
+                timeout=WS_AREA_LIST_TIMEOUT  # Use same timeout for registry list operations
             )
 
             if not entity_list or not isinstance(entity_list, list):
@@ -2579,7 +2667,7 @@ class HassWebSocketService:
                                 # 一般請求：發送並等待結果
                                 result = await self.send_request(
                                     message_type=request_data['message_type'],
-                                    timeout=10,
+                                    timeout=WS_DEFAULT_TIMEOUT,
                                     **payload
                                 )
 
@@ -2615,11 +2703,11 @@ class HassWebSocketService:
                     self._last_subscription_cleanup = current_time
 
                 # 等待一段時間後再檢查
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(WS_POLL_DELAY_STANDARD)
 
             except Exception as e:
                 self._logger.error(f"Error in request queue processor: {e}")
-                await asyncio.sleep(1)
+                await asyncio.sleep(WS_RETRY_SLEEP)
 
         self._logger.info("Request queue processor stopped")
 

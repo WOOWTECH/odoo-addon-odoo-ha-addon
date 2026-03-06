@@ -10,14 +10,6 @@ from .common.hass_rest_api import HassRestApi
 
 _logger = logging.getLogger(__name__)
 
-# File-based tracing for debugging area sync
-def _trace(msg):
-    """Write trace message to file for debugging"""
-    import datetime
-    with open('/tmp/area_sync_trace.log', 'a') as f:
-        f.write(f"[{datetime.datetime.now().isoformat()}] {msg}\n")
-
-
 def _name_to_entity_id(name, domain='scene'):
     """
     Convert a display name to a valid Home Assistant entity_id.
@@ -452,7 +444,7 @@ class HAEntity(models.Model):
                 # Wait for original transaction to fully complete
                 time_module.sleep(0.3)
 
-                _trace(f"[BG_THREAD] Starting sync for scene_ids: {scene_ids_to_sync}")
+                _logger.debug(f"[BG_THREAD] Starting sync for scene_ids: {scene_ids_to_sync}")
                 _logger.info(f"[BG_THREAD] Starting background sync for {len(scene_ids_to_sync)} scenes")
 
                 for scene_id in scene_ids_to_sync:
@@ -474,7 +466,7 @@ class HAEntity(models.Model):
                             _logger.info(f"[BG_THREAD] Processing scene {scene_id}: "
                                         f"entity_id={scene.entity_id}, "
                                         f"area_id={scene.area_id.area_id if scene.area_id else None}")
-                            _trace(f"[BG_THREAD] Processing scene {scene_id}")
+                            _logger.debug(f"[BG_THREAD] Processing scene {scene_id}")
 
                             try:
                                 # Use _sync_scene_to_ha_internal which handles both
@@ -482,15 +474,15 @@ class HAEntity(models.Model):
                                 scene._sync_scene_to_ha_internal()
                                 cr.commit()
                                 _logger.info(f"[BG_THREAD] Scene {scene_id} synced successfully")
-                                _trace(f"[BG_THREAD] Scene {scene_id} sync SUCCESS")
+                                _logger.debug(f"[BG_THREAD] Scene {scene_id} sync SUCCESS")
                             except Exception as sync_error:
                                 _logger.error(f"[BG_THREAD] Scene {scene_id} sync failed: {sync_error}", exc_info=True)
-                                _trace(f"[BG_THREAD] Scene {scene_id} sync FAILED: {sync_error}")
+                                _logger.debug(f"[BG_THREAD] Scene {scene_id} sync FAILED: {sync_error}")
                                 cr.rollback()
 
                     except Exception as e:
                         _logger.error(f"[BG_THREAD] Error processing scene {scene_id}: {e}", exc_info=True)
-                        _trace(f"[BG_THREAD] Scene {scene_id} outer error: {e}")
+                        _logger.debug(f"[BG_THREAD] Scene {scene_id} outer error: {e}")
 
             def start_sync_thread():
                 """Postcommit callback to start the background sync thread."""
@@ -771,14 +763,14 @@ class HAEntity(models.Model):
         self.ensure_one()
         # Use override_entity_id if provided (for scenes with HA-generated entity_id)
         effective_entity_id = override_entity_id or self.entity_id
-        _trace(f"[AREA_SYNC_EXEC] Starting _update_entity_area_in_ha for {effective_entity_id}")
+        _logger.debug(f"[AREA_SYNC_EXEC] Starting _update_entity_area_in_ha for {effective_entity_id}")
         _logger.info(f"[AREA_SYNC_EXEC] Starting _update_entity_area_in_ha for {effective_entity_id}")
         _logger.info(f"[AREA_SYNC_EXEC] Self record: id={self.id}, entity_id={self.entity_id}, effective_entity_id={effective_entity_id}, area_id={self.area_id}, follows_device_area={self.follows_device_area}")
-        _trace(f"[AREA_SYNC_EXEC] Self record: id={self.id}, entity_id={self.entity_id}, effective_entity_id={effective_entity_id}, area_id={self.area_id}, follows_device_area={self.follows_device_area}")
+        _logger.debug(f"[AREA_SYNC_EXEC] Self record: id={self.id}, entity_id={self.entity_id}, effective_entity_id={effective_entity_id}, area_id={self.area_id}, follows_device_area={self.follows_device_area}")
 
         if not self.ha_instance_id:
             _logger.warning(f"[AREA_SYNC_EXEC] Cannot sync entity area {self.entity_id}: no HA instance")
-            _trace(f"[AREA_SYNC_EXEC] Cannot sync entity area {self.entity_id}: no HA instance")
+            _logger.debug(f"[AREA_SYNC_EXEC] Cannot sync entity area {self.entity_id}: no HA instance")
             return
 
         try:
@@ -790,13 +782,13 @@ class HAEntity(models.Model):
                 ha_area_id = self.area_id.area_id if self.area_id else None
 
             _logger.info(f"[AREA_SYNC_EXEC] Using direct WebSocket for entity_registry/update")
-            _trace(f"[AREA_SYNC_EXEC] Using direct WebSocket for entity_registry/update")
+            _logger.debug(f"[AREA_SYNC_EXEC] Using direct WebSocket for entity_registry/update")
 
             # Use direct WebSocket via HassRestApi to avoid database queue conflicts
             rest_api = HassRestApi(self.env, self.ha_instance_id.id)
 
             _logger.info(f"[AREA_SYNC_EXEC] Sending direct WebSocket update: entity_id={effective_entity_id}, area_id={ha_area_id}")
-            _trace(f"[AREA_SYNC_EXEC] Sending direct WebSocket update: entity_id={effective_entity_id}, area_id={ha_area_id}")
+            _logger.debug(f"[AREA_SYNC_EXEC] Sending direct WebSocket update: entity_id={effective_entity_id}, area_id={ha_area_id}")
 
             result = rest_api.update_entity_registry(
                 entity_id=effective_entity_id,
@@ -804,7 +796,7 @@ class HAEntity(models.Model):
             )
 
             _logger.info(f"[AREA_SYNC_EXEC] Direct WebSocket result: {result}")
-            _trace(f"[AREA_SYNC_EXEC] Direct WebSocket result: {result}")
+            _logger.debug(f"[AREA_SYNC_EXEC] Direct WebSocket result: {result}")
 
             if result and isinstance(result, dict):
                 # Verify HA accepted the area change by checking the response
@@ -1932,7 +1924,7 @@ class HAEntity(models.Model):
             # Scene area is managed at entity registry level, not in scene config
             # Refresh the record to ensure we have latest data after the ha_scene_id write
             self.invalidate_recordset()
-            _trace(f"[AREA_SYNC_CREATE] Starting area sync for scene")
+            _logger.debug(f"[AREA_SYNC_CREATE] Starting area sync for scene")
 
             # CRITICAL: Use the HA-confirmed entity_id for Area/Label sync
             # After scene creation, HA may generate a different entity_id than what Odoo has
@@ -1943,24 +1935,24 @@ class HAEntity(models.Model):
             _logger.info(f"[AREA_SYNC_CREATE] Scene {current_entity_id} - area_id record: {current_area}, "
                         f"ha_area_id: {current_area.area_id if current_area else None}, "
                         f"ha_instance_id: {self.ha_instance_id.id if self.ha_instance_id else None}")
-            _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} - area_id record: {current_area}, "
+            _logger.debug(f"[AREA_SYNC_CREATE] Scene {current_entity_id} - area_id record: {current_area}, "
                         f"ha_area_id: {current_area.area_id if current_area else None}")
 
             if current_area:
                 try:
                     _logger.info(f"[AREA_SYNC_CREATE] Calling _update_entity_area_in_ha for {current_entity_id} with area {current_area.area_id}")
-                    _trace(f"[AREA_SYNC_CREATE] Calling _update_entity_area_in_ha for {current_entity_id} with area {current_area.area_id}")
+                    _logger.debug(f"[AREA_SYNC_CREATE] Calling _update_entity_area_in_ha for {current_entity_id} with area {current_area.area_id}")
                     # Pass the HA-confirmed entity_id to ensure correct API call
                     self._update_entity_area_in_ha(override_entity_id=current_entity_id)
                     _logger.info(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area synced to HA successfully: {current_area.area_id}")
-                    _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area synced to HA successfully: {current_area.area_id}")
+                    _logger.debug(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area synced to HA successfully: {current_area.area_id}")
                 except Exception as area_error:
                     # Log warning but don't fail the entire scene creation
                     _logger.warning(f"[AREA_SYNC_CREATE] Scene {current_entity_id} created but area sync failed: {area_error}", exc_info=True)
-                    _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area sync FAILED: {area_error}")
+                    _logger.debug(f"[AREA_SYNC_CREATE] Scene {current_entity_id} area sync FAILED: {area_error}")
             else:
                 _logger.info(f"[AREA_SYNC_CREATE] Scene {current_entity_id} has no area_id, skipping area sync")
-                _trace(f"[AREA_SYNC_CREATE] Scene {current_entity_id} has no area_id, skipping area sync")
+                _logger.debug(f"[AREA_SYNC_CREATE] Scene {current_entity_id} has no area_id, skipping area sync")
 
             # Sync labels to HA if any
             if self.label_ids:
@@ -2037,7 +2029,7 @@ class HAEntity(models.Model):
             return
 
         _logger.info(f"[SYNC_INTERNAL] Starting scene sync for {self.entity_id}")
-        _trace(f"[SYNC_INTERNAL] Starting scene sync for {self.entity_id}")
+        _logger.debug(f"[SYNC_INTERNAL] Starting scene sync for {self.entity_id}")
 
         # Delegate to the existing method which handles:
         # 1. Scene creation via REST API
@@ -2047,7 +2039,7 @@ class HAEntity(models.Model):
         self._create_scene_in_ha()
 
         _logger.info(f"[SYNC_INTERNAL] Scene sync completed for {self.entity_id}")
-        _trace(f"[SYNC_INTERNAL] Scene sync completed for {self.entity_id}")
+        _logger.debug(f"[SYNC_INTERNAL] Scene sync completed for {self.entity_id}")
 
     # ========== Blueprint Sync Methods ==========
 
@@ -2276,7 +2268,7 @@ class HAEntity(models.Model):
         Args:
             instance_id: HA 實例 ID
         """
-        _trace(f"[BLUEPRINT DEBUG] _sync_automation_blueprint_configs CALLED for instance {instance_id}")
+        _logger.debug(f"[BLUEPRINT DEBUG] _sync_automation_blueprint_configs CALLED for instance {instance_id}")
         _logger.info(f"=== Starting sync automation/script blueprint configs (instance {instance_id}) ===")
 
         try:

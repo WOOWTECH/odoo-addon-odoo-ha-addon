@@ -526,10 +526,19 @@ class HAPortalController(http.Controller):
         # Get group data with all entity states
         group_data = self._get_safe_group_data(group)
 
-        # Also get detailed state for each entity
+        # Batch read all entities to avoid N+1 queries
         entities_with_state = []
-        for entity in group.entity_ids:
-            entities_with_state.append(self._get_safe_entity_data(entity))
+        if group.entity_ids:
+            # Use batch read instead of iterating with individual reads
+            entities_data = group.entity_ids.read(PORTAL_ENTITY_FIELDS)
+            for data in entities_data:
+                # Convert area_id from (id, name) tuple to dict for JSON serialization
+                if data.get('area_id') and isinstance(data['area_id'], tuple):
+                    data['area_id'] = {
+                        'id': data['area_id'][0],
+                        'name': data['area_id'][1]
+                    }
+                entities_with_state.append(data)
         group_data['entities'] = entities_with_state
 
         return {

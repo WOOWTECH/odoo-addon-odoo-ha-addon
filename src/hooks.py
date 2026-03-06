@@ -143,6 +143,15 @@ def uninstall_hook(env):
     except Exception as e:
         _logger.error(f"✗ 停止 WebSocket 服務失敗: {e}")
 
+    # 1.5. 關閉 ThreadPoolExecutor
+    try:
+        _logger.info("步驟 1.5/13: 關閉 ThreadPoolExecutor...")
+        from odoo.addons.odoo_ha_addon.models.common.hass_websocket_service import shutdown_db_executor
+        shutdown_db_executor(wait=True)
+        _logger.info("✓ ThreadPoolExecutor 已關閉")
+    except Exception as e:
+        _logger.warning(f"✗ 關閉 ThreadPoolExecutor 失敗: {e}")
+
     # 2. 清理 WebSocket 請求佇列
     try:
         _logger.info("步驟 2/9: 清理 WebSocket 請求佇列...")
