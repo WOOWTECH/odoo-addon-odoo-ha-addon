@@ -270,8 +270,8 @@ class HAEntityHistory(models.Model):
             tuple: (entity_id_str, created_count, skipped_count, error_message)
         """
         try:
-            # 使用 odoo.registry() 取得獨立的 registry 和 cursor
-            registry = odoo.registry(db_name)
+            # Odoo 18: Use Registry directly (odoo.registry() is deprecated)
+            registry = odoo.modules.registry.Registry(db_name)
             with registry.cursor() as new_cr:
                 new_env = api.Environment(new_cr, uid, context)
                 history_model = new_env['ha.entity.history']

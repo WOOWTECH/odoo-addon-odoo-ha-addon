@@ -44,7 +44,7 @@ class HAInstance(models.Model):
         string='Access Token',
         required=True,
         copy=False,  # Prevent token from being copied during record duplication
-        groups='odoo_ha_addon.group_ha_admin',  # Only HA admins can view/edit token
+        groups='odoo_ha_addon.group_ha_manager',  # Only HA managers can view/edit token
         help='Home Assistant Long-Lived Access Token'
     )
 

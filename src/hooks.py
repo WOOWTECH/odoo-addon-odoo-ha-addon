@@ -323,8 +323,8 @@ def post_load_hook():
         # 為每個資料庫啟動 WebSocket 服務
         for db_name in db_names:
             try:
-                # Odoo 18: Environment.manage() 已被移除，直接使用 registry
-                registry = odoo.registry(db_name)
+                # Odoo 18: Use Registry directly (odoo.registry() is deprecated)
+                registry = odoo.modules.registry.Registry(db_name)
                 with registry.cursor() as cr:
                     env = api.Environment(cr, SUPERUSER_ID, {})
 
