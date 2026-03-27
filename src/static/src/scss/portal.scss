@@ -12,7 +12,7 @@
 // ========================================
 // Woowtech Brand Color Palette
 // ========================================
-// Primary:   #6183FC (Blue)
+// Primary:   #714B67 (Odoo Portal Purple)
 // White:     #FFFFFF (50% ratio)
 // Light Gray:#EFF1F5 (secondary backgrounds)
 // Gray:      #646262 (text/UI, 20%)
@@ -33,7 +33,7 @@
   --portal-text-muted: #9CA3AF;
 
   // 強調色 - Woowtech: Primary Blue, accent colors for states
-  --portal-accent-primary: #6183FC;
+  --portal-accent-primary: #714B67;
   --portal-accent-success: #8CD37F; // Woowtech Green
   --portal-accent-warning: #F8D158; // Woowtech Yellow
   --portal-accent-danger: #F45D6D;  // Woowtech Coral
@@ -262,7 +262,7 @@ $portal-card-min-width: 320px;
         }
 
         &:focus {
-            box-shadow: 0 0 0 3px rgba(97, 131, 252, 0.25);
+            box-shadow: 0 0 0 3px rgba(113, 75, 103, 0.25);
         }
 
         &:disabled {
@@ -365,7 +365,7 @@ $portal-card-min-width: 320px;
             }
 
             &:focus {
-                box-shadow: 0 0 0 3px rgba(97, 131, 252, 0.25);
+                box-shadow: 0 0 0 3px rgba(113, 75, 103, 0.25);
             }
 
             &:disabled {

@@ -115,7 +115,7 @@
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-3">
                                             <div class="rounded-circle text-white d-flex align-items-center justify-content-center me-3"
-                                                 style="width: 48px; height: 48px; background-color: var(--portal-accent-primary, #6183FC);">
+                                                 style="width: 48px; height: 48px; background-color: var(--portal-accent-primary, #714B67);">
                                                 <i class="fa fa-server fa-lg"></i>
                                             </div>
                                             <div class="flex-grow-1">
@@ -189,7 +189,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="rounded-circle text-white d-flex align-items-center justify-content-center me-3"
-                                 style="width: 64px; height: 64px; background-color: var(--portal-accent-primary, #6183FC);">
+                                 style="width: 64px; height: 64px; background-color: var(--portal-accent-primary, #714B67);">
                                 <i class="fa fa-server fa-2x"></i>
                             </div>
                             <div>
@@ -746,20 +746,6 @@
                                     },
                                 })"/>
 
-                            <!-- Message Thread / Chatter (stays as QWeb - Odoo built-in) -->
-                            <div class="card shadow-sm mb-4">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0">
-                                        <i class="fa fa-comments mr-2"></i>Discussion
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <t t-call="portal.message_thread">
-                                        <t t-set="object" t-value="entity"/>
-                                        <t t-set="token" t-value="entity.access_token"/>
-                                    </t>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- Sidebar Column -->
@@ -850,6 +836,21 @@
                                     </t>
                                 </ul>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Message Thread / Chatter (full-width, below sidebar on mobile) -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fa fa-comments mr-2"></i>Discussion
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <t t-call="portal.message_thread">
+                                <t t-set="object" t-value="entity"/>
+                                <t t-set="token" t-value="entity.access_token"/>
+                            </t>
                         </div>
                     </div>
                 </div>
@@ -1107,20 +1108,6 @@
                                 </div>
                             </div>
 
-                            <!-- Message Thread / Chatter -->
-                            <div class="card shadow-sm mb-4">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0">
-                                        <i class="fa fa-comments mr-2"></i>Discussion
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <t t-call="portal.message_thread">
-                                        <t t-set="object" t-value="device"/>
-                                        <t t-set="token" t-value="device.access_token"/>
-                                    </t>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- Sidebar Column -->
@@ -1173,6 +1160,21 @@
                                         </p>
                                     </div>
                                 </div>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- Message Thread / Chatter (full-width, below sidebar on mobile) -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fa fa-comments mr-2"></i>Discussion
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <t t-call="portal.message_thread">
+                                <t t-set="object" t-value="device"/>
+                                <t t-set="token" t-value="device.access_token"/>
                             </t>
                         </div>
                     </div>
