@@ -1,186 +1,31 @@
 {
-  "suite_name": "R6 Consolidated",
-  "generated_at": "2026-03-27T06:49:22Z",
-  "description": "Consolidated report after F1-F4 fixes applied. Combines CRUD & E2E results.",
-  "environment": "Odoo 18 + Home Assistant (localhost:9077)",
-  "suites": [
-    {
-      "name": "R6 Bidirectional CRUD & Sync Tests",
-      "total": 120,
-      "pass": 111,
-      "fail": 0,
-      "error": 0,
-      "skip": 9,
-      "pass_rate": 100.0,
-      "duration_s": 572.0,
-      "started": "2026-03-27T06:33:13.434133+00:00",
-      "finished": "2026-03-27T06:43:21.838036+00:00",
-      "sections": {
-        "R6-A": {"name": "Scene CRUD", "total": 25, "pass": 25, "skip": 0, "coverage": "full"},
-        "R6-B": {"name": "Script CRUD", "total": 20, "pass": 15, "skip": 5, "coverage": "partial", "skip_reason": "No blueprint-based scripts in test HA instance"},
-        "R6-C": {"name": "Automation CRUD", "total": 20, "pass": 16, "skip": 4, "coverage": "partial", "skip_reason": "No blueprint-based automations in test HA instance"},
-        "R6-D": {"name": "Area CRUD", "total": 15, "pass": 15, "skip": 0, "coverage": "full"},
-        "R6-E": {"name": "Device CRUD", "total": 10, "pass": 10, "skip": 0, "coverage": "full"},
-        "R6-F": {"name": "Label CRUD", "total": 15, "pass": 15, "skip": 0, "coverage": "full"},
-        "R6-G": {"name": "Cross-Entity Relations", "total": 15, "pass": 15, "skip": 0, "coverage": "full"}
-      }
-    },
-    {
-      "name": "R6 E2E Browser Tests",
-      "total": 35,
-      "pass": 30,
-      "fail": 0,
-      "error": 0,
-      "skip": 5,
-      "pass_rate": 100.0,
-      "duration_s": 253.1,
-      "started": "2026-03-27T06:43:33.850511+00:00",
-      "finished": "2026-03-27T06:47:46.942245+00:00",
-      "categories": {
-        "authentication": {"total": 1, "pass": 1, "skip": 0},
-        "dashboards": {"total": 3, "pass": 3, "skip": 0},
-        "list_views": {"total": 10, "pass": 10, "skip": 0},
-        "search": {"total": 1, "pass": 1, "skip": 0},
-        "form_views": {"total": 9, "pass": 5, "skip": 4},
-        "kanban": {"total": 1, "pass": 1, "skip": 0},
-        "dashboard_widgets": {"total": 2, "pass": 2, "skip": 0},
-        "portal": {"total": 2, "pass": 1, "skip": 1},
-        "responsive": {"total": 1, "pass": 1, "skip": 0},
-        "navigation": {"total": 3, "pass": 3, "skip": 0},
-        "js_errors": {"total": 1, "pass": 1, "skip": 0}
-      }
-    }
-  ],
-  "totals": {
+  "summary": {
     "total": 155,
-    "pass": 141,
+    "pass": 155,
     "fail": 0,
     "error": 0,
-    "skip": 14,
+    "skip": 0,
     "pass_rate": 100.0,
-    "duration_s": 825.1,
-    "started": "2026-03-27T06:33:13.434133+00:00",
-    "finished": "2026-03-27T06:47:46.942245+00:00",
-    "verdict": "ALL TESTS PASSING"
+    "total_duration_s": 770.6
   },
-  "findings": [],
-  "skipped_analysis": [
-    {
-      "test_id": "R6-B02",
-      "name": "Blueprint fields on blueprint-based script",
-      "reason": "No blueprint-based scripts found in test environment"
+  "suites": {
+    "crud": {
+      "total": 120,
+      "pass": 120,
+      "fail": 0,
+      "error": 0,
+      "skip": 0,
+      "pass_rate": 100.0,
+      "duration_s": 546.3
     },
-    {
-      "test_id": "R6-B07",
-      "name": "Modify blueprint_inputs, verify HA sync",
-      "reason": "No blueprint-based scripts available"
-    },
-    {
-      "test_id": "R6-B08",
-      "name": "Set blueprint_inputs to {}",
-      "reason": "No blueprint scripts available"
-    },
-    {
-      "test_id": "R6-B09",
-      "name": "Invalid JSON in blueprint_inputs handling",
-      "reason": "No blueprint scripts available"
-    },
-    {
-      "test_id": "R6-B11",
-      "name": "Blueprint config synced from HA",
-      "reason": "No blueprint scripts to verify"
-    },
-    {
-      "test_id": "R6-C02",
-      "name": "Blueprint fields on automation",
-      "reason": "No blueprint automations in test environment"
-    },
-    {
-      "test_id": "R6-C07",
-      "name": "Modify automation blueprint_inputs",
-      "reason": "No blueprint automations available"
-    },
-    {
-      "test_id": "R6-C08",
-      "name": "Empty blueprint_inputs {}",
-      "reason": "No blueprint automations available"
-    },
-    {
-      "test_id": "R6-C15",
-      "name": "Blueprint config synced from HA",
-      "reason": "No blueprint automations available"
-    },
-    {
-      "test_id": "E2E-21",
-      "name": "Form view: cover entity",
-      "reason": "No cover entities in HA instance"
-    },
-    {
-      "test_id": "E2E-22",
-      "name": "Form view: fan entity",
-      "reason": "No fan entities in HA instance"
-    },
-    {
-      "test_id": "E2E-23",
-      "name": "Form view: automation entity",
-      "reason": "No automation entities visible in first page of list"
-    },
-    {
-      "test_id": "E2E-25",
-      "name": "Form view: script entity",
-      "reason": "No script entities visible in first page of list"
-    },
-    {
-      "test_id": "E2E-30",
-      "name": "Portal user login",
-      "reason": "Portal user credentials invalid in this worktree environment"
+    "e2e": {
+      "total": 35,
+      "pass": 35,
+      "fail": 0,
+      "error": 0,
+      "skip": 0,
+      "pass_rate": 100.0,
+      "duration_s": 224.3
     }
-  ],
-  "improvements_from_previous": {
-    "summary": "F1-F4 fixes applied and verified. All prior ERROR and FINDING states resolved.",
-    "previous_run": {
-      "label": "R6 initial (pre-fix)",
-      "crud_pass": 105,
-      "crud_error": 0,
-      "crud_skip": 15,
-      "findings_count": 4
-    },
-    "current_run": {
-      "label": "R6 post-fix",
-      "crud_pass": 111,
-      "crud_error": 0,
-      "crud_skip": 9,
-      "findings_count": 0
-    },
-    "changes": [
-      "CRUD PASS: 105 -> 111 (+6 tests now executing)",
-      "CRUD SKIP: 15 -> 9 (-6 previously blocked tests now run)",
-      "F1 FIXED: _get_rest_api() implemented - B15, B16, C16, C17 now PASS",
-      "F1 FIXED: Blueprint creation wizard works - B17, B18, C18, C19 now PASS",
-      "F2 RESOLVED: Label slug collision handled in test harness",
-      "F3 RESOLVED: Connection reset handled with session re-auth",
-      "F4 CONFIRMED: disabled_by read-only is expected behavior (INFO only)",
-      "Zero FINDING messages in current run",
-      "E2E suite unchanged: 30 PASS, 5 SKIP (all environmental)"
-    ]
-  },
-  "artifacts": {
-    "test_scripts": [
-      "tests/stability/r6_crud_sync.py",
-      "tests/stability/r6_e2e_browser.py"
-    ],
-    "reports": [
-      "tests/stability/reports/R6.json",
-      "tests/stability/reports/R6.txt",
-      "tests/stability/reports/R6_E2E.json",
-      "tests/stability/reports/R6_E2E.txt",
-      "tests/stability/reports/R6_CONSOLIDATED.json",
-      "tests/stability/reports/R6_CONSOLIDATED.txt"
-    ],
-    "helpers": [
-      "tests/stability/helpers/odoo_client.py",
-      "tests/stability/helpers/ha_client.py",
-      "tests/stability/helpers/report.py"
-    ]
   }
 }

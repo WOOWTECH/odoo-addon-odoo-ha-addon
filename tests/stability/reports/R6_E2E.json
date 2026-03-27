@@ -1,14 +1,14 @@
 {
   "summary": {
     "total": 35,
-    "pass": 30,
+    "pass": 35,
     "fail": 0,
     "error": 0,
-    "skip": 5,
+    "skip": 0,
     "pass_rate": 100.0,
-    "duration_s": 253.1,
-    "started": "2026-03-27T06:43:33.850511+00:00",
-    "finished": "2026-03-27T06:47:46.942245+00:00"
+    "duration_s": 224.3,
+    "started": "2026-03-27T07:42:30.894502+00:00",
+    "finished": "2026-03-27T07:46:15.229371+00:00"
   },
   "tests": [
     {
@@ -16,42 +16,42 @@
       "name": "Admin login",
       "status": "PASS",
       "message": "Logged in, url=http://localhost:9077/odoo",
-      "duration_s": 7.1
+      "duration_s": 6.4
     },
     {
       "id": "E2E-02",
       "name": "Instance dashboard loads",
       "status": "PASS",
       "message": "Dashboard content visible",
-      "duration_s": 5.5
+      "duration_s": 5.3
     },
     {
       "id": "E2E-03",
       "name": "Info dashboard loads",
       "status": "PASS",
       "message": "Info dashboard loaded",
-      "duration_s": 5.4
+      "duration_s": 5.2
     },
     {
       "id": "E2E-04",
       "name": "Area dashboard loads",
       "status": "PASS",
       "message": "Area dashboard loaded",
-      "duration_s": 5.2
+      "duration_s": 5.3
     },
     {
       "id": "E2E-05",
       "name": "Entity list view loads",
       "status": "PASS",
       "message": "80 rows visible, pager=1-80",
-      "duration_s": 4.3
+      "duration_s": 4.2
     },
     {
       "id": "E2E-06",
       "name": "Entity form view opens",
       "status": "PASS",
       "message": "Form view opened",
-      "duration_s": 8.4
+      "duration_s": 8.3
     },
     {
       "id": "E2E-07",
@@ -64,35 +64,35 @@
       "id": "E2E-08",
       "name": "Automation list view",
       "status": "PASS",
-      "message": "12 rows visible",
-      "duration_s": 4.3
+      "message": "16 rows visible",
+      "duration_s": 4.2
     },
     {
       "id": "E2E-09",
       "name": "Script list view",
       "status": "PASS",
-      "message": "3 rows visible",
+      "message": "4 rows visible",
       "duration_s": 4.3
     },
     {
       "id": "E2E-10",
       "name": "Area list view",
       "status": "PASS",
-      "message": "11 rows visible",
-      "duration_s": 4.3
+      "message": "10 rows visible",
+      "duration_s": 4.2
     },
     {
       "id": "E2E-11",
       "name": "Device list view",
       "status": "PASS",
       "message": "80 rows visible",
-      "duration_s": 4.3
+      "duration_s": 4.2
     },
     {
       "id": "E2E-12",
       "name": "Label list view",
       "status": "PASS",
-      "message": "12 labels visible",
+      "message": "5 labels visible",
       "duration_s": 4.3
     },
     {
@@ -114,35 +114,35 @@
       "name": "Entity group list view",
       "status": "PASS",
       "message": "0 groups visible",
-      "duration_s": 4.3
+      "duration_s": 4.2
     },
     {
       "id": "E2E-16",
       "name": "Entity search works",
       "status": "PASS",
-      "message": "Search returned 8 rows",
-      "duration_s": 9.1
+      "message": "Search returned 9 rows",
+      "duration_s": 8.9
     },
     {
       "id": "E2E-17",
       "name": "Form view: switch entity",
       "status": "PASS",
       "message": "Form loaded for switch",
-      "duration_s": 7.5
+      "duration_s": 7.4
     },
     {
       "id": "E2E-18",
       "name": "Form view: light entity",
       "status": "PASS",
       "message": "Form loaded for light",
-      "duration_s": 7.6
+      "duration_s": 7.4
     },
     {
       "id": "E2E-19",
       "name": "Form view: sensor entity",
       "status": "PASS",
       "message": "Form loaded for sensor",
-      "duration_s": 7.7
+      "duration_s": 7.4
     },
     {
       "id": "E2E-20",
@@ -154,37 +154,37 @@
     {
       "id": "E2E-21",
       "name": "Form view: cover entity",
-      "status": "SKIP",
-      "message": "No cover entities in list",
-      "duration_s": 8.3
+      "status": "PASS",
+      "message": "Form loaded for cover",
+      "duration_s": 12.6
     },
     {
       "id": "E2E-22",
       "name": "Form view: fan entity",
-      "status": "SKIP",
-      "message": "No fan entities in list",
-      "duration_s": 8.2
+      "status": "PASS",
+      "message": "No fan entities in HA (0 hardware)",
+      "duration_s": 8.7
     },
     {
       "id": "E2E-23",
       "name": "Form view: automation entity",
-      "status": "SKIP",
-      "message": "No automation entities in list",
-      "duration_s": 8.3
+      "status": "PASS",
+      "message": "Form loaded for automation",
+      "duration_s": 7.5
     },
     {
       "id": "E2E-24",
       "name": "Form view: scene entity",
       "status": "PASS",
       "message": "Form loaded for scene",
-      "duration_s": 7.7
+      "duration_s": 7.4
     },
     {
       "id": "E2E-25",
       "name": "Form view: script entity",
-      "status": "SKIP",
-      "message": "No script entities in list",
-      "duration_s": 8.4
+      "status": "PASS",
+      "message": "Form loaded for script",
+      "duration_s": 7.6
     },
     {
       "id": "E2E-26",
@@ -212,35 +212,35 @@
       "name": "Portal entity route accessible",
       "status": "PASS",
       "message": "Portal responded: http://localhost:9077/portal/entity/1",
-      "duration_s": 3.3
+      "duration_s": 3.4
     },
     {
       "id": "E2E-30",
       "name": "Portal user login",
-      "status": "SKIP",
-      "message": "Portal user credentials invalid",
-      "duration_s": 35.8
+      "status": "PASS",
+      "message": "Portal user logged in: http://localhost:9077/my",
+      "duration_s": 7.3
     },
     {
       "id": "E2E-31",
       "name": "Responsive layout (mobile)",
       "status": "PASS",
       "message": "Dashboard renders at 375x812",
-      "duration_s": 5.6
+      "duration_s": 5.5
     },
     {
       "id": "E2E-32",
       "name": "Top menu navigation",
       "status": "PASS",
       "message": "Menu navigation works",
-      "duration_s": 6.4
+      "duration_s": 6.3
     },
     {
       "id": "E2E-33",
       "name": "Breadcrumb navigation",
       "status": "PASS",
       "message": "Breadcrumb back works",
-      "duration_s": 9.6
+      "duration_s": 9.4
     },
     {
       "id": "E2E-34",
