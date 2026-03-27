@@ -16,7 +16,7 @@
     <!-- Entity Information Card -->
     <t t-name="odoo_ha_addon.PortalEntityInfo.InfoCard">
         <div class="card shadow-sm mb-4 portal-entity-card portal-fade-in">
-            <div class="card-header card-header-section bg-primary text-white d-flex justify-content-between align-items-center" style="border-radius: 12px 12px 0 0;">
+            <div class="card-header card-header-section text-white d-flex justify-content-between align-items-center" style="background-color: #6183FC; border-radius: 12px 12px 0 0;">
                 <h4 class="entity-name mb-0" style="color: #FFFFFF;">
                     <i class="fa fa-info-circle entity-icon" style="color: #FFFFFF;"/>
                     <t t-esc="entityName"/>

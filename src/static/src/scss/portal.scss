@@ -1172,6 +1172,28 @@ $portal-card-min-width: 320px;
         }
     }
 
+    .btn-danger {
+        background-color: var(--portal-accent-danger);
+        border-color: var(--portal-accent-danger);
+
+        &:hover, &:focus {
+            background-color: #E04858;
+            border-color: #E04858;
+        }
+    }
+
+    // Chatter Send button - use brand primary instead of red
+    .o_portal_chatter_composer .btn-primary,
+    .o_portal_chatter .btn-primary {
+        background-color: var(--portal-accent-primary);
+        border-color: var(--portal-accent-primary);
+
+        &:hover, &:focus {
+            background-color: #4E6FE8;
+            border-color: #4E6FE8;
+        }
+    }
+
     // Alert overrides
     .alert-success {
         background-color: rgba(140, 211, 127, 0.15);
@@ -1225,6 +1247,37 @@ $portal-card-min-width: 320px;
     // Table header override
     .table-light, thead.table-light {
         --bs-table-bg: var(--portal-bg-primary);
+    }
+}
+
+// ========================================
+// OWL Component Brand Overrides
+// ========================================
+// OWL components render inside portal but may not be
+// under .portal-page class, so target them specifically
+
+.portal-entity-info,
+.portal-group-info {
+    .badge.bg-primary {
+        background-color: var(--portal-accent-primary) !important;
+    }
+
+    .badge.bg-secondary {
+        background-color: var(--portal-text-secondary) !important;
+    }
+
+    .badge.bg-success {
+        background-color: var(--portal-accent-success) !important;
+        color: #212121 !important;
+    }
+
+    .badge.bg-info {
+        background-color: var(--portal-accent-cyan) !important;
+        color: #212121 !important;
+    }
+
+    .text-primary {
+        color: var(--portal-accent-primary) !important;
     }
 }
 
