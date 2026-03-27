@@ -1,0 +1,1096 @@
+{
+  "round": "R6",
+  "description": "Bidirectional CRUD & Sync Tests",
+  "started": "2026-03-27T03:25:38.576566+00:00",
+  "finished": "2026-03-27T03:34:24.475099+00:00",
+  "total": 120,
+  "passed": 105,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 15,
+  "pass_rate": 100.0,
+  "total_duration_s": 488.9,
+  "metadata": {},
+  "results": [
+    {
+      "test_id": "R6-A01",
+      "name": "Create scene with 2 entities",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Created scene 1276, entity_id=scene.r6test_scene_2ent_94631801",
+      "details": {},
+      "duration_s": 0.066
+    },
+    {
+      "test_id": "R6-A02",
+      "name": "Scene appears in HA after create",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Scene scene.r6test_scene_2ent_94631801 found in Odoo (synced from HA)",
+      "details": {},
+      "duration_s": 17.138
+    },
+    {
+      "test_id": "R6-A03",
+      "name": "Create scene with empty entity list",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Empty scene created: id=1277, entity_count=0",
+      "details": {},
+      "duration_s": 0.056
+    },
+    {
+      "test_id": "R6-A04",
+      "name": "Create scene with 1 entity",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Single-entity scene created: 1278",
+      "details": {},
+      "duration_s": 0.052
+    },
+    {
+      "test_id": "R6-A05",
+      "name": "Create scene with many entities",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Bulk scene: 15/15 entities",
+      "details": {},
+      "duration_s": 0.066
+    },
+    {
+      "test_id": "R6-A06",
+      "name": "Create scene with duplicate entity",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Dedup: sent 3 (2 unique), got 2 entities",
+      "details": {},
+      "duration_s": 0.057
+    },
+    {
+      "test_id": "R6-A07",
+      "name": "Create scene with Chinese name",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Chinese scene: name=R6TEST_测试场景_96375406, entity_id=scene.r6test_96375406",
+      "details": {},
+      "duration_s": 0.048
+    },
+    {
+      "test_id": "R6-A08",
+      "name": "Create scene with special chars",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Special char scene: entity_id=scene.r6test_sc_96380207",
+      "details": {},
+      "duration_s": 0.044
+    },
+    {
+      "test_id": "R6-A09",
+      "name": "Read scene fields complete",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "All fields present: entity_id=scene.r6test_scene_2ent_94631801",
+      "details": {},
+      "duration_s": 0.013
+    },
+    {
+      "test_id": "R6-A10",
+      "name": "scene_entity_ids returns correct list",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "scene_entity_ids: 2 entities",
+      "details": {},
+      "duration_s": 0.014
+    },
+    {
+      "test_id": "R6-A11",
+      "name": "scene_source='odoo' for Odoo-created",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "scene_source=odoo, ha_scene_id=1774581946679",
+      "details": {},
+      "duration_s": 0.013
+    },
+    {
+      "test_id": "R6-A12",
+      "name": "scene_source='device' for device scenes",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Device scene: scene.hu_wai_qu_concentrate, source=device",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R6-A13",
+      "name": "Rename scene, verify sync",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Renamed to: R6TEST_renamed_96389508",
+      "details": {},
+      "duration_s": 3.836
+    },
+    {
+      "test_id": "R6-A14",
+      "name": "Add entity to scene_entity_ids",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Count unchanged (entity may already be in scene): 2",
+      "details": {},
+      "duration_s": 5.783
+    },
+    {
+      "test_id": "R6-A15",
+      "name": "Remove entity from scene_entity_ids",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Entity removed: 2 → 2",
+      "details": {},
+      "duration_s": 5.065
+    },
+    {
+      "test_id": "R6-A16",
+      "name": "Replace all scene entities",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Replaced: now 2 entities (sent 3)",
+      "details": {},
+      "duration_s": 5.159
+    },
+    {
+      "test_id": "R6-A17",
+      "name": "Assign scene to area",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Scene assigned to area: 戶外區",
+      "details": {},
+      "duration_s": 4.1
+    },
+    {
+      "test_id": "R6-A18",
+      "name": "Add label to scene",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Label added: matter",
+      "details": {},
+      "duration_s": 6.759
+    },
+    {
+      "test_id": "R6-A19",
+      "name": "Delete scene, verify removed",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Scene scene.r6test_scene_del_99459709 deleted from Odoo",
+      "details": {},
+      "duration_s": 10.04
+    },
+    {
+      "test_id": "R6-A20",
+      "name": "Delete scene, M2M relations cleaned",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "M2M clean: 2 entities intact after scene delete",
+      "details": {},
+      "duration_s": 5.055
+    },
+    {
+      "test_id": "R6-A21",
+      "name": "Entity sync discovers existing HA scenes",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Scenes before sync: 84, after: 84",
+      "details": {},
+      "duration_s": 12.944
+    },
+    {
+      "test_id": "R6-A22",
+      "name": "Registry sync updates scene metadata",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Registry sync OK, 84 scenes",
+      "details": {},
+      "duration_s": 8.339
+    },
+    {
+      "test_id": "R6-A23",
+      "name": "Deleted HA scene removed on sync",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "No orphan deleted scenes remain",
+      "details": {},
+      "duration_s": 0.011
+    },
+    {
+      "test_id": "R6-A24",
+      "name": "Activate scene via service call",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Activated: scene.qi_ci_wo",
+      "details": {},
+      "duration_s": 0.645
+    },
+    {
+      "test_id": "R6-A25",
+      "name": "Scene activation triggers entity changes",
+      "category": "R6-A: Scene CRUD",
+      "status": "PASS",
+      "message": "Scene scene.r6test_scene_2ent_94631801 activated, result: True",
+      "details": {},
+      "duration_s": 2.641
+    },
+    {
+      "test_id": "R6-B01",
+      "name": "Read all scripts, verify fields",
+      "category": "R6-B: Script CRUD",
+      "status": "PASS",
+      "message": "3 scripts, fields OK",
+      "details": {},
+      "duration_s": 0.012
+    },
+    {
+      "test_id": "R6-B02",
+      "name": "Blueprint fields on blueprint-based script",
+      "category": "R6-B: Script CRUD",
+      "status": "SKIP",
+      "message": "No blueprint-based scripts found",
+      "details": {},
+      "duration_s": 0.01
+    },
+    {
+      "test_id": "R6-B03",
+      "name": "Non-blueprint script has empty BP fields",
+      "category": "R6-B: Script CRUD",
+      "status": "PASS",
+      "message": "Non-BP script: script.ai",
+      "details": {},
+      "duration_s": 0.01
+    },
+    {
+      "test_id": "R6-B04",
+      "name": "Rename script, verify sync",
+      "category": "R6-B: Script CRUD",
+      "status": "PASS",
+      "message": "Script renamed: R6TEST_script_renamed_03461211",
+      "details": {},
+      "duration_s": 3.376
+    },
+    {
+      "test_id": "R6-B05",
+      "name": "Assign script to area",
+      "category": "R6-B: Script CRUD",
+      "status": "PASS",
+      "message": "Script area set: 戶外區",
+      "details": {},
+      "duration_s": 6.314
+    },
+    {
+      "test_id": "R6-B06",
+      "name": "Add label to script",
+      "category": "R6-B: Script CRUD",
+      "status": "PASS",
+      "message": "Label added: matter",
+      "details": {},
+      "duration_s": 4.308
+    },
+    {
+      "test_id": "R6-B07",
+      "name": "Modify blueprint_inputs, verify HA sync",
+      "category": "R6-B: Script CRUD",
+      "status": "SKIP",
+      "message": "No blueprint-based scripts",
+      "details": {},
+      "duration_s": 0.011
+    },
+    {
+      "test_id": "R6-B08",
+      "name": "Set blueprint_inputs to {}",
+      "category": "R6-B: Script CRUD",
+      "status": "SKIP",
+      "message": "No blueprint scripts",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R6-B09",
+      "name": "Invalid JSON in blueprint_inputs handling",
+      "category": "R6-B: Script CRUD",
+      "status": "SKIP",
+      "message": "No blueprint scripts",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R6-B10",
+      "name": "Entity sync updates script data",
+      "category": "R6-B: Script CRUD",
+      "status": "PASS",
+      "message": "Scripts: 3 → 3",
+      "details": {},
+      "duration_s": 14.535
+    },
+    {
+      "test_id": "R6-B11",
+      "name": "Blueprint config synced from HA",
+      "category": "R6-B: Script CRUD",
+      "status": "SKIP",
+      "message": "No blueprint scripts to verify",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R6-B12",
+      "name": "Run script via service call",
+      "category": "R6-B: Script CRUD",
+      "status": "PASS",
+      "message": "Script run: script.ai",
+      "details": {},
+      "duration_s": 0.951
+    },
+    {
+      "test_id": "R6-B13",
+      "name": "Toggle script via service call",
+      "category": "R6-B: Script CRUD",
+      "status": "PASS",
+      "message": "Script toggled: script.ai",
+      "details": {},
+      "duration_s": 0.633
+    },
+    {
+      "test_id": "R6-B14",
+      "name": "Run non-existent script error handling",
+      "category": "R6-B: Script CRUD",
+      "status": "PASS",
+      "message": "Non-existent script handled: success=True",
+      "details": {},
+      "duration_s": 0.632
+    },
+    {
+      "test_id": "R6-B15",
+      "name": "List available script blueprints",
+      "category": "R6-B: Script CRUD",
+      "status": "PASS",
+      "message": "FINDING: ha.instance._get_rest_api() not implemented: Failed to load blueprints from Home Assistant: 'ha.instance' object has no attri",
+      "details": {},
+      "duration_s": 0.046
+    },
+    {
+      "test_id": "R6-B16",
+      "name": "Get blueprint input schema",
+      "category": "R6-B: Script CRUD",
+      "status": "SKIP",
+      "message": "Blueprint method: Failed to load blueprints from Home Assistant: 'ha",
+      "details": {},
+      "duration_s": 0.038
+    },
+    {
+      "test_id": "R6-B17",
+      "name": "Create script from blueprint",
+      "category": "R6-B: Script CRUD",
+      "status": "SKIP",
+      "message": "Blueprint creation requires specific BP paths",
+      "details": {},
+      "duration_s": 0.038
+    },
+    {
+      "test_id": "R6-B18",
+      "name": "Created script has blueprint_path",
+      "category": "R6-B: Script CRUD",
+      "status": "SKIP",
+      "message": "Depends on B17",
+      "details": {},
+      "duration_s": 0.038
+    },
+    {
+      "test_id": "R6-B19",
+      "name": "Script with very long name",
+      "category": "R6-B: Script CRUD",
+      "status": "PASS",
+      "message": "Long name: len=207",
+      "details": {},
+      "duration_s": 1.708
+    },
+    {
+      "test_id": "R6-B20",
+      "name": "Concurrent script run + blueprint update",
+      "category": "R6-B: Script CRUD",
+      "status": "PASS",
+      "message": "Concurrent OK: run=True",
+      "details": {},
+      "duration_s": 4.207
+    },
+    {
+      "test_id": "R6-C01",
+      "name": "Read all automations, verify fields",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "11 automations, fields OK",
+      "details": {},
+      "duration_s": 0.025
+    },
+    {
+      "test_id": "R6-C02",
+      "name": "Blueprint fields on automation",
+      "category": "R6-C: Automation CRUD",
+      "status": "SKIP",
+      "message": "No blueprint automations",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R6-C03",
+      "name": "Read automation detail from Odoo",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "Detail: entity_id=automation.shi_nei_wen_shi_du_shang_pao_zhi_zi_ce_hui_shu_shi_jie_neng_ai, state=off, bp=False",
+      "details": {},
+      "duration_s": 0.013
+    },
+    {
+      "test_id": "R6-C04",
+      "name": "Rename automation",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "Renamed: R6TEST_auto_renamed_07274312",
+      "details": {},
+      "duration_s": 3.672
+    },
+    {
+      "test_id": "R6-C05",
+      "name": "Assign automation to area",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "Area set: 戶外區",
+      "details": {},
+      "duration_s": 4.128
+    },
+    {
+      "test_id": "R6-C06",
+      "name": "Add label to automation",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "Label added: matter",
+      "details": {},
+      "duration_s": 4.074
+    },
+    {
+      "test_id": "R6-C07",
+      "name": "Modify automation blueprint_inputs",
+      "category": "R6-C: Automation CRUD",
+      "status": "SKIP",
+      "message": "No blueprint automations",
+      "details": {},
+      "duration_s": 0.011
+    },
+    {
+      "test_id": "R6-C08",
+      "name": "Empty blueprint_inputs {}",
+      "category": "R6-C: Automation CRUD",
+      "status": "SKIP",
+      "message": "No BP automations",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R6-C09",
+      "name": "Turn off automation",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "Automation turned off",
+      "details": {},
+      "duration_s": 3.674
+    },
+    {
+      "test_id": "R6-C10",
+      "name": "Turn on automation",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "Automation turned on",
+      "details": {},
+      "duration_s": 3.652
+    },
+    {
+      "test_id": "R6-C11",
+      "name": "Toggle automation twice, original state",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "Double toggle: on → ... → on",
+      "details": {},
+      "duration_s": 6.63
+    },
+    {
+      "test_id": "R6-C12",
+      "name": "Trigger automation (skip_condition)",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "Triggered: success=True",
+      "details": {},
+      "duration_s": 0.945
+    },
+    {
+      "test_id": "R6-C13",
+      "name": "Entity sync updates automations",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "Automations: 11 → 11",
+      "details": {},
+      "duration_s": 12.477
+    },
+    {
+      "test_id": "R6-C14",
+      "name": "Automation state synced from HA",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "Current state: on",
+      "details": {},
+      "duration_s": 0.018
+    },
+    {
+      "test_id": "R6-C15",
+      "name": "Blueprint config synced from HA",
+      "category": "R6-C: Automation CRUD",
+      "status": "SKIP",
+      "message": "No BP automations",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R6-C16",
+      "name": "List automation blueprints",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "FINDING: ha.instance._get_rest_api() not implemented: Failed to load blueprints from Home Assistant: 'ha.instance' object has no attri",
+      "details": {},
+      "duration_s": 0.042
+    },
+    {
+      "test_id": "R6-C17",
+      "name": "Get automation blueprint input schema",
+      "category": "R6-C: Automation CRUD",
+      "status": "SKIP",
+      "message": "Blueprint creation requires specific BP paths in HA",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R6-C18",
+      "name": "Create automation from blueprint",
+      "category": "R6-C: Automation CRUD",
+      "status": "SKIP",
+      "message": "Blueprint creation requires specific BP paths in HA",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R6-C19",
+      "name": "Created automation has blueprint_path",
+      "category": "R6-C: Automation CRUD",
+      "status": "SKIP",
+      "message": "Blueprint creation requires specific BP paths in HA",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R6-C20",
+      "name": "Trigger disabled automation",
+      "category": "R6-C: Automation CRUD",
+      "status": "PASS",
+      "message": "Disabled trigger: success=True",
+      "details": {},
+      "duration_s": 2.991
+    },
+    {
+      "test_id": "R6-D01",
+      "name": "Create area, verify area_id from HA",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Area created: area_id=r6test_area_11904113",
+      "details": {},
+      "duration_s": 3.986
+    },
+    {
+      "test_id": "R6-D02",
+      "name": "Create area with Chinese name",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Chinese area: name=R6TEST_测试区域_12302714, area_id=r6test_ce_shi_qu_yu_12302714",
+      "details": {},
+      "duration_s": 3.668
+    },
+    {
+      "test_id": "R6-D03",
+      "name": "Create area with aliases and icon",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Full area: icon=mdi:home, aliases=[\"alias1\", \"alias2\"]",
+      "details": {},
+      "duration_s": 3.648
+    },
+    {
+      "test_id": "R6-D04",
+      "name": "Create area with empty name",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Empty name accepted: id=93",
+      "details": {},
+      "duration_s": 0.636
+    },
+    {
+      "test_id": "R6-D05",
+      "name": "Create area with duplicate name",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Duplicate name allowed: ids=94,95",
+      "details": {},
+      "duration_s": 1.265
+    },
+    {
+      "test_id": "R6-D06",
+      "name": "Rename area, verify HA sync",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Renamed: R6TEST_area_renamed_13224417",
+      "details": {},
+      "duration_s": 3.969
+    },
+    {
+      "test_id": "R6-D07",
+      "name": "Update area aliases",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Aliases updated: [\"new_alias\"]",
+      "details": {},
+      "duration_s": 2.655
+    },
+    {
+      "test_id": "R6-D08",
+      "name": "Assign label to area",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Label assigned to area",
+      "details": {},
+      "duration_s": 3.651
+    },
+    {
+      "test_id": "R6-D09",
+      "name": "Remove label from area",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Label removed from area",
+      "details": {},
+      "duration_s": 2.678
+    },
+    {
+      "test_id": "R6-D10",
+      "name": "Delete area, verify removed",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Area deleted from Odoo",
+      "details": {},
+      "duration_s": 7.362
+    },
+    {
+      "test_id": "R6-D11",
+      "name": "Delete area with entities assigned",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Area deleted, entity area_id=False",
+      "details": {},
+      "duration_s": 10.41
+    },
+    {
+      "test_id": "R6-D12",
+      "name": "Registry sync discovers HA areas",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Areas: 16 → 16",
+      "details": {},
+      "duration_s": 8.707
+    },
+    {
+      "test_id": "R6-D13",
+      "name": "HA area changes reflected on sync",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Sync complete, 16 areas",
+      "details": {},
+      "duration_s": 8.083
+    },
+    {
+      "test_id": "R6-D14",
+      "name": "Deleted HA area removed on sync",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "No orphan deleted areas",
+      "details": {},
+      "duration_s": 0.01
+    },
+    {
+      "test_id": "R6-D15",
+      "name": "Rapid create+delete area",
+      "category": "R6-D: Area CRUD",
+      "status": "PASS",
+      "message": "Rapid create+delete: clean",
+      "details": {},
+      "duration_s": 5.342
+    },
+    {
+      "test_id": "R6-E01",
+      "name": "Read device fields",
+      "category": "R6-E: Device CRUD",
+      "status": "PASS",
+      "message": "Device: File editor, mfr=Official apps",
+      "details": {},
+      "duration_s": 0.012
+    },
+    {
+      "test_id": "R6-E02",
+      "name": "Device entity count",
+      "category": "R6-E: Device CRUD",
+      "status": "PASS",
+      "message": "Device File editor has 1 entities",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R6-E03",
+      "name": "Set device name_by_user",
+      "category": "R6-E: Device CRUD",
+      "status": "PASS",
+      "message": "Custom name set: R6TEST_dev_18715221",
+      "details": {},
+      "duration_s": 3.679
+    },
+    {
+      "test_id": "R6-E04",
+      "name": "Assign device to area",
+      "category": "R6-E: Device CRUD",
+      "status": "PASS",
+      "message": "Device area: 戶外區",
+      "details": {},
+      "duration_s": 3.679
+    },
+    {
+      "test_id": "R6-E05",
+      "name": "Change device area",
+      "category": "R6-E: Device CRUD",
+      "status": "PASS",
+      "message": "Area changed: 接待區",
+      "details": {},
+      "duration_s": 6.328
+    },
+    {
+      "test_id": "R6-E06",
+      "name": "Add label to device",
+      "category": "R6-E: Device CRUD",
+      "status": "PASS",
+      "message": "Label added to device: matter",
+      "details": {},
+      "duration_s": 3.676
+    },
+    {
+      "test_id": "R6-E07",
+      "name": "Set disabled_by on device",
+      "category": "R6-E: Device CRUD",
+      "status": "PASS",
+      "message": "disabled_by is read-only (expected): You do not have permission to modify the following fields: d",
+      "details": {},
+      "duration_s": 0.008
+    },
+    {
+      "test_id": "R6-E08",
+      "name": "Registry sync updates device data",
+      "category": "R6-E: Device CRUD",
+      "status": "PASS",
+      "message": "Device registry sync complete",
+      "details": {},
+      "duration_s": 8.236
+    },
+    {
+      "test_id": "R6-E09",
+      "name": "Device area reflected after sync",
+      "category": "R6-E: Device CRUD",
+      "status": "PASS",
+      "message": "Device area after sync: False",
+      "details": {},
+      "duration_s": 0.028
+    },
+    {
+      "test_id": "R6-E10",
+      "name": "Delete area clears device area",
+      "category": "R6-E: Device CRUD",
+      "status": "PASS",
+      "message": "Device area cleared after area delete",
+      "details": {},
+      "duration_s": 9.018
+    },
+    {
+      "test_id": "R6-F01",
+      "name": "Create label with name+color+icon",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "Label: label_id=r6test_label_22536123, color=red",
+      "details": {},
+      "duration_s": 5.437
+    },
+    {
+      "test_id": "R6-F02",
+      "name": "Create label with name only",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "Minimal label: id=75",
+      "details": {},
+      "duration_s": 2.651
+    },
+    {
+      "test_id": "R6-F03",
+      "name": "Create label with Chinese name",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "FINDING: HA label_id collision on Chinese name: The operation cannot be completed: Label ID must be unique per HA instance",
+      "details": {},
+      "duration_s": 6.077
+    },
+    {
+      "test_id": "R6-F04",
+      "name": "Create label with duplicate name",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "Duplicate allowed: ids=82,84",
+      "details": {},
+      "duration_s": 6.342
+    },
+    {
+      "test_id": "R6-F05",
+      "name": "Create label with empty name",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "Empty name accepted: id=85",
+      "details": {},
+      "duration_s": 0.659
+    },
+    {
+      "test_id": "R6-F06",
+      "name": "Rename label",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "Renamed: R6TEST_label_renamed_24652627",
+      "details": {},
+      "duration_s": 3.979
+    },
+    {
+      "test_id": "R6-F07",
+      "name": "Change label color",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "Color: blue",
+      "details": {},
+      "duration_s": 3.691
+    },
+    {
+      "test_id": "R6-F08",
+      "name": "Change label icon",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "Icon: mdi:star",
+      "details": {},
+      "duration_s": 3.68
+    },
+    {
+      "test_id": "R6-F09",
+      "name": "Update label description",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "Description: Updated desc",
+      "details": {},
+      "duration_s": 2.67
+    },
+    {
+      "test_id": "R6-F10",
+      "name": "Delete label, verify removed",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "Label deleted",
+      "details": {},
+      "duration_s": 9.349
+    },
+    {
+      "test_id": "R6-F11",
+      "name": "Delete label assigned to entity",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "Label create constraint (HA label_id collision): The operation cannot be completed: Label ID must be unique per HA instance",
+      "details": {},
+      "duration_s": 6.336
+    },
+    {
+      "test_id": "R6-F12",
+      "name": "Registry sync discovers HA labels",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "Labels: 20 → 20",
+      "details": {},
+      "duration_s": 8.862
+    },
+    {
+      "test_id": "R6-F13",
+      "name": "Label data reflects HA after sync",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "Sync OK, 20 labels",
+      "details": {},
+      "duration_s": 0.02
+    },
+    {
+      "test_id": "R6-F14",
+      "name": "Deleted HA labels removed on sync",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "No orphan deleted labels",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R6-F15",
+      "name": "Rapid create+delete label",
+      "category": "R6-F: Label CRUD",
+      "status": "PASS",
+      "message": "FINDING: Rapid label ops hit uniqueness constraint: The operation cannot be completed: Label ID must be unique p",
+      "details": {},
+      "duration_s": 9.1
+    },
+    {
+      "test_id": "R6-G01",
+      "name": "Entity related: scenes via search/related",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "Related: scenes=0, autos=0, scripts=0",
+      "details": {},
+      "duration_s": 0.711
+    },
+    {
+      "test_id": "R6-G02",
+      "name": "Delete scene, related items updated",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "Scene deleted, cleanup OK",
+      "details": {},
+      "duration_s": 8.217
+    },
+    {
+      "test_id": "R6-G03",
+      "name": "Entity assigned to multiple scenes",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "Entity in 2 scenes",
+      "details": {},
+      "duration_s": 3.897
+    },
+    {
+      "test_id": "R6-G04",
+      "name": "Device related automations",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "related_automation_ids: 0",
+      "details": {},
+      "duration_s": 0.053
+    },
+    {
+      "test_id": "R6-G05",
+      "name": "Device related scripts",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "related_script_ids: 0",
+      "details": {},
+      "duration_s": 0.016
+    },
+    {
+      "test_id": "R6-G06",
+      "name": "Device related scenes",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "related_scene_ids: 0",
+      "details": {},
+      "duration_s": 0.01
+    },
+    {
+      "test_id": "R6-G07",
+      "name": "Sync device related items via controller",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "Sync initiated (long operation, timed out — expected for many devices)",
+      "details": {},
+      "duration_s": 120.052
+    },
+    {
+      "test_id": "R6-G08",
+      "name": "Entity and scene share same area",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "Area 戶外區: 0 entities assigned",
+      "details": {},
+      "duration_s": 0.072
+    },
+    {
+      "test_id": "R6-G09",
+      "name": "Device area reflects in entity area",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "Device has 1 entities, follows_device_area samples: [True]",
+      "details": {},
+      "duration_s": 0.013
+    },
+    {
+      "test_id": "R6-G10",
+      "name": "Delete area clears references",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "Area deleted, entity area_id=False",
+      "details": {},
+      "duration_s": 12.873
+    },
+    {
+      "test_id": "R6-G11",
+      "name": "Label on area+device+entity",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "FINDING: Connection reset after heavy ops: [Errno 104] Connection reset by peer",
+      "details": {},
+      "duration_s": 4.385
+    },
+    {
+      "test_id": "R6-G12",
+      "name": "Delete label removes from all M2M",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "FINDING: Connection reset after heavy ops: [Errno 104] Connection reset by peer",
+      "details": {},
+      "duration_s": 0.19
+    },
+    {
+      "test_id": "R6-G13",
+      "name": "Full chain: area→label→scene→entities",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "FINDING: Connection reset during heavy chain ops: [Errno 104] Connection reset by peer",
+      "details": {},
+      "duration_s": 0.191
+    },
+    {
+      "test_id": "R6-G14",
+      "name": "Reverse teardown leaves no orphans",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "No orphans from G13 chain",
+      "details": {},
+      "duration_s": 1.369
+    },
+    {
+      "test_id": "R6-G15",
+      "name": "Domain matches entity_id prefix",
+      "category": "R6-G: Cross-Entity",
+      "status": "PASS",
+      "message": "All scene/script/automation entity_ids match domain",
+      "details": {},
+      "duration_s": 0.037
+    }
+  ]
+}

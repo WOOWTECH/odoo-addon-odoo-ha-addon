@@ -333,6 +333,101 @@ class HAVerifier:
             ha_instance_id=self.instance_id)
 
     # ------------------------------------------------------------------
+    # Scene verification (extended)
+    # ------------------------------------------------------------------
+
+    def get_scene_detail(self, scene_odoo_id: int) -> dict:
+        """Get full scene detail by Odoo record ID."""
+        return self.odoo.get_scene_detail(scene_odoo_id)
+
+    def find_scene_by_name(self, name: str) -> Optional[dict]:
+        """Find a scene by name with extended fields."""
+        results = self.odoo.search_read(
+            "ha.entity",
+            [("ha_instance_id", "=", self.instance_id),
+             ("domain", "=", "scene"),
+             ("name", "=", name)],
+            ["id", "entity_id", "name", "ha_scene_id",
+             "scene_source", "scene_entity_ids", "area_id", "label_ids"],
+            limit=1)
+        return results[0] if results else None
+
+    def verify_scene_in_ha(self, entity_id: str,
+                           wait_seconds: int = 10) -> bool:
+        """Check if scene entity exists in Odoo (synced from HA)."""
+        deadline = time.time() + wait_seconds
+        while time.time() < deadline:
+            entity = self.get_entity(entity_id)
+            if entity and entity.get("domain") == "scene":
+                return True
+            time.sleep(1)
+        return False
+
+    def verify_scene_not_in_ha(self, entity_id: str,
+                               wait_seconds: int = 10) -> bool:
+        """Check that scene no longer exists after deletion."""
+        deadline = time.time() + wait_seconds
+        while time.time() < deadline:
+            entity = self.get_entity(entity_id)
+            if not entity:
+                return True
+            time.sleep(1)
+        return False
+
+    # ------------------------------------------------------------------
+    # Automation verification (extended)
+    # ------------------------------------------------------------------
+
+    def get_automation_detail(self, auto_odoo_id: int) -> dict:
+        """Get full automation detail by Odoo record ID."""
+        return self.odoo.get_automation_detail(auto_odoo_id)
+
+    def find_automation_by_name(self, name: str) -> Optional[dict]:
+        """Find an automation by name with extended fields."""
+        results = self.odoo.search_read(
+            "ha.entity",
+            [("ha_instance_id", "=", self.instance_id),
+             ("domain", "=", "automation"),
+             ("name", "=", name)],
+            ["id", "entity_id", "name", "entity_state",
+             "blueprint_path", "blueprint_inputs",
+             "is_blueprint_based", "ha_automation_id",
+             "area_id", "label_ids"],
+            limit=1)
+        return results[0] if results else None
+
+    # ------------------------------------------------------------------
+    # Script verification (extended)
+    # ------------------------------------------------------------------
+
+    def get_script_detail(self, script_odoo_id: int) -> dict:
+        """Get full script detail by Odoo record ID."""
+        return self.odoo.get_script_detail(script_odoo_id)
+
+    def find_script_by_name(self, name: str) -> Optional[dict]:
+        """Find a script by name with extended fields."""
+        results = self.odoo.search_read(
+            "ha.entity",
+            [("ha_instance_id", "=", self.instance_id),
+             ("domain", "=", "script"),
+             ("name", "=", name)],
+            ["id", "entity_id", "name", "entity_state",
+             "blueprint_path", "blueprint_inputs",
+             "is_blueprint_based", "ha_automation_id",
+             "area_id", "label_ids"],
+            limit=1)
+        return results[0] if results else None
+
+    # ------------------------------------------------------------------
+    # Related entities verification
+    # ------------------------------------------------------------------
+
+    def get_entity_related(self, entity_id: str) -> dict:
+        """Get related items for an entity (scenes, automations, scripts)."""
+        return self.odoo.get_entity_related(
+            entity_id, ha_instance_id=self.instance_id)
+
+    # ------------------------------------------------------------------
     # Cross-entity consistency checks
     # ------------------------------------------------------------------
 

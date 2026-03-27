@@ -290,6 +290,173 @@ class OdooClient:
         return self.call_controller("/odoo_ha_addon/entities_by_area", params)
 
     # ------------------------------------------------------------------
+    # Scene-specific operations
+    # ------------------------------------------------------------------
+
+    def create_scene(self, name: str, entity_ids: list,
+                     instance_id: int, **extra) -> int:
+        """Create a scene entity in Odoo (triggers HA sync).
+
+        Args:
+            name: Scene display name
+            entity_ids: List of Odoo entity record IDs (M2M)
+            instance_id: HA instance ID
+        Returns:
+            New scene record ID
+        """
+        vals = {
+            "name": name,
+            "domain": "scene",
+            "ha_instance_id": instance_id,
+            "scene_entity_ids": [(6, 0, entity_ids)],
+            **extra,
+        }
+        return self.create("ha.entity", vals)
+
+    def get_scene_detail(self, scene_id: int) -> dict:
+        """Read full scene details including M2M fields."""
+        results = self.read("ha.entity", [scene_id],
+                            ["id", "entity_id", "name", "domain",
+                             "entity_state", "ha_scene_id", "scene_source",
+                             "scene_entity_ids", "scene_entity_count",
+                             "area_id", "label_ids", "ha_instance_id"])
+        return results[0] if results else {}
+
+    def update_scene_entities(self, scene_id: int, entity_ids: list):
+        """Replace scene entity list (M2M replace)."""
+        return self.write("ha.entity", [scene_id],
+                          {"scene_entity_ids": [(6, 0, entity_ids)]})
+
+    def add_scene_entity(self, scene_id: int, entity_id: int):
+        """Add a single entity to a scene."""
+        return self.write("ha.entity", [scene_id],
+                          {"scene_entity_ids": [(4, entity_id)]})
+
+    def remove_scene_entity(self, scene_id: int, entity_id: int):
+        """Remove a single entity from a scene."""
+        return self.write("ha.entity", [scene_id],
+                          {"scene_entity_ids": [(3, entity_id)]})
+
+    # ------------------------------------------------------------------
+    # Automation/Script-specific operations
+    # ------------------------------------------------------------------
+
+    def get_automation_detail(self, auto_id: int) -> dict:
+        """Read full automation details including blueprint fields."""
+        results = self.read("ha.entity", [auto_id],
+                            ["id", "entity_id", "name", "domain",
+                             "entity_state", "blueprint_path",
+                             "blueprint_inputs", "blueprint_metadata",
+                             "is_blueprint_based", "ha_automation_id",
+                             "area_id", "label_ids", "ha_instance_id"])
+        return results[0] if results else {}
+
+    def get_script_detail(self, script_id: int) -> dict:
+        """Read full script details including blueprint fields."""
+        results = self.read("ha.entity", [script_id],
+                            ["id", "entity_id", "name", "domain",
+                             "entity_state", "blueprint_path",
+                             "blueprint_inputs", "blueprint_metadata",
+                             "is_blueprint_based", "ha_automation_id",
+                             "area_id", "label_ids", "ha_instance_id"])
+        return results[0] if results else {}
+
+    def get_entity_related(self, entity_id: str,
+                           ha_instance_id: int = None) -> dict:
+        """Get entity's related items (scenes, automations, scripts) via controller."""
+        params = {"entity_id": entity_id}
+        if ha_instance_id:
+            params["ha_instance_id"] = ha_instance_id
+        return self.call_controller("/odoo_ha_addon/entity_related", params)
+
+    # ------------------------------------------------------------------
+    # Blueprint wizard operations
+    # ------------------------------------------------------------------
+
+    def get_blueprint_list(self, domain: str, instance_id: int) -> list:
+        """Get available blueprints via the wizard model.
+
+        Creates a transient wizard record, refreshes blueprints from HA,
+        then calls get_blueprint_list_for_selector on that record.
+        """
+        # Create a wizard record (onchange doesn't fire via RPC)
+        wiz_id = self.create("ha.blueprint.wizard", {
+            "domain": domain,
+            "ha_instance_id": instance_id,
+        })
+        # Trigger blueprint loading (onchange doesn't fire via create)
+        self.call_kw("ha.blueprint.wizard", "action_refresh_blueprints",
+                      [[wiz_id]])
+        # Now fetch the formatted list
+        return self.call_kw("ha.blueprint.wizard",
+                            "get_blueprint_list_for_selector",
+                            [[wiz_id]])
+
+    def create_from_blueprint(self, domain: str, blueprint_path: str,
+                              name: str, inputs: dict,
+                              instance_id: int) -> dict:
+        """Create automation/script from blueprint via wizard.
+
+        Returns wizard action result.
+        """
+        # Step 1: create wizard
+        wiz_id = self.create("ha.blueprint.wizard", {
+            "domain": domain,
+            "blueprint_path": blueprint_path,
+            "name": name,
+            "ha_instance_id": instance_id,
+        })
+        # Step 2: select blueprint (loads schema)
+        self.call_kw("ha.blueprint.wizard", "action_select_blueprint",
+                      [[wiz_id]])
+        # Step 3: set inputs
+        import json as _json
+        self.write("ha.blueprint.wizard", [wiz_id],
+                   {"blueprint_inputs_json": _json.dumps(inputs)})
+        # Step 4: create
+        return self.call_kw("ha.blueprint.wizard", "action_create",
+                            [[wiz_id]])
+
+    # ------------------------------------------------------------------
+    # Label operations (extended)
+    # ------------------------------------------------------------------
+
+    def create_label(self, name: str, instance_id: int, **extra) -> int:
+        """Create a label in Odoo (triggers HA sync)."""
+        vals = {"name": name, "ha_instance_id": instance_id, **extra}
+        return self.create("ha.label", vals)
+
+    def get_label_detail(self, label_id: int) -> dict:
+        """Read full label details."""
+        results = self.read("ha.label", [label_id],
+                            ["id", "label_id", "name", "icon",
+                             "ha_color", "description",
+                             "ha_instance_id"])
+        return results[0] if results else {}
+
+    # ------------------------------------------------------------------
+    # Device operations (extended)
+    # ------------------------------------------------------------------
+
+    def get_device_detail(self, device_id: int) -> dict:
+        """Read full device details."""
+        results = self.read("ha.device", [device_id],
+                            ["id", "device_id", "name", "name_by_user",
+                             "manufacturer", "model", "area_id",
+                             "label_ids", "disabled_by",
+                             "ha_instance_id"])
+        return results[0] if results else {}
+
+    def sync_device_related(self, device_id: int,
+                            instance_id: int = None) -> dict:
+        """Sync device related items via controller."""
+        params = {"device_id": device_id}
+        if instance_id:
+            params["ha_instance_id"] = instance_id
+        return self.call_controller(
+            "/odoo_ha_addon/sync_device_related_items", params)
+
+    # ------------------------------------------------------------------
     # Portal operations
     # ------------------------------------------------------------------
 

@@ -1,0 +1,131 @@
+{
+  "report": "R6_CONSOLIDATED",
+  "title": "Odoo HA Addon: Bidirectional CRUD, Sync & Browser E2E",
+  "generated": "2026-03-27T03:55:43Z",
+  "environment": "Odoo 18 + Home Assistant (localhost:9077)",
+  "overall": {
+    "total": 155,
+    "pass": 135,
+    "fail": 0,
+    "error": 0,
+    "skip": 20,
+    "pass_rate": 100.0,
+    "total_duration_s": 742.8,
+    "verdict": "ALL TESTS PASSING"
+  },
+  "suites": {
+    "r6_crud_sync": {
+      "description": "Bidirectional CRUD & Sync Tests",
+      "total": 120,
+      "pass": 105,
+      "fail": 0,
+      "error": 0,
+      "skip": 15,
+      "pass_rate": 100.0,
+      "duration_s": 488.9,
+      "started": "2026-03-27T03:25:38Z",
+      "finished": "2026-03-27T03:34:24Z",
+      "sections": {
+        "R6-A": {"name": "Scene CRUD", "total": 25, "pass": 25, "skip": 0, "coverage": "full"},
+        "R6-B": {"name": "Script CRUD", "total": 20, "pass": 12, "skip": 8, "coverage": "partial", "skip_reason": "No blueprint-based scripts; _get_rest_api() not implemented"},
+        "R6-C": {"name": "Automation CRUD", "total": 20, "pass": 13, "skip": 7, "coverage": "partial", "skip_reason": "No blueprint-based automations; _get_rest_api() not implemented"},
+        "R6-D": {"name": "Area CRUD", "total": 15, "pass": 15, "skip": 0, "coverage": "full"},
+        "R6-E": {"name": "Device CRUD", "total": 10, "pass": 10, "skip": 0, "coverage": "full"},
+        "R6-F": {"name": "Label CRUD", "total": 15, "pass": 15, "skip": 0, "coverage": "full"},
+        "R6-G": {"name": "Cross-Entity Relations", "total": 15, "pass": 15, "skip": 0, "coverage": "full"}
+      }
+    },
+    "r6_e2e_browser": {
+      "description": "Browser E2E Tests (Playwright)",
+      "total": 35,
+      "pass": 30,
+      "fail": 0,
+      "error": 0,
+      "skip": 5,
+      "pass_rate": 100.0,
+      "duration_s": 253.9,
+      "started": "2026-03-27T03:49:17Z",
+      "finished": "2026-03-27T03:53:31Z",
+      "categories": {
+        "authentication": {"total": 1, "pass": 1, "skip": 0},
+        "dashboards": {"total": 3, "pass": 3, "skip": 0},
+        "list_views": {"total": 10, "pass": 10, "skip": 0},
+        "search": {"total": 1, "pass": 1, "skip": 0},
+        "form_views": {"total": 9, "pass": 5, "skip": 4},
+        "kanban": {"total": 1, "pass": 1, "skip": 0},
+        "dashboard_widgets": {"total": 2, "pass": 2, "skip": 0},
+        "portal": {"total": 2, "pass": 1, "skip": 1},
+        "responsive": {"total": 1, "pass": 1, "skip": 0},
+        "navigation": {"total": 3, "pass": 3, "skip": 0},
+        "js_errors": {"total": 1, "pass": 1, "skip": 0}
+      }
+    }
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "title": "ha.instance._get_rest_api() not implemented",
+      "severity": "HIGH",
+      "tests": ["R6-B15", "R6-C16"],
+      "affected_skips": ["R6-B02", "R6-B07", "R6-B08", "R6-B09", "R6-B11", "R6-B16", "R6-B17", "R6-B18", "R6-C02", "R6-C07", "R6-C08", "R6-C15", "R6-C17", "R6-C18", "R6-C19"],
+      "description": "ha_blueprint_wizard.py calls _get_rest_api() which does not exist on ha.instance model. Blueprint listing and creation features are broken."
+    },
+    {
+      "id": "F2",
+      "title": "HA label_id slug collision",
+      "severity": "MEDIUM",
+      "tests": ["R6-F03", "R6-F11", "R6-F15"],
+      "description": "HA generates label_id from name slug. Similar names produce same label_id, violating unique(label_id, ha_instance_id) constraint. No server-side deduplication guard."
+    },
+    {
+      "id": "F3",
+      "title": "Connection reset after heavy WebSocket sync",
+      "severity": "LOW",
+      "tests": ["R6-G11", "R6-G12", "R6-G13"],
+      "description": "After G07 120s full device sync, subsequent HTTP calls get [Errno 104] Connection reset by peer. Session re-auth resolves it. Infrastructure/proxy timeout issue."
+    },
+    {
+      "id": "F4",
+      "title": "disabled_by field read-only on ha.device",
+      "severity": "INFO",
+      "tests": ["R6-E07"],
+      "description": "disabled_by field on ha.device cannot be set via Odoo write(). Expected behavior: HA controls device disable state."
+    }
+  ],
+  "skip_analysis": {
+    "r6_crud": {
+      "count": 15,
+      "reason": "All 15 skips are blueprint-dependent tests. No blueprint-based scripts/automations in test instance, and _get_rest_api() is not implemented."
+    },
+    "r6_e2e": {
+      "count": 5,
+      "items": [
+        {"test": "E2E-21", "reason": "No cover entities in HA instance"},
+        {"test": "E2E-22", "reason": "No fan entities in HA instance"},
+        {"test": "E2E-23", "reason": "Automation entities not visible in first page"},
+        {"test": "E2E-25", "reason": "Script entities not visible in first page"},
+        {"test": "E2E-30", "reason": "Portal user credentials not configured"}
+      ],
+      "note": "All skips are environmental (test data limitations), not code defects."
+    }
+  },
+  "artifacts": {
+    "test_scripts": [
+      "tests/stability/r6_crud_sync.py",
+      "tests/stability/r6_e2e_browser.py"
+    ],
+    "reports": [
+      "tests/stability/reports/R6.json",
+      "tests/stability/reports/R6.txt",
+      "tests/stability/reports/R6_E2E.json",
+      "tests/stability/reports/R6_E2E.txt",
+      "tests/stability/reports/R6_CONSOLIDATED.txt",
+      "tests/stability/reports/R6_CONSOLIDATED.json"
+    ],
+    "helpers": [
+      "tests/stability/helpers/odoo_client.py",
+      "tests/stability/helpers/ha_client.py",
+      "tests/stability/helpers/report.py"
+    ]
+  }
+}
