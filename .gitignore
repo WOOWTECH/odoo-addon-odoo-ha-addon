@@ -1,12 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-.idea
-.playwright-mcp
-odoo_env
-xdg-utils-1.1.3.tar.gz
-xdg-utils-1.1.3
-muk_web_*
-settings.local.json
+*.py[cod]
+*.so
 
 # Environment variables
 .env
@@ -22,7 +17,23 @@ docker-compose.override.yml
 # Python virtual environment
 .venv/
 venv/
+odoo_env/
 
 # IDE
-.vscode/*.log
 .idea/
+.vscode/*.log
+settings.local.json
+
+# Playwright MCP
+.playwright-mcp/
+
+# Vibe images (local dev)
+.vibe-images/
+
+# Legacy / third-party
+xdg-utils-*
+muk_web_*
+
+# OS
+.DS_Store
+Thumbs.db
