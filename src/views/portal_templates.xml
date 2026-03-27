@@ -129,15 +129,15 @@
                                             <div class="d-flex justify-content-between text-muted small">
                                                 <span>
                                                     <i class="fa fa-plug me-1"></i>
-                                                    <t t-out="inst['entity_count']"/> Entities
+                                                    <t t-out="inst['entity_count']"/> <t t-if="inst['entity_count'] == 1">Entity</t><t t-else="">Entities</t>
                                                 </span>
                                                 <span>
                                                     <i class="fa fa-object-group me-1"></i>
-                                                    <t t-out="inst['group_count']"/> Groups
+                                                    <t t-out="inst['group_count']"/> Group<t t-if="inst['group_count'] != 1">s</t>
                                                 </span>
                                                 <span>
                                                     <i class="fa fa-puzzle-piece me-1"></i>
-                                                    <t t-out="inst['device_count']"/> Devices
+                                                    <t t-out="inst['device_count']"/> Device<t t-if="inst['device_count'] != 1">s</t>
                                                 </span>
                                             </div>
                                         </div>
@@ -741,7 +741,7 @@
                                         'domain': entity.domain,
                                         'entity_state': entity.entity_state,
                                         'last_changed': str(entity.last_changed) if entity.last_changed else None,
-                                        'attributes': entity.attributes or {},
+                                        'attributes': sanitize_attrs(entity.attributes),
                                         'area_name': entity.area_id.name if entity.area_id else None,
                                     },
                                 })"/>
@@ -785,7 +785,7 @@
                                                     'name': entity.name,
                                                     'domain': entity.domain,
                                                     'entity_state': entity.entity_state,
-                                                    'attributes': entity.attributes or {},
+                                                    'attributes': sanitize_attrs(entity.attributes),
                                                 },
                                                 'permission': permission,
                                             })"/>
@@ -1044,7 +1044,7 @@
                                                                                 'name': entity.name,
                                                                                 'domain': entity.domain,
                                                                                 'entity_state': entity.entity_state,
-                                                                                'attributes': entity.attributes or {},
+                                                                                'attributes': sanitize_attrs(entity.attributes),
                                                                             },
                                                                             'permission': permission,
                                                                             'compact': True,
@@ -1086,7 +1086,7 @@
                                                                                 'name': entity.name,
                                                                                 'domain': entity.domain,
                                                                                 'entity_state': entity.entity_state,
-                                                                                'attributes': entity.attributes or {},
+                                                                                'attributes': sanitize_attrs(entity.attributes),
                                                                             },
                                                                             'permission': permission,
                                                                             'compact': True,

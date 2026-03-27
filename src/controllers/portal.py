@@ -32,6 +32,25 @@ PORTAL_ENTITY_FIELDS = [
     'attributes',
 ]
 
+# Attribute keys that should be stripped from portal responses
+# These may contain sensitive network/auth info from Home Assistant
+PORTAL_SENSITIVE_ATTRIBUTE_KEYS = {
+    'access_token', 'token', 'api_key', 'password', 'secret',
+    'ip_address', 'mac_address', 'network_key', 'host',
+    'latitude', 'longitude', 'gps_accuracy',
+}
+
+
+def _sanitize_portal_attributes(attributes):
+    """Strip sensitive keys from HA entity attributes for portal display."""
+    if not attributes or not isinstance(attributes, dict):
+        return attributes or {}
+    return {
+        k: v for k, v in attributes.items()
+        if k.lower() not in PORTAL_SENSITIVE_ATTRIBUTE_KEYS
+    }
+
+
 # Field whitelist for portal entity group access
 PORTAL_GROUP_FIELDS = [
     'id',
@@ -165,6 +184,8 @@ class HAPortalController(http.Controller):
         # Handle last_changed datetime serialization
         if data.get('last_changed'):
             data['last_changed'] = data['last_changed'].isoformat()
+        # Strip sensitive keys from attributes (e.g. tokens, IPs, GPS coordinates)
+        data['attributes'] = _sanitize_portal_attributes(data.get('attributes'))
         return data
 
     def _get_safe_group_data(self, group):
@@ -244,6 +265,7 @@ class HAPortalController(http.Controller):
             'page_name': 'portal_entity',
             'controllable_domains': controllable_domains,
             'token': entity.access_token,
+            'sanitize_attrs': _sanitize_portal_attributes,
         })
 
     @http.route(
@@ -483,6 +505,7 @@ class HAPortalController(http.Controller):
             'page_name': 'portal_entity_group',
             'controllable_domains': controllable_domains,
             'token': group.access_token,
+            'sanitize_attrs': _sanitize_portal_attributes,
         })
 
     @http.route(
@@ -539,6 +562,8 @@ class HAPortalController(http.Controller):
                         'id': data['area_id'][0],
                         'name': data['area_id'][1]
                     }
+                # Strip sensitive keys from attributes
+                data['attributes'] = _sanitize_portal_attributes(data.get('attributes'))
                 entities_with_state.append(data)
         group_data['entities'] = entities_with_state
 
@@ -721,6 +746,7 @@ class HAPortalController(http.Controller):
             'device_shares': device_shares,
             'active_tab': tab,
             'page_name': 'portal_my_ha_instance',
+            'sanitize_attrs': _sanitize_portal_attributes,
         })
 
     # ========================================
@@ -806,6 +832,7 @@ class HAPortalController(http.Controller):
             'page_name': 'portal_device',
             'controllable_domains': controllable_domains,
             'token': device.access_token,
+            'sanitize_attrs': _sanitize_portal_attributes,
         })
 
     @http.route(
