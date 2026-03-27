@@ -1,0 +1,916 @@
+{
+  "round": "R1",
+  "description": "Data Integrity Tests",
+  "started": "2026-03-27T00:26:17.684886+00:00",
+  "finished": "2026-03-27T00:28:58.046300+00:00",
+  "total": 100,
+  "passed": 96,
+  "failed": 2,
+  "errors": 1,
+  "skipped": 1,
+  "pass_rate": 97.0,
+  "total_duration_s": 139.9,
+  "metadata": {},
+  "results": [
+    {
+      "test_id": "R1-A01",
+      "name": "Create area in Odoo → verify exists",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Area created: id=10, area_id=stabtest_testarea_8acb07",
+      "details": {},
+      "duration_s": 2.979
+    },
+    {
+      "test_id": "R1-A02",
+      "name": "Read created area via ORM",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Read OK: {'id': 10, 'name': 'STABTEST_TestArea_8acb07', 'area_id': 'stabtest_testarea_8acb07'}",
+      "details": {},
+      "duration_s": 0.012
+    },
+    {
+      "test_id": "R1-A03",
+      "name": "Read created area via controller",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Found via controller: STABTEST_TestArea_8acb07",
+      "details": {},
+      "duration_s": 7.303
+    },
+    {
+      "test_id": "R1-A04",
+      "name": "Rename area in Odoo → verify sync",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Renamed to: STABTEST_Renamed_334d96",
+      "details": {},
+      "duration_s": 2.65
+    },
+    {
+      "test_id": "R1-A05",
+      "name": "Delete area in Odoo → verify removed",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Area deleted and removed from HA",
+      "details": {},
+      "duration_s": 2.65
+    },
+    {
+      "test_id": "R1-A06",
+      "name": "Create area with empty name → expect error",
+      "category": "R1-A: Area CRUD",
+      "status": "FAIL",
+      "message": "Should have raised error for empty name",
+      "details": {},
+      "duration_s": 0.646
+    },
+    {
+      "test_id": "R1-A07",
+      "name": "Create area with 200-char name",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Long name area created: id=12",
+      "details": {},
+      "duration_s": 2.97
+    },
+    {
+      "test_id": "R1-A08",
+      "name": "Create area with Unicode/Chinese name",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Unicode area synced: STABTEST_測試區域_a588ae",
+      "details": {},
+      "duration_s": 2.643
+    },
+    {
+      "test_id": "R1-A09",
+      "name": "Create area with special chars (!@#$%)",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Special char area created: STABTEST_Sp3c!@l_091a9c",
+      "details": {},
+      "duration_s": 2.668
+    },
+    {
+      "test_id": "R1-A10",
+      "name": "Create area with duplicate name → expect handling",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Duplicate name allowed: ids=15,16",
+      "details": {},
+      "duration_s": 3.594
+    },
+    {
+      "test_id": "R1-A11",
+      "name": "Area count: ORM vs Controller match",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Both return 10 areas",
+      "details": {},
+      "duration_s": 6.778
+    },
+    {
+      "test_id": "R1-A12",
+      "name": "Sync registry → area count stable",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Area count stable: 10",
+      "details": {},
+      "duration_s": 8.559
+    },
+    {
+      "test_id": "R1-A13",
+      "name": "Create then immediately delete area",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Fast create+delete handled cleanly",
+      "details": {},
+      "duration_s": 4.645
+    },
+    {
+      "test_id": "R1-A14",
+      "name": "Create 5 areas in rapid succession",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "All 5 batch areas synced",
+      "details": {},
+      "duration_s": 8.367
+    },
+    {
+      "test_id": "R1-A15",
+      "name": "Create area without ha_instance_id → error",
+      "category": "R1-A: Area CRUD",
+      "status": "PASS",
+      "message": "Correctly rejected: The operation cannot be completed:\n- Create/update: a mandatory field is not set.\n- Delete: another model requires the record being deleted. If possible, archive it instead.\n\nModel: Home Assistant Area (ha.area)\nField: HA Instance (ha_instance_id)\n",
+      "details": {},
+      "duration_s": 0.047
+    },
+    {
+      "test_id": "R1-B01",
+      "name": "Entity count: ORM vs search_count",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Both return 720 entities",
+      "details": {},
+      "duration_s": 0.091
+    },
+    {
+      "test_id": "R1-B02",
+      "name": "Read light entity state",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "light.hu_wai_qu_feng_shan_deng: state=unavailable",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R1-B03",
+      "name": "Read switch entity state",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "switch.lgtvhdmi1: state=unavailable",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R1-B04",
+      "name": "Read sensor entity state",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Read 3 sensors, all have state",
+      "details": {},
+      "duration_s": 0.008
+    },
+    {
+      "test_id": "R1-B05",
+      "name": "Read climate entity state",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "climate.room_air_conditioner: state=unavailable",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R1-B06",
+      "name": "Read cover entity state",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "cover.curtain: state=unavailable",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R1-B07",
+      "name": "Read fan entity state",
+      "category": "R1-B: Entity Sync",
+      "status": "SKIP",
+      "message": "No fan entities",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R1-B08",
+      "name": "Read binary_sensor entity state",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Read 3 binary_sensors",
+      "details": {},
+      "duration_s": 0.006
+    },
+    {
+      "test_id": "R1-B09",
+      "name": "Toggle light via call_service",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "light.hu_wai_qu_feng_shan_deng: toggle called, state may not change if unavailable",
+      "details": {},
+      "duration_s": 4.312
+    },
+    {
+      "test_id": "R1-B10",
+      "name": "Toggle switch via call_service",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Toggle OK: switch.lgtvhdmi1",
+      "details": {},
+      "duration_s": 2.652
+    },
+    {
+      "test_id": "R1-B11",
+      "name": "Entities with area assignment exist",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "20/720 entities have area assigned",
+      "details": {},
+      "duration_s": 0.035
+    },
+    {
+      "test_id": "R1-B12",
+      "name": "Entities with device assignment exist",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "656/720 entities have device assigned",
+      "details": {},
+      "duration_s": 0.029
+    },
+    {
+      "test_id": "R1-B13",
+      "name": "Entity sync → count stable",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Entity count stable: 720 → 720 (diff=0)",
+      "details": {},
+      "duration_s": 14.652
+    },
+    {
+      "test_id": "R1-B14",
+      "name": "Domain distribution (all domains present)",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Found 16 domains: {'light': 85, 'switch': 53, 'sensor': 331, 'binary_sensor': 13, 'automation': 11, 'scene': 77, 'script': 3, 'climate': 2, 'cover': 3, 'media_player': 3, 'number': 14, 'select': 16, 'button': 10, 'input_boolean': 1, 'input_number': 1, 'input_text': 2}",
+      "details": {},
+      "duration_s": 0.178
+    },
+    {
+      "test_id": "R1-B15",
+      "name": "Entity attributes populated",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Attributes present for sensor.athom_em_2_029d10_current_1",
+      "details": {},
+      "duration_s": 0.029
+    },
+    {
+      "test_id": "R1-B16",
+      "name": "Handle unavailable entities",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Found 5 unavailable entities",
+      "details": {},
+      "duration_s": 0.008
+    },
+    {
+      "test_id": "R1-B17",
+      "name": "Handle unknown state entities",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Found 5 unknown entities",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R1-B18",
+      "name": "Get entities by area via controller",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Entities for area '戶外區': success",
+      "details": {},
+      "duration_s": 0.025
+    },
+    {
+      "test_id": "R1-B19",
+      "name": "All entity_ids match domain.name format",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "All 50 entities have valid entity_id format",
+      "details": {},
+      "duration_s": 0.008
+    },
+    {
+      "test_id": "R1-B20",
+      "name": "Entity domain matches entity_id prefix",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "All 100 entities have matching domain",
+      "details": {},
+      "duration_s": 0.008
+    },
+    {
+      "test_id": "R1-B21",
+      "name": "Call service on nonexistent entity",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Handled gracefully: True",
+      "details": {},
+      "duration_s": 0.363
+    },
+    {
+      "test_id": "R1-B22",
+      "name": "Call service with invalid domain",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Correctly returned error: Service invalid_domain_xyz.toggle not found.\nTraceback (most recent call last):\n  File \"/mnt/extra-addons/odoo_ha_addon/models/common/hass_websocket_service.py\", line 2668, in _process_request_queue\n    result = await self.send_request(\n             ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/extra-addons/odoo_ha_addon/models/common/hass_websocket_service.py\", line 2584, in send_request\n    result = await asyncio.wait_for(future, timeout=timeout)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/asyncio/tasks.py\", line 520, in wait_for\n    return await fut\n           ^^^^^^^^^\nException: Service invalid_domain_xyz.toggle not found.\n",
+      "details": {},
+      "duration_s": 0.949
+    },
+    {
+      "test_id": "R1-B23",
+      "name": "Search entities by domain filter",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Domain filter works: light=85",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R1-B24",
+      "name": "All entities belong to instance",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Total=720, Instance=720",
+      "details": {},
+      "duration_s": 0.019
+    },
+    {
+      "test_id": "R1-B25",
+      "name": "Entities without name (edge case)",
+      "category": "R1-B: Entity Sync",
+      "status": "PASS",
+      "message": "Entities with no name: 30, empty name: 30",
+      "details": {},
+      "duration_s": 0.018
+    },
+    {
+      "test_id": "R1-C01",
+      "name": "Scene count > 0",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "Found 77 scenes",
+      "details": {},
+      "duration_s": 0.013
+    },
+    {
+      "test_id": "R1-C02",
+      "name": "Automation count > 0",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "Found 11 automations",
+      "details": {},
+      "duration_s": 0.012
+    },
+    {
+      "test_id": "R1-C03",
+      "name": "Script count > 0",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "Found 3 scripts",
+      "details": {},
+      "duration_s": 0.011
+    },
+    {
+      "test_id": "R1-C04",
+      "name": "Scene entities have valid state",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "All 77 scenes have state value",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R1-C05",
+      "name": "Automations have on/off state",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "States: {'off': 6, 'on': 5}",
+      "details": {},
+      "duration_s": 0.011
+    },
+    {
+      "test_id": "R1-C06",
+      "name": "Activate scene via call_service",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "Scene activated: scene.qi_ci_wo",
+      "details": {},
+      "duration_s": 0.369
+    },
+    {
+      "test_id": "R1-C07",
+      "name": "Toggle automation via call_service",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "automation.shi_nei_wen_shi_du_shang_pao_zhi_zi_ce_hui_shu_shi_jie_neng_ai: off → on",
+      "details": {},
+      "duration_s": 3.693
+    },
+    {
+      "test_id": "R1-C08",
+      "name": "Trigger automation via call_service",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "Automation triggered: automation.set_default_theme_at_startup",
+      "details": {},
+      "duration_s": 0.645
+    },
+    {
+      "test_id": "R1-C09",
+      "name": "Run script via call_service",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "Script executed: script.ai",
+      "details": {},
+      "duration_s": 0.648
+    },
+    {
+      "test_id": "R1-C10",
+      "name": "Scene entity_ids start with 'scene.'",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "All 77 scene entity_ids valid",
+      "details": {},
+      "duration_s": 0.017
+    },
+    {
+      "test_id": "R1-C11",
+      "name": "Automation entity_ids start with 'automation.'",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "All 11 automation entity_ids valid",
+      "details": {},
+      "duration_s": 0.016
+    },
+    {
+      "test_id": "R1-C12",
+      "name": "Script entity_ids start with 'script.'",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "All 3 script entity_ids valid",
+      "details": {},
+      "duration_s": 0.013
+    },
+    {
+      "test_id": "R1-C13",
+      "name": "Scene names populated",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "All 77 scenes have names",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R1-C14",
+      "name": "Automation names populated",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "All 11 automations have names",
+      "details": {},
+      "duration_s": 0.017
+    },
+    {
+      "test_id": "R1-C15",
+      "name": "Read scene with full entity fields",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "Full read OK: scene.qi_ci_wo",
+      "details": {},
+      "duration_s": 0.031
+    },
+    {
+      "test_id": "R1-C16",
+      "name": "Scene count via domain filter consistent",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "Both return 77",
+      "details": {},
+      "duration_s": 0.022
+    },
+    {
+      "test_id": "R1-C17",
+      "name": "Automation count consistent",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "Both return 11",
+      "details": {},
+      "duration_s": 0.017
+    },
+    {
+      "test_id": "R1-C18",
+      "name": "Script count consistent",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "Both return 3",
+      "details": {},
+      "duration_s": 0.019
+    },
+    {
+      "test_id": "R1-C19",
+      "name": "Scene entity_ids are unique",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "All 77 scene entity_ids unique",
+      "details": {},
+      "duration_s": 0.014
+    },
+    {
+      "test_id": "R1-C20",
+      "name": "Automation entity_ids are unique",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "All 11 automation entity_ids unique",
+      "details": {},
+      "duration_s": 0.01
+    },
+    {
+      "test_id": "R1-C21",
+      "name": "Scene states after entity sync",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "77 scenes after sync, all have state values",
+      "details": {},
+      "duration_s": 11.552
+    },
+    {
+      "test_id": "R1-C22",
+      "name": "Activate 3 scenes sequentially",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "Activated 3/3 scenes",
+      "details": {},
+      "duration_s": 3.426
+    },
+    {
+      "test_id": "R1-C23",
+      "name": "Toggle automation and verify state change",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "automation.shi_nei_wen_shi_du_shang_pao_zhi_zi_ce_hui_shu_shi_jie_neng_ai: off → on",
+      "details": {},
+      "duration_s": 3.695
+    },
+    {
+      "test_id": "R1-C24",
+      "name": "Scene count stable after operations",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "Scene count stable: 77",
+      "details": {},
+      "duration_s": 2.707
+    },
+    {
+      "test_id": "R1-C25",
+      "name": "Script state after execution",
+      "category": "R1-C: Scene/Script/Automation",
+      "status": "PASS",
+      "message": "script.ai: state after run = off",
+      "details": {},
+      "duration_s": 3.698
+    },
+    {
+      "test_id": "R1-D01",
+      "name": "Device count > 0",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "Found 175 devices",
+      "details": {},
+      "duration_s": 0.019
+    },
+    {
+      "test_id": "R1-D02",
+      "name": "Devices with area assignment",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "85/175 devices have area",
+      "details": {},
+      "duration_s": 0.033
+    },
+    {
+      "test_id": "R1-D03",
+      "name": "Read device with full details",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "Device: File editor (Official apps)",
+      "details": {},
+      "duration_s": 0.017
+    },
+    {
+      "test_id": "R1-D04",
+      "name": "Device-entity relationship valid",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "Device 'File editor' has 1 entities",
+      "details": {},
+      "duration_s": 0.028
+    },
+    {
+      "test_id": "R1-D05",
+      "name": "Device device_ids are unique",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "All 175 device_ids unique",
+      "details": {},
+      "duration_s": 0.012
+    },
+    {
+      "test_id": "R1-D06",
+      "name": "Label count > 0",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "Found 3 labels",
+      "details": {},
+      "duration_s": 0.013
+    },
+    {
+      "test_id": "R1-D07",
+      "name": "Read labels with details",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "Read 3 labels",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R1-D08",
+      "name": "Create label in Odoo → verify sync",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "Label synced: STABTEST_Label_71875f (label_id=stabtest_label_71875f)",
+      "details": {},
+      "duration_s": 3.661
+    },
+    {
+      "test_id": "R1-D09",
+      "name": "Delete label → verify removed",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "Label deleted successfully",
+      "details": {},
+      "duration_s": 2.977
+    },
+    {
+      "test_id": "R1-D10",
+      "name": "Label label_ids unique per instance",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "All 3 label_ids unique",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R1-D11",
+      "name": "Entity tags exist or empty",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "Found 0 entity tags",
+      "details": {},
+      "duration_s": 0.018
+    },
+    {
+      "test_id": "R1-D12",
+      "name": "Entity groups exist",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "Found 0 entity groups",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R1-D13",
+      "name": "Registry sync idempotent (count stable)",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "Idempotent: areas=10, devices=175, labels=3",
+      "details": {},
+      "duration_s": 8.313
+    },
+    {
+      "test_id": "R1-D14",
+      "name": "Devices have manufacturer info",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "5 devices with manufacturer info",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R1-D15",
+      "name": "Glances devices controller endpoint",
+      "category": "R1-D: Device/Label/Tag",
+      "status": "PASS",
+      "message": "Glances devices: 0",
+      "details": {},
+      "duration_s": 0.333
+    },
+    {
+      "test_id": "R1-E01",
+      "name": "Entity area_id references valid area",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "All 5 area references valid",
+      "details": {},
+      "duration_s": 0.027
+    },
+    {
+      "test_id": "R1-E02",
+      "name": "Entity device_id references valid device",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "All 35 device references valid",
+      "details": {},
+      "duration_s": 0.021
+    },
+    {
+      "test_id": "R1-E03",
+      "name": "Device area references valid areas",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "All device-area refs valid (6)",
+      "details": {},
+      "duration_s": 0.022
+    },
+    {
+      "test_id": "R1-E04",
+      "name": "All entities have ha_instance_id",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "All entities have instance",
+      "details": {},
+      "duration_s": 0.008
+    },
+    {
+      "test_id": "R1-E05",
+      "name": "All areas have ha_instance_id",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "All areas have instance",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R1-E06",
+      "name": "All devices have ha_instance_id",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "All devices have instance",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R1-E07",
+      "name": "Entity-area same instance",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "All entity-area relations in same instance",
+      "details": {},
+      "duration_s": 0.205
+    },
+    {
+      "test_id": "R1-E08",
+      "name": "Entity entity_ids unique per instance",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "All 720 entity_ids unique",
+      "details": {},
+      "duration_s": 0.013
+    },
+    {
+      "test_id": "R1-E09",
+      "name": "Area entity_count matches actual",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "All 5 checked areas have correct count",
+      "details": {},
+      "duration_s": 0.042
+    },
+    {
+      "test_id": "R1-E10",
+      "name": "WebSocket connection active",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "WebSocket connected",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R1-E11",
+      "name": "Instance connection_status = connected",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "ERROR",
+      "message": "Invalid field 'connection_status' on model 'ha.instance'",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R1-E12",
+      "name": "Entity related endpoint works",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "FAIL",
+      "message": "Error: expected str for dictionary value @ data['item_id']. Got 527\nTraceback (most recent call last):\n  File \"/mnt/extra-addons/odoo_ha_addon/models/common/hass_websocket_service.py\", line 2668, in _process_request_queue\n    result = await self.send_request(\n             ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/extra-addons/odoo_ha_addon/models/common/hass_websocket_service.py\", line 2584, in send_request\n    result = await asyncio.wait_for(future, timeout=timeout)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/asyncio/tasks.py\", line 520, in wait_for\n    return await fut\n           ^^^^^^^^^\nException: expected str for dictionary value @ data['item_id']. Got 527\n",
+      "details": {},
+      "duration_s": 0.948
+    },
+    {
+      "test_id": "R1-E13",
+      "name": "Area dashboard data endpoint",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "Area dashboard data OK",
+      "details": {},
+      "duration_s": 0.052
+    },
+    {
+      "test_id": "R1-E14",
+      "name": "Get instances controller",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "Found 1 instances",
+      "details": {},
+      "duration_s": 0.023
+    },
+    {
+      "test_id": "R1-E15",
+      "name": "Hardware info endpoint",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "Hardware info: success=True",
+      "details": {},
+      "duration_s": 0.637
+    },
+    {
+      "test_id": "R1-E16",
+      "name": "Network info endpoint",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "Network info: success=True",
+      "details": {},
+      "duration_s": 0.635
+    },
+    {
+      "test_id": "R1-E17",
+      "name": "HA URLs endpoint",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "HA URLs retrieved",
+      "details": {},
+      "duration_s": 3.118
+    },
+    {
+      "test_id": "R1-E18",
+      "name": "Full data summary snapshot",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "Summary: {'areas': 10, 'entities': 720, 'devices': 175, 'labels': 3, 'scenes': 77, 'automations': 11, 'scripts': 3, 'entity_tags': 0, 'connected': True}",
+      "details": {},
+      "duration_s": 0.095
+    },
+    {
+      "test_id": "R1-E19",
+      "name": "Controller endpoints return {success, data/error}",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "All 4 endpoints return standard format",
+      "details": {},
+      "duration_s": 7.831
+    },
+    {
+      "test_id": "R1-E20",
+      "name": "Final Odoo data count snapshot",
+      "category": "R1-E: Cross-Entity Consistency",
+      "status": "PASS",
+      "message": "Final counts: entities=720, areas=10, devices=175, labels=3, scenes=77, automations=11, scripts=3",
+      "details": {},
+      "duration_s": 0.122
+    }
+  ]
+}

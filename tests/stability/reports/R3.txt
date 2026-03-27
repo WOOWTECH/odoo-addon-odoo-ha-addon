@@ -1,0 +1,64 @@
+======================================================================
+  STABILITY TEST REPORT — R3
+  Security & Permission Tests
+======================================================================
+
+  Started:  2026-03-27T00:52:18.462243+00:00
+  Finished: 2026-03-27T00:52:34.572702+00:00
+  Duration: 14.7s
+
+  Total: 40  |  PASS: 32  |  FAIL: 1  |  ERROR: 0  |  SKIP: 7
+  Pass Rate: 97.0%
+======================================================================
+
+--- R3-A: ACL Boundary (13/15) ---
+  [PASS] R3-A01: HA User can authenticate (1.0s)
+  [PASS] R3-A02: Admin can read all HA instances (0.0s)
+  [PASS] R3-A03: HA User instance access scope (0.0s)
+  [PASS] R3-A04: HA User cannot create instance (0.0s)
+  [PASS] R3-A05: HA User cannot delete instance (0.0s)
+  [PASS] R3-A06: HA User can read entities (via groups) (0.0s)
+  [SKIP] R3-A07: HA User cannot write entities (0.0s)
+  [PASS] R3-A08: HA User cannot create entities (0.0s)
+  [SKIP] R3-A09: HA User cannot delete entities (0.0s)
+  [PASS] R3-A10: api_token hidden from HA User (0.0s)
+  [PASS] R3-A11: HA User area read access (0.0s)
+  [PASS] R3-A12: HA User cannot create areas (0.0s)
+  [PASS] R3-A13: Admin full CRUD on instances (0.0s)
+  [PASS] R3-A14: HA User entity group access (0.0s)
+  [PASS] R3-A15: Unauthenticated JSON-RPC rejected (0.0s)
+
+--- R3-B: Portal Security (9/15) ---
+  [SKIP] R3-B01: Token comparison uses hmac.compare_digest (0.0s)
+  [SKIP] R3-B02: Token bound to specific entity (0.0s)
+  [SKIP] R3-B03: Portal state endpoint: no sensitive fields (0.0s)
+  [SKIP] R3-B04: Portal page doesn't leak admin info (0.0s)
+  [SKIP] R3-B05: Portal call-service domain whitelist (0.0s)
+  [FAIL] R3-B06: Portal rejects empty token (0.1s)
+         -> Empty token accepted: HTTP 200
+  [PASS] R3-B07: Portal rejects null token (0.0s)
+  [PASS] R3-B08: Portal path traversal attempt (0.1s)
+  [PASS] R3-B09: Portal token: Token with spaces (0.0s)
+  [PASS] R3-B10: Portal token: Token with newlines (0.0s)
+  [PASS] R3-B11: Portal token: Token with unicode (0.0s)
+  [PASS] R3-B12: Portal token: Token with special chars (0.0s)
+  [PASS] R3-B13: Portal token: Token with backslashes (0.0s)
+  [PASS] R3-B14: Portal token: Binary-like token (0.0s)
+  [PASS] R3-B15: Portal token: Very short token (1 char) (0.0s)
+
+--- R3-C: Session & Isolation (10/10) ---
+  [PASS] R3-C01: Session persists across requests (0.0s)
+  [PASS] R3-C02: New session after re-authentication (1.1s)
+  [PASS] R3-C03: Invalid session_id rejected (0.0s)
+  [PASS] R3-C04: Instance switching via controller (0.0s)
+  [PASS] R3-C05: Two admin sessions are independent (2.0s)
+  [PASS] R3-C06: Admin and user see different entity counts (1.1s)
+  [PASS] R3-C07: Database name not in controller responses (7.6s)
+  [PASS] R3-C08: Login page accessible (0.1s)
+  [PASS] R3-C09: Database manager blocked (1.1s)
+  [PASS] R3-C10: Error response doesn't leak stack traces (0.0s)
+
+======================================================================
+  FAILURES & ERRORS (1)
+======================================================================
+  [FAIL] R3-B06: Empty token accepted: HTTP 200

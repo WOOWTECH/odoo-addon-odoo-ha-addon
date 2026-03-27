@@ -1,0 +1,78 @@
+======================================================================
+  STABILITY TEST REPORT — R2
+  API Stress Tests
+======================================================================
+
+  Started:  2026-03-27T00:48:49.903475+00:00
+  Finished: 2026-03-27T00:51:38.088988+00:00
+  Duration: 162.8s
+
+  Total: 60  |  PASS: 54  |  FAIL: 0  |  ERROR: 0  |  SKIP: 6
+  Pass Rate: 100.0%
+======================================================================
+
+--- R2-A: Parameter Boundary (25/25) ---
+  [PASS] R2-A01: areas with null ha_instance_id (7.1s)
+  [PASS] R2-A02: areas with negative instance_id (0.0s)
+  [PASS] R2-A03: areas with huge instance_id (999999) (0.0s)
+  [PASS] R2-A04: areas with string instance_id (0.0s)
+  [PASS] R2-A05: SQL injection in entities_by_area (0.0s)
+  [PASS] R2-A06: XSS payload in call_service (0.6s)
+  [PASS] R2-A07: Empty domain in call_service (0.0s)
+  [PASS] R2-A08: Empty service in call_service (0.0s)
+  [PASS] R2-A09: Non-dict service_data (0.0s)
+  [PASS] R2-A10: Float area_id in entities_by_area (0.0s)
+  [PASS] R2-A11: entities_by_area without area_id (0.0s)
+  [PASS] R2-A12: Boolean as ha_instance_id (0.0s)
+  [PASS] R2-A13: Array as ha_instance_id (0.0s)
+  [PASS] R2-A14: Zero ha_instance_id (0.0s)
+  [PASS] R2-A15: Unicode domain in call_service (0.0s)
+  [PASS] R2-A16: Extra params in controller call (9.2s)
+  [PASS] R2-A17: Very long domain string (1000 chars) (0.0s)
+  [PASS] R2-A18: Null service_data in call_service (0.0s)
+  [PASS] R2-A19: Deeply nested service_data (10 levels) (0.0s)
+  [PASS] R2-A20: ORM search with invalid operator (0.0s)
+  [PASS] R2-A21: ORM search on non-existent model (0.0s)
+  [PASS] R2-A22: ORM read with non-existent field (0.0s)
+  [PASS] R2-A23: ORM write on entity (should work for admin) (0.7s)
+  [PASS] R2-A24: Switch to non-existent instance (0.0s)
+  [PASS] R2-A25: Switch instance with string id (0.0s)
+
+--- R2-B: Load & Concurrency (15/15) ---
+  [PASS] R2-B01: Rapid 10x areas endpoint (84.6s)
+  [PASS] R2-B02: Rapid 10x entity search (0.1s)
+  [PASS] R2-B03: Concurrent 3x call_service (2.6s)
+  [PASS] R2-B04: Bulk query all entities (0.0s)
+  [PASS] R2-B05: Rapid 5x WebSocket status (0.1s)
+  [PASS] R2-B06: Concurrent 5x area reads (20.0s)
+  [PASS] R2-B07: Entity query with large offset (0.0s)
+  [PASS] R2-B08: Multiple sync triggers (registry + entity) (13.3s)
+  [PASS] R2-B09: Complex ORM domain query (0.0s)
+  [PASS] R2-B10: Sequential endpoint chain (areas → entities → related) (8.3s)
+  [PASS] R2-B11: 5x glances_devices calls (3.2s)
+  [PASS] R2-B12: Entity search with ordering (0.0s)
+  [PASS] R2-B13: Session persistence across 20 calls (0.2s)
+  [PASS] R2-B14: Concurrent read while sync running (4.3s)
+  [PASS] R2-B15: Areas endpoint response < 5s (8.1s)
+
+--- R2-C: Portal Boundary (14/20) ---
+  [PASS] R2-C01: Portal entity page without access_token (0.1s)
+  [PASS] R2-C02: Portal entity page with invalid token (0.0s)
+  [PASS] R2-C03: Portal state without token (0.0s)
+  [SKIP] R2-C04: Portal entity page with valid token (0.0s)
+  [SKIP] R2-C05: Portal state with valid token (0.0s)
+  [PASS] R2-C06: Portal with non-existent entity_id (0.0s)
+  [PASS] R2-C07: Portal with negative entity_id (0.0s)
+  [PASS] R2-C08: Portal call-service without access_token (0.0s)
+  [SKIP] R2-C09: Portal call-service with invalid domain (0.0s)
+  [PASS] R2-C10: SQL injection in access_token param (0.0s)
+  [PASS] R2-C11: XSS payload in access_token (0.0s)
+  [PASS] R2-C12: Portal entity_group page without token (0.0s)
+  [PASS] R2-C13: Portal device page without token (0.0s)
+  [PASS] R2-C14: Portal /my/ha without login (0.0s)
+  [PASS] R2-C15: Portal entity with ID=0 (0.0s)
+  [PASS] R2-C16: Portal with very long token (5000 chars) (0.0s)
+  [SKIP] R2-C17: Rapid 10x portal state requests (0.0s)
+  [SKIP] R2-C18: Portal: use entity A token on entity B (0.0s)
+  [PASS] R2-C19: Portal call-service with view-only permission (0.0s)
+  [SKIP] R2-C20: Portal state returns expected fields (0.0s)

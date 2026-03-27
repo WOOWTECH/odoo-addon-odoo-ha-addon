@@ -1,0 +1,376 @@
+{
+  "round": "R3",
+  "description": "Security & Permission Tests",
+  "started": "2026-03-27T00:52:18.462243+00:00",
+  "finished": "2026-03-27T00:52:34.572702+00:00",
+  "total": 40,
+  "passed": 32,
+  "failed": 1,
+  "errors": 0,
+  "skipped": 7,
+  "pass_rate": 97.0,
+  "total_duration_s": 14.7,
+  "metadata": {},
+  "results": [
+    {
+      "test_id": "R3-A01",
+      "name": "HA User can authenticate",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "User authenticated: uid=6",
+      "details": {},
+      "duration_s": 0.989
+    },
+    {
+      "test_id": "R3-A02",
+      "name": "Admin can read all HA instances",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "Admin sees 1 instances",
+      "details": {},
+      "duration_s": 0.019
+    },
+    {
+      "test_id": "R3-A03",
+      "name": "HA User instance access scope",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "User sees 0 vs admin 1",
+      "details": {},
+      "duration_s": 0.027
+    },
+    {
+      "test_id": "R3-A04",
+      "name": "HA User cannot create instance",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "Correctly denied: You are not allowed to create 'Home Assistant Instance' (ha.instance) records.\n\nThis operation is allowed for the following groups:\n\t- Administration/Home Assistant Manager\n\nContact your administrator to request access if necessary.",
+      "details": {},
+      "duration_s": 0.016
+    },
+    {
+      "test_id": "R3-A05",
+      "name": "HA User cannot delete instance",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "Correctly denied: Uh-oh! Looks like you have stumbled upon some top-secret records.\n\nSorry, Marc Demo (id=6) doesn't have 'read' access to:\n- Home Assistant Instance (ha.instance)\n\nIf you really, really need access, perhaps you can win over your friendly administrator with a batch of freshly baked cookies.",
+      "details": {},
+      "duration_s": 0.033
+    },
+    {
+      "test_id": "R3-A06",
+      "name": "HA User can read entities (via groups)",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "User sees 0 entities",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R3-A07",
+      "name": "HA User cannot write entities",
+      "category": "R3-A: ACL Boundary",
+      "status": "SKIP",
+      "message": "User has no visible entities",
+      "details": {},
+      "duration_s": 0.012
+    },
+    {
+      "test_id": "R3-A08",
+      "name": "HA User cannot create entities",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "Correctly denied: You are not allowed to create 'Home Assistant Entity' (ha.entity) records.\n\nThis operation is allowed for the following groups:\n\t- Administration/Home Assistant Manager\n\nContact your administrator to request access if necessary.",
+      "details": {},
+      "duration_s": 0.025
+    },
+    {
+      "test_id": "R3-A09",
+      "name": "HA User cannot delete entities",
+      "category": "R3-A: ACL Boundary",
+      "status": "SKIP",
+      "message": "User has no visible entities",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R3-A10",
+      "name": "api_token hidden from HA User",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "Field access denied: You do not have enough rights to access the fields \"api_token\" on Home Assistant Instance (ha.instance). Please contact your system administrator.\n\nOperation: read\nUser: 6\nFields:\n- api_token (allowed for groups 'Administration / Home Assistant Manager')",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R3-A11",
+      "name": "HA User area read access",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "User sees 0 areas",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R3-A12",
+      "name": "HA User cannot create areas",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "Correctly denied: You are not allowed to create 'Home Assistant Area' (ha.area) records.\n\nThis operation is allowed for the following groups:\n\t- Administration/Home Assistant Manager\n\nContact your administrator to request access if necessary.",
+      "details": {},
+      "duration_s": 0.012
+    },
+    {
+      "test_id": "R3-A13",
+      "name": "Admin full CRUD on instances",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "Admin CRUD on instances works",
+      "details": {},
+      "duration_s": 0.027
+    },
+    {
+      "test_id": "R3-A14",
+      "name": "HA User entity group access",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "User sees 0 entity groups",
+      "details": {},
+      "duration_s": 0.028
+    },
+    {
+      "test_id": "R3-A15",
+      "name": "Unauthenticated JSON-RPC rejected",
+      "category": "R3-A: ACL Boundary",
+      "status": "PASS",
+      "message": "Unauthenticated call rejected with error",
+      "details": {},
+      "duration_s": 0.008
+    },
+    {
+      "test_id": "R3-B01",
+      "name": "Token comparison uses hmac.compare_digest",
+      "category": "R3-B: Portal Security",
+      "status": "SKIP",
+      "message": "No shared entity",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R3-B02",
+      "name": "Token bound to specific entity",
+      "category": "R3-B: Portal Security",
+      "status": "SKIP",
+      "message": "No portal share",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R3-B03",
+      "name": "Portal state endpoint: no sensitive fields",
+      "category": "R3-B: Portal Security",
+      "status": "SKIP",
+      "message": "No portal share",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R3-B04",
+      "name": "Portal page doesn't leak admin info",
+      "category": "R3-B: Portal Security",
+      "status": "SKIP",
+      "message": "No portal share",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R3-B05",
+      "name": "Portal call-service domain whitelist",
+      "category": "R3-B: Portal Security",
+      "status": "SKIP",
+      "message": "No portal share",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R3-B06",
+      "name": "Portal rejects empty token",
+      "category": "R3-B: Portal Security",
+      "status": "FAIL",
+      "message": "Empty token accepted: HTTP 200",
+      "details": {},
+      "duration_s": 0.102
+    },
+    {
+      "test_id": "R3-B07",
+      "name": "Portal rejects null token",
+      "category": "R3-B: Portal Security",
+      "status": "PASS",
+      "message": "Handled: HTTP 200",
+      "details": {},
+      "duration_s": 0.022
+    },
+    {
+      "test_id": "R3-B08",
+      "name": "Portal path traversal attempt",
+      "category": "R3-B: Portal Security",
+      "status": "PASS",
+      "message": "Path traversal: HTTP 404",
+      "details": {},
+      "duration_s": 0.089
+    },
+    {
+      "test_id": "R3-B09",
+      "name": "Portal token: Token with spaces",
+      "category": "R3-B: Portal Security",
+      "status": "PASS",
+      "message": "Handled: HTTP 200",
+      "details": {},
+      "duration_s": 0.019
+    },
+    {
+      "test_id": "R3-B10",
+      "name": "Portal token: Token with newlines",
+      "category": "R3-B: Portal Security",
+      "status": "PASS",
+      "message": "Handled: HTTP 200",
+      "details": {},
+      "duration_s": 0.021
+    },
+    {
+      "test_id": "R3-B11",
+      "name": "Portal token: Token with unicode",
+      "category": "R3-B: Portal Security",
+      "status": "PASS",
+      "message": "Handled: HTTP 200",
+      "details": {},
+      "duration_s": 0.019
+    },
+    {
+      "test_id": "R3-B12",
+      "name": "Portal token: Token with special chars",
+      "category": "R3-B: Portal Security",
+      "status": "PASS",
+      "message": "Handled: HTTP 200",
+      "details": {},
+      "duration_s": 0.019
+    },
+    {
+      "test_id": "R3-B13",
+      "name": "Portal token: Token with backslashes",
+      "category": "R3-B: Portal Security",
+      "status": "PASS",
+      "message": "Handled: HTTP 200",
+      "details": {},
+      "duration_s": 0.02
+    },
+    {
+      "test_id": "R3-B14",
+      "name": "Portal token: Binary-like token",
+      "category": "R3-B: Portal Security",
+      "status": "PASS",
+      "message": "Handled: HTTP 200",
+      "details": {},
+      "duration_s": 0.02
+    },
+    {
+      "test_id": "R3-B15",
+      "name": "Portal token: Very short token (1 char)",
+      "category": "R3-B: Portal Security",
+      "status": "PASS",
+      "message": "Handled: HTTP 200",
+      "details": {},
+      "duration_s": 0.019
+    },
+    {
+      "test_id": "R3-C01",
+      "name": "Session persists across requests",
+      "category": "R3-C: Session & Isolation",
+      "status": "PASS",
+      "message": "Session maintained: 8tpOYq1xpHAehuGd3HJF...",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R3-C02",
+      "name": "New session after re-authentication",
+      "category": "R3-C: Session & Isolation",
+      "status": "PASS",
+      "message": "Re-auth OK, session renewed",
+      "details": {},
+      "duration_s": 1.127
+    },
+    {
+      "test_id": "R3-C03",
+      "name": "Invalid session_id rejected",
+      "category": "R3-C: Session & Isolation",
+      "status": "PASS",
+      "message": "Invalid session correctly rejected",
+      "details": {},
+      "duration_s": 0.006
+    },
+    {
+      "test_id": "R3-C04",
+      "name": "Instance switching via controller",
+      "category": "R3-C: Session & Isolation",
+      "status": "PASS",
+      "message": "Instance switch OK",
+      "details": {},
+      "duration_s": 0.042
+    },
+    {
+      "test_id": "R3-C05",
+      "name": "Two admin sessions are independent",
+      "category": "R3-C: Session & Isolation",
+      "status": "PASS",
+      "message": "Both sessions return same count: 720",
+      "details": {},
+      "duration_s": 1.972
+    },
+    {
+      "test_id": "R3-C06",
+      "name": "Admin and user see different entity counts",
+      "category": "R3-C: Session & Isolation",
+      "status": "PASS",
+      "message": "Admin: 720, User: 0 entities",
+      "details": {},
+      "duration_s": 1.112
+    },
+    {
+      "test_id": "R3-C07",
+      "name": "Database name not in controller responses",
+      "category": "R3-C: Session & Isolation",
+      "status": "PASS",
+      "message": "DB name not exposed in response",
+      "details": {},
+      "duration_s": 7.61
+    },
+    {
+      "test_id": "R3-C08",
+      "name": "Login page accessible",
+      "category": "R3-C: Session & Isolation",
+      "status": "PASS",
+      "message": "Login page accessible: HTTP 200",
+      "details": {},
+      "duration_s": 0.102
+    },
+    {
+      "test_id": "R3-C09",
+      "name": "Database manager blocked",
+      "category": "R3-C: Session & Isolation",
+      "status": "PASS",
+      "message": "Database manager redirected/blocked",
+      "details": {},
+      "duration_s": 1.099
+    },
+    {
+      "test_id": "R3-C10",
+      "name": "Error response doesn't leak stack traces",
+      "category": "R3-C: Session & Isolation",
+      "status": "PASS",
+      "message": "Error without path exposure",
+      "details": {},
+      "duration_s": 0.007
+    }
+  ]
+}

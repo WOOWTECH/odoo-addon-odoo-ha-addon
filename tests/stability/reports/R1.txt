@@ -1,0 +1,156 @@
+======================================================================
+  STABILITY TEST REPORT — R1
+  Data Integrity Tests
+======================================================================
+
+  Started:  2026-03-27T00:26:17.684886+00:00
+  Finished: 2026-03-27T00:28:58.046300+00:00
+  Duration: 139.9s
+
+  Total: 100  |  PASS: 96  |  FAIL: 2  |  ERROR: 1  |  SKIP: 1
+  Pass Rate: 97.0%
+======================================================================
+
+--- R1-A: Area CRUD (14/15) ---
+  [PASS] R1-A01: Create area in Odoo → verify exists (3.0s)
+  [PASS] R1-A02: Read created area via ORM (0.0s)
+  [PASS] R1-A03: Read created area via controller (7.3s)
+  [PASS] R1-A04: Rename area in Odoo → verify sync (2.6s)
+  [PASS] R1-A05: Delete area in Odoo → verify removed (2.6s)
+  [FAIL] R1-A06: Create area with empty name → expect error (0.6s)
+         -> Should have raised error for empty name
+  [PASS] R1-A07: Create area with 200-char name (3.0s)
+  [PASS] R1-A08: Create area with Unicode/Chinese name (2.6s)
+  [PASS] R1-A09: Create area with special chars (!@#$%) (2.7s)
+  [PASS] R1-A10: Create area with duplicate name → expect handling (3.6s)
+  [PASS] R1-A11: Area count: ORM vs Controller match (6.8s)
+  [PASS] R1-A12: Sync registry → area count stable (8.6s)
+  [PASS] R1-A13: Create then immediately delete area (4.6s)
+  [PASS] R1-A14: Create 5 areas in rapid succession (8.4s)
+  [PASS] R1-A15: Create area without ha_instance_id → error (0.0s)
+
+--- R1-B: Entity Sync (24/25) ---
+  [PASS] R1-B01: Entity count: ORM vs search_count (0.1s)
+  [PASS] R1-B02: Read light entity state (0.0s)
+  [PASS] R1-B03: Read switch entity state (0.0s)
+  [PASS] R1-B04: Read sensor entity state (0.0s)
+  [PASS] R1-B05: Read climate entity state (0.0s)
+  [PASS] R1-B06: Read cover entity state (0.0s)
+  [SKIP] R1-B07: Read fan entity state (0.0s)
+  [PASS] R1-B08: Read binary_sensor entity state (0.0s)
+  [PASS] R1-B09: Toggle light via call_service (4.3s)
+  [PASS] R1-B10: Toggle switch via call_service (2.7s)
+  [PASS] R1-B11: Entities with area assignment exist (0.0s)
+  [PASS] R1-B12: Entities with device assignment exist (0.0s)
+  [PASS] R1-B13: Entity sync → count stable (14.7s)
+  [PASS] R1-B14: Domain distribution (all domains present) (0.2s)
+  [PASS] R1-B15: Entity attributes populated (0.0s)
+  [PASS] R1-B16: Handle unavailable entities (0.0s)
+  [PASS] R1-B17: Handle unknown state entities (0.0s)
+  [PASS] R1-B18: Get entities by area via controller (0.0s)
+  [PASS] R1-B19: All entity_ids match domain.name format (0.0s)
+  [PASS] R1-B20: Entity domain matches entity_id prefix (0.0s)
+  [PASS] R1-B21: Call service on nonexistent entity (0.4s)
+  [PASS] R1-B22: Call service with invalid domain (0.9s)
+  [PASS] R1-B23: Search entities by domain filter (0.0s)
+  [PASS] R1-B24: All entities belong to instance (0.0s)
+  [PASS] R1-B25: Entities without name (edge case) (0.0s)
+
+--- R1-C: Scene/Script/Automation (25/25) ---
+  [PASS] R1-C01: Scene count > 0 (0.0s)
+  [PASS] R1-C02: Automation count > 0 (0.0s)
+  [PASS] R1-C03: Script count > 0 (0.0s)
+  [PASS] R1-C04: Scene entities have valid state (0.0s)
+  [PASS] R1-C05: Automations have on/off state (0.0s)
+  [PASS] R1-C06: Activate scene via call_service (0.4s)
+  [PASS] R1-C07: Toggle automation via call_service (3.7s)
+  [PASS] R1-C08: Trigger automation via call_service (0.6s)
+  [PASS] R1-C09: Run script via call_service (0.6s)
+  [PASS] R1-C10: Scene entity_ids start with 'scene.' (0.0s)
+  [PASS] R1-C11: Automation entity_ids start with 'automation.' (0.0s)
+  [PASS] R1-C12: Script entity_ids start with 'script.' (0.0s)
+  [PASS] R1-C13: Scene names populated (0.0s)
+  [PASS] R1-C14: Automation names populated (0.0s)
+  [PASS] R1-C15: Read scene with full entity fields (0.0s)
+  [PASS] R1-C16: Scene count via domain filter consistent (0.0s)
+  [PASS] R1-C17: Automation count consistent (0.0s)
+  [PASS] R1-C18: Script count consistent (0.0s)
+  [PASS] R1-C19: Scene entity_ids are unique (0.0s)
+  [PASS] R1-C20: Automation entity_ids are unique (0.0s)
+  [PASS] R1-C21: Scene states after entity sync (11.6s)
+  [PASS] R1-C22: Activate 3 scenes sequentially (3.4s)
+  [PASS] R1-C23: Toggle automation and verify state change (3.7s)
+  [PASS] R1-C24: Scene count stable after operations (2.7s)
+  [PASS] R1-C25: Script state after execution (3.7s)
+
+--- R1-D: Device/Label/Tag (15/15) ---
+  [PASS] R1-D01: Device count > 0 (0.0s)
+  [PASS] R1-D02: Devices with area assignment (0.0s)
+  [PASS] R1-D03: Read device with full details (0.0s)
+  [PASS] R1-D04: Device-entity relationship valid (0.0s)
+  [PASS] R1-D05: Device device_ids are unique (0.0s)
+  [PASS] R1-D06: Label count > 0 (0.0s)
+  [PASS] R1-D07: Read labels with details (0.0s)
+  [PASS] R1-D08: Create label in Odoo → verify sync (3.7s)
+  [PASS] R1-D09: Delete label → verify removed (3.0s)
+  [PASS] R1-D10: Label label_ids unique per instance (0.0s)
+  [PASS] R1-D11: Entity tags exist or empty (0.0s)
+  [PASS] R1-D12: Entity groups exist (0.0s)
+  [PASS] R1-D13: Registry sync idempotent (count stable) (8.3s)
+  [PASS] R1-D14: Devices have manufacturer info (0.0s)
+  [PASS] R1-D15: Glances devices controller endpoint (0.3s)
+
+--- R1-E: Cross-Entity Consistency (18/20) ---
+  [PASS] R1-E01: Entity area_id references valid area (0.0s)
+  [PASS] R1-E02: Entity device_id references valid device (0.0s)
+  [PASS] R1-E03: Device area references valid areas (0.0s)
+  [PASS] R1-E04: All entities have ha_instance_id (0.0s)
+  [PASS] R1-E05: All areas have ha_instance_id (0.0s)
+  [PASS] R1-E06: All devices have ha_instance_id (0.0s)
+  [PASS] R1-E07: Entity-area same instance (0.2s)
+  [PASS] R1-E08: Entity entity_ids unique per instance (0.0s)
+  [PASS] R1-E09: Area entity_count matches actual (0.0s)
+  [PASS] R1-E10: WebSocket connection active (0.0s)
+  [ERR!] R1-E11: Instance connection_status = connected (0.0s)
+         -> Invalid field 'connection_status' on model 'ha.instance'
+  [FAIL] R1-E12: Entity related endpoint works (0.9s)
+         -> Error: expected str for dictionary value @ data['item_id']. Got 527
+Traceback (most recent call last):
+  File "/mnt/extra-addons/odoo_ha_addon/models/common/hass_websocket_service.py", line 2668, in _process_request_queue
+    result = await self.send_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/extra-addons/odoo_ha_addon/models/common/hass_websocket_service.py", line 2584, in send_request
+    result = await asyncio.wait_for(future, timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+Exception: expected str for dictionary value @ data['item_id']. Got 527
+
+  [PASS] R1-E13: Area dashboard data endpoint (0.1s)
+  [PASS] R1-E14: Get instances controller (0.0s)
+  [PASS] R1-E15: Hardware info endpoint (0.6s)
+  [PASS] R1-E16: Network info endpoint (0.6s)
+  [PASS] R1-E17: HA URLs endpoint (3.1s)
+  [PASS] R1-E18: Full data summary snapshot (0.1s)
+  [PASS] R1-E19: Controller endpoints return {success, data/error} (7.8s)
+  [PASS] R1-E20: Final Odoo data count snapshot (0.1s)
+
+======================================================================
+  FAILURES & ERRORS (3)
+======================================================================
+  [FAIL] R1-A06: Should have raised error for empty name
+  [ERROR] R1-E11: Invalid field 'connection_status' on model 'ha.instance'
+  [FAIL] R1-E12: Error: expected str for dictionary value @ data['item_id']. Got 527
+Traceback (most recent call last):
+  File "/mnt/extra-addons/odoo_ha_addon/models/common/hass_websocket_service.py", line 2668, in _process_request_queue
+    result = await self.send_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/extra-addons/odoo_ha_addon/models/common/hass_websocket_service.py", line 2584, in send_request
+    result = await asyncio.wait_for(future, timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+Exception: expected str for dictionary value @ data['item_id']. Got 527
+

@@ -1,0 +1,48 @@
+======================================================================
+  STABILITY TEST REPORT — R5
+  Integration & Recovery Tests
+======================================================================
+
+  Started:  2026-03-27T01:08:28.880560+00:00
+  Finished: 2026-03-27T01:10:52.906921+00:00
+  Duration: 142.9s
+
+  Total: 30  |  PASS: 30  |  FAIL: 0  |  ERROR: 0  |  SKIP: 0
+  Pass Rate: 100.0%
+======================================================================
+
+--- R5-A: WebSocket Resilience (10/10) ---
+  [PASS] R5-A01: WebSocket is connected (0.0s)
+  [PASS] R5-A02: WebSocket survives 20 rapid API calls (0.2s)
+  [PASS] R5-A03: WebSocket survives registry sync (7.3s)
+  [PASS] R5-A04: WebSocket survives entity sync (9.8s)
+  [PASS] R5-A05: WebSocket survives concurrent reads (1.5s)
+  [PASS] R5-A06: WebSocket survives service call (3.0s)
+  [PASS] R5-A07: 3 consecutive syncs stable (15.9s)
+  [PASS] R5-A08: Entity count stable across syncs (11.7s)
+  [PASS] R5-A09: Area count stable across syncs (8.7s)
+  [PASS] R5-A10: Device count stable across syncs (8.9s)
+
+--- R5-B: Full Workflow (10/10) ---
+  [PASS] R5-B01: Area full lifecycle (create→rename→delete) (8.3s)
+  [PASS] R5-B02: Label full lifecycle (5.3s)
+  [PASS] R5-B03: Scene activation + state verification (2.7s)
+  [PASS] R5-B04: Automation toggle + verify state change (3.6s)
+  [PASS] R5-B05: Light toggle + state verification (4.3s)
+  [PASS] R5-B06: Switch toggle + state verification (4.3s)
+  [PASS] R5-B07: Script execution + state check (3.0s)
+  [PASS] R5-B08: Sync → service → sync chain (17.8s)
+  [PASS] R5-B09: Area CRUD while entity sync running (8.6s)
+  [PASS] R5-B10: Batch create 3 areas → batch delete (9.1s)
+
+--- R5-C: Data Consistency (10/10) ---
+  [PASS] R5-C01: Entity area_id refs are valid (0.0s)
+  [PASS] R5-C02: Entity device_id refs are valid (0.0s)
+  [PASS] R5-C03: Device area refs are valid (0.0s)
+  [PASS] R5-C04: No orphaned entities (0.0s)
+  [PASS] R5-C05: No duplicate entity_ids (0.0s)
+  [PASS] R5-C06: No duplicate area names (0.0s)
+  [PASS] R5-C07: ORM vs controller area count match (8.7s)
+  [PASS] R5-C08: Entity domain matches entity_id prefix (0.0s)
+  [PASS] R5-C09: All instances have api_url (0.0s)
+  [PASS] R5-C10: Final consistency summary (0.1s)

@@ -1,0 +1,556 @@
+{
+  "round": "R2",
+  "description": "API Stress Tests",
+  "started": "2026-03-27T00:48:49.903475+00:00",
+  "finished": "2026-03-27T00:51:38.088988+00:00",
+  "total": 60,
+  "passed": 54,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 6,
+  "pass_rate": 100.0,
+  "total_duration_s": 162.8,
+  "metadata": {},
+  "results": [
+    {
+      "test_id": "R2-A01",
+      "name": "areas with null ha_instance_id",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Handled null: success=True",
+      "details": {},
+      "duration_s": 7.092
+    },
+    {
+      "test_id": "R2-A02",
+      "name": "areas with negative instance_id",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Rejected: HA instance with ID -1 not found or access denied",
+      "details": {},
+      "duration_s": 0.008
+    },
+    {
+      "test_id": "R2-A03",
+      "name": "areas with huge instance_id (999999)",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Rejected: HA instance with ID 999999 not found or access denied",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R2-A04",
+      "name": "areas with string instance_id",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Handled string: success=False, error=invalid input syntax for type integer: \"a\"\nLINE 1: ...\" FROM \"ha_instance\" WHERE \"ha_instance\".\"id\" IN ('a', 'b', ...\n                                                             ^\n",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R2-A05",
+      "name": "SQL injection in entities_by_area",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "No SQL injection: success=False, error=Invalid area_id: must be a numeric ID",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R2-A06",
+      "name": "XSS payload in call_service",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "XSS handled: success=False",
+      "details": {},
+      "duration_s": 0.638
+    },
+    {
+      "test_id": "R2-A07",
+      "name": "Empty domain in call_service",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Rejected empty domain: domain and service are required",
+      "details": {},
+      "duration_s": 0.011
+    },
+    {
+      "test_id": "R2-A08",
+      "name": "Empty service in call_service",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Rejected empty service: domain and service are required",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R2-A09",
+      "name": "Non-dict service_data",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Handled: success=False, error=entity_id is required in service_data",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R2-A10",
+      "name": "Float area_id in entities_by_area",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Handled float: success=True",
+      "details": {},
+      "duration_s": 0.018
+    },
+    {
+      "test_id": "R2-A11",
+      "name": "entities_by_area without area_id",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Rejected: AwesomeDashboard.get_entities_by_area() missing 1 required positional argument: 'area_id'",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R2-A12",
+      "name": "Boolean as ha_instance_id",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Handled boolean: success=False",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R2-A13",
+      "name": "Array as ha_instance_id",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Handled array: success=True",
+      "details": {},
+      "duration_s": 0.023
+    },
+    {
+      "test_id": "R2-A14",
+      "name": "Zero ha_instance_id",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Handled zero: success=False",
+      "details": {},
+      "duration_s": 0.006
+    },
+    {
+      "test_id": "R2-A15",
+      "name": "Unicode domain in call_service",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Rejected unicode domain",
+      "details": {},
+      "duration_s": 0.006
+    },
+    {
+      "test_id": "R2-A16",
+      "name": "Extra params in controller call",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Extra params ignored gracefully",
+      "details": {},
+      "duration_s": 9.154
+    },
+    {
+      "test_id": "R2-A17",
+      "name": "Very long domain string (1000 chars)",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Long domain handled: success=False",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R2-A18",
+      "name": "Null service_data in call_service",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Handled null service_data: success=False",
+      "details": {},
+      "duration_s": 0.006
+    },
+    {
+      "test_id": "R2-A19",
+      "name": "Deeply nested service_data (10 levels)",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Nested handled: success=False",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R2-A20",
+      "name": "ORM search with invalid operator",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Rejected: Invalid leaf ('name', 'INVALID_OP', 'test')",
+      "details": {},
+      "duration_s": 0.011
+    },
+    {
+      "test_id": "R2-A21",
+      "name": "ORM search on non-existent model",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Rejected: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.",
+      "details": {},
+      "duration_s": 0.005
+    },
+    {
+      "test_id": "R2-A22",
+      "name": "ORM read with non-existent field",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Rejected: Invalid field 'nonexistent_field_xyz' on model 'ha.entity'",
+      "details": {},
+      "duration_s": 0.01
+    },
+    {
+      "test_id": "R2-A23",
+      "name": "ORM write on entity (should work for admin)",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Write on entity works for admin",
+      "details": {},
+      "duration_s": 0.67
+    },
+    {
+      "test_id": "R2-A24",
+      "name": "Switch to non-existent instance",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Rejected: Instance not found (ID: 99999)",
+      "details": {},
+      "duration_s": 0.023
+    },
+    {
+      "test_id": "R2-A25",
+      "name": "Switch instance with string id",
+      "category": "R2-A: Parameter Boundary",
+      "status": "PASS",
+      "message": "Handled: success=False, error=Invalid instance_id: must be a numeric ID",
+      "details": {},
+      "duration_s": 0.008
+    },
+    {
+      "test_id": "R2-B01",
+      "name": "Rapid 10x areas endpoint",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "All 10 calls succeeded in 0.0s",
+      "details": {},
+      "duration_s": 84.577
+    },
+    {
+      "test_id": "R2-B02",
+      "name": "Rapid 10x entity search",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "10 search_count calls OK",
+      "details": {},
+      "duration_s": 0.1
+    },
+    {
+      "test_id": "R2-B03",
+      "name": "Concurrent 3x call_service",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "Concurrent toggle: 3/3 succeeded",
+      "details": {},
+      "duration_s": 2.559
+    },
+    {
+      "test_id": "R2-B04",
+      "name": "Bulk query all entities",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "Queried 720 entities in bulk",
+      "details": {},
+      "duration_s": 0.024
+    },
+    {
+      "test_id": "R2-B05",
+      "name": "Rapid 5x WebSocket status",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "5 WS status checks OK",
+      "details": {},
+      "duration_s": 0.06
+    },
+    {
+      "test_id": "R2-B06",
+      "name": "Concurrent 5x area reads",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "Concurrent reads: 5/5 succeeded",
+      "details": {},
+      "duration_s": 20.032
+    },
+    {
+      "test_id": "R2-B07",
+      "name": "Entity query with large offset",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "Offset 1000: returned 0 records",
+      "details": {},
+      "duration_s": 0.02
+    },
+    {
+      "test_id": "R2-B08",
+      "name": "Multiple sync triggers (registry + entity)",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "Multiple syncs completed without error",
+      "details": {},
+      "duration_s": 13.253
+    },
+    {
+      "test_id": "R2-B09",
+      "name": "Complex ORM domain query",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "Complex domain: 20 results",
+      "details": {},
+      "duration_s": 0.042
+    },
+    {
+      "test_id": "R2-B10",
+      "name": "Sequential endpoint chain (areas → entities → related)",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "Chain OK: area → entities",
+      "details": {},
+      "duration_s": 8.278
+    },
+    {
+      "test_id": "R2-B11",
+      "name": "5x glances_devices calls",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "5 glances calls OK",
+      "details": {},
+      "duration_s": 3.229
+    },
+    {
+      "test_id": "R2-B12",
+      "name": "Entity search with ordering",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "Ordered query: 10 results",
+      "details": {},
+      "duration_s": 0.01
+    },
+    {
+      "test_id": "R2-B13",
+      "name": "Session persistence across 20 calls",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "20 calls with same session OK",
+      "details": {},
+      "duration_s": 0.176
+    },
+    {
+      "test_id": "R2-B14",
+      "name": "Concurrent read while sync running",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "Concurrent read+sync OK, entity count=720",
+      "details": {},
+      "duration_s": 4.279
+    },
+    {
+      "test_id": "R2-B15",
+      "name": "Areas endpoint response < 5s",
+      "category": "R2-B: Load & Concurrency",
+      "status": "PASS",
+      "message": "Response time: 8.09s",
+      "details": {},
+      "duration_s": 8.087
+    },
+    {
+      "test_id": "R2-C01",
+      "name": "Portal entity page without access_token",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "No share exists, got HTTP 200",
+      "details": {},
+      "duration_s": 0.106
+    },
+    {
+      "test_id": "R2-C02",
+      "name": "Portal entity page with invalid token",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "Handled with page (HTTP 200) — Odoo portal renders error page",
+      "details": {},
+      "duration_s": 0.022
+    },
+    {
+      "test_id": "R2-C03",
+      "name": "Portal state without token",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "Handled: {'error': 400, 'reason': 'BAD REQUEST'}",
+      "details": {},
+      "duration_s": 0.005
+    },
+    {
+      "test_id": "R2-C04",
+      "name": "Portal entity page with valid token",
+      "category": "R2-C: Portal Boundary",
+      "status": "SKIP",
+      "message": "No portal share available",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R2-C05",
+      "name": "Portal state with valid token",
+      "category": "R2-C: Portal Boundary",
+      "status": "SKIP",
+      "message": "No portal share",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R2-C06",
+      "name": "Portal with non-existent entity_id",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "Handled with page (HTTP 200) — Odoo portal renders error page",
+      "details": {},
+      "duration_s": 0.019
+    },
+    {
+      "test_id": "R2-C07",
+      "name": "Portal with negative entity_id",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "Handled: HTTP 200",
+      "details": {},
+      "duration_s": 0.024
+    },
+    {
+      "test_id": "R2-C08",
+      "name": "Portal call-service without access_token",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "Handled: {'jsonrpc': '2.0', 'id': None, 'error': {'code': 100, 'message': 'Odoo Session Expired', 'data': {'name': 'odoo.http.SessionExpiredException', 'debug': 'Traceback (most recent call last):\\n  File \"/usr/lib/python3/dist-packages/odoo/http.py\", line 2166, in _transactioning\\n    return service_model.retrying(func, env=self.env)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/usr/lib/python3/dist-packages/odoo/service/model.py\", line 156, in retrying\\n    result = func()\\n             ^^^^^^\\n  File \"/usr/lib/python3/dist-packages/odoo/http.py\", line 2131, in _serve_ir_http\\n    self.registry[\\'ir.http\\']._authenticate(rule.endpoint)\\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_http.py\", line 263, in _authenticate\\n    cls._authenticate_explicit(auth)\\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_http.py\", line 272, in _authenticate_explicit\\n    getattr(cls, f\\'_auth_method_{auth}\\')()\\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_http.py\", line 248, in _auth_method_user\\n    raise http.SessionExpiredException(\"Session expired\")\\nodoo.http.SessionExpiredException: Session expired\\n', 'message': 'Session expired', 'arguments': ['Session expired'], 'context': {}}}}",
+      "details": {},
+      "duration_s": 0.008
+    },
+    {
+      "test_id": "R2-C09",
+      "name": "Portal call-service with invalid domain",
+      "category": "R2-C: Portal Boundary",
+      "status": "SKIP",
+      "message": "No portal share",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R2-C10",
+      "name": "SQL injection in access_token param",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "Handled safely: HTTP 200",
+      "details": {},
+      "duration_s": 0.025
+    },
+    {
+      "test_id": "R2-C11",
+      "name": "XSS payload in access_token",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "XSS handled: HTTP 200",
+      "details": {},
+      "duration_s": 0.021
+    },
+    {
+      "test_id": "R2-C12",
+      "name": "Portal entity_group page without token",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "Group page: HTTP 200",
+      "details": {},
+      "duration_s": 0.02
+    },
+    {
+      "test_id": "R2-C13",
+      "name": "Portal device page without token",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "Device page: HTTP 200",
+      "details": {},
+      "duration_s": 0.02
+    },
+    {
+      "test_id": "R2-C14",
+      "name": "Portal /my/ha without login",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "Portal /my/ha: HTTP 200",
+      "details": {},
+      "duration_s": 0.021
+    },
+    {
+      "test_id": "R2-C15",
+      "name": "Portal entity with ID=0",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "Handled: HTTP 200",
+      "details": {},
+      "duration_s": 0.021
+    },
+    {
+      "test_id": "R2-C16",
+      "name": "Portal with very long token (5000 chars)",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "Long token: HTTP 200",
+      "details": {},
+      "duration_s": 0.024
+    },
+    {
+      "test_id": "R2-C17",
+      "name": "Rapid 10x portal state requests",
+      "category": "R2-C: Portal Boundary",
+      "status": "SKIP",
+      "message": "No portal share",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R2-C18",
+      "name": "Portal: use entity A token on entity B",
+      "category": "R2-C: Portal Boundary",
+      "status": "SKIP",
+      "message": "No portal share",
+      "details": {},
+      "duration_s": 0.0
+    },
+    {
+      "test_id": "R2-C19",
+      "name": "Portal call-service with view-only permission",
+      "category": "R2-C: Portal Boundary",
+      "status": "PASS",
+      "message": "Correctly restricted: Invalid field 'access_token' on model 'portal.share'",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R2-C20",
+      "name": "Portal state returns expected fields",
+      "category": "R2-C: Portal Boundary",
+      "status": "SKIP",
+      "message": "No portal share",
+      "details": {},
+      "duration_s": 0.0
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+======================================================================
+  STABILITY TEST REPORT — R4
+  Frontend & Page Rendering Tests
+======================================================================
+
+  Started:  2026-03-27T01:08:28.291680+00:00
+  Finished: 2026-03-27T01:08:55.318046+00:00
+  Duration: 25.8s
+
+  Total: 50  |  PASS: 49  |  FAIL: 0  |  ERROR: 0  |  SKIP: 1
+  Pass Rate: 100.0%
+======================================================================
+
+--- R4-A: Page Load & Routing (15/15) ---
+  [PASS] R4-A01: Login page renders (0.1s)
+  [PASS] R4-A02: Web client loads with auth (0.1s)
+  [PASS] R4-A03: HA Dashboard action registered (0.0s)
+  [PASS] R4-A04: HA menu items exist (0.0s)
+  [PASS] R4-A05: Frontend JS assets accessible (0.0s)
+  [PASS] R4-A06: Session info endpoint works (0.0s)
+  [PASS] R4-A07: Unauthenticated redirect to login (0.1s)
+  [PASS] R4-A08: HA addon module installed (0.0s)
+  [PASS] R4-A09: HA addon static files accessible (0.0s)
+  [PASS] R4-A10: QWeb templates for HA registered (0.0s)
+  [PASS] R4-A11: HA views registered in Odoo (0.0s)
+  [PASS] R4-A12: HA security groups configured (0.0s)
+  [PASS] R4-A13: ACL rules for HA models exist (0.0s)
+  [PASS] R4-A14: Record rules for HA models exist (0.0s)
+  [PASS] R4-A15: Cron jobs for HA configured (0.0s)
+
+--- R4-B: Dashboard Endpoints (20/20) ---
+  [PASS] R4-B01: Areas endpoint (8.2s)
+  [PASS] R4-B02: Entities by area endpoint (0.0s)
+  [PASS] R4-B03: WebSocket status endpoint (0.0s)
+  [PASS] R4-B04: Glances devices endpoint (0.4s)
+  [PASS] R4-B05: Instances endpoint (0.0s)
+  [PASS] R4-B06: Switch instance endpoint (0.0s)
+  [PASS] R4-B07: Area dashboard data endpoint (0.1s)
+  [PASS] R4-B08: Hardware info endpoint (0.7s)
+  [PASS] R4-B09: Network info endpoint (0.7s)
+  [PASS] R4-B10: HA URLs endpoint (1.0s)
+  [PASS] R4-B11: Call service endpoint format (0.7s)
+  [PASS] R4-B12: Response format: {success, data/error} (12.5s)
+  [PASS] R4-B13: Entities by area endpoint (0.0s)
+  [PASS] R4-B14: Entity domains in dashboard data (0.0s)
+  [PASS] R4-B15: Entity states populated (0.0s)
+  [PASS] R4-B16: Devices have frontend fields (0.0s)
+  [PASS] R4-B17: Labels available for frontend (0.0s)
+  [PASS] R4-B18: Entity groups for dashboard (0.0s)
+  [PASS] R4-B19: Scenes for frontend (0.0s)
+  [PASS] R4-B20: Automations for frontend (0.0s)
+
+--- R4-C: Portal Pages (14/15) ---
+  [PASS] R4-C01: Portal /my page accessible (0.3s)
+  [PASS] R4-C02: Portal /my/ha page (0.1s)
+  [PASS] R4-C03: Portal entity page renders (0.1s)
+  [PASS] R4-C04: Portal entity state JSON (0.0s)
+  [SKIP] R4-C05: Portal entity group page (0.0s)
+  [PASS] R4-C06: Portal entity page without auth (0.0s)
+  [PASS] R4-C07: Portal page has entity content (0.0s)
+  [PASS] R4-C08: Portal page: no raw XSS in output (0.0s)
+  [PASS] R4-C09: Portal service call works (0.0s)
+  [PASS] R4-C10: Portal page has security headers (0.1s)
+  [PASS] R4-C11: Portal device page route exists (0.0s)
+  [PASS] R4-C12: Portal call-service CSRF validation (0.0s)
+  [PASS] R4-C13: JSON endpoints return application/json (0.0s)
+  [PASS] R4-C14: Portal 404 handled gracefully (0.0s)
+  [PASS] R4-C15: Multiple shared entities work (0.0s)

@@ -1,0 +1,286 @@
+{
+  "round": "R5",
+  "description": "Integration & Recovery Tests",
+  "started": "2026-03-27T01:08:28.880560+00:00",
+  "finished": "2026-03-27T01:10:52.906921+00:00",
+  "total": 30,
+  "passed": 30,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "pass_rate": 100.0,
+  "total_duration_s": 142.9,
+  "metadata": {},
+  "results": [
+    {
+      "test_id": "R5-A01",
+      "name": "WebSocket is connected",
+      "category": "R5-A: WebSocket Resilience",
+      "status": "PASS",
+      "message": "WebSocket connected",
+      "details": {},
+      "duration_s": 0.024
+    },
+    {
+      "test_id": "R5-A02",
+      "name": "WebSocket survives 20 rapid API calls",
+      "category": "R5-A: WebSocket Resilience",
+      "status": "PASS",
+      "message": "WebSocket OK after 20 rapid calls",
+      "details": {},
+      "duration_s": 0.18
+    },
+    {
+      "test_id": "R5-A03",
+      "name": "WebSocket survives registry sync",
+      "category": "R5-A: WebSocket Resilience",
+      "status": "PASS",
+      "message": "WebSocket OK after sync",
+      "details": {},
+      "duration_s": 7.276
+    },
+    {
+      "test_id": "R5-A04",
+      "name": "WebSocket survives entity sync",
+      "category": "R5-A: WebSocket Resilience",
+      "status": "PASS",
+      "message": "WebSocket OK after entity sync",
+      "details": {},
+      "duration_s": 9.843
+    },
+    {
+      "test_id": "R5-A05",
+      "name": "WebSocket survives concurrent reads",
+      "category": "R5-A: WebSocket Resilience",
+      "status": "PASS",
+      "message": "WebSocket OK after 5 concurrent: [720, 720, 720, 720, 720]",
+      "details": {},
+      "duration_s": 1.488
+    },
+    {
+      "test_id": "R5-A06",
+      "name": "WebSocket survives service call",
+      "category": "R5-A: WebSocket Resilience",
+      "status": "PASS",
+      "message": "WebSocket OK after service call",
+      "details": {},
+      "duration_s": 3.012
+    },
+    {
+      "test_id": "R5-A07",
+      "name": "3 consecutive syncs stable",
+      "category": "R5-A: WebSocket Resilience",
+      "status": "PASS",
+      "message": "WebSocket OK after 3 syncs",
+      "details": {},
+      "duration_s": 15.917
+    },
+    {
+      "test_id": "R5-A08",
+      "name": "Entity count stable across syncs",
+      "category": "R5-A: WebSocket Resilience",
+      "status": "PASS",
+      "message": "Entity count stable: 720",
+      "details": {},
+      "duration_s": 11.713
+    },
+    {
+      "test_id": "R5-A09",
+      "name": "Area count stable across syncs",
+      "category": "R5-A: WebSocket Resilience",
+      "status": "PASS",
+      "message": "Area count stable: 10",
+      "details": {},
+      "duration_s": 8.726
+    },
+    {
+      "test_id": "R5-A10",
+      "name": "Device count stable across syncs",
+      "category": "R5-A: WebSocket Resilience",
+      "status": "PASS",
+      "message": "Device count stable: 175",
+      "details": {},
+      "duration_s": 8.903
+    },
+    {
+      "test_id": "R5-B01",
+      "name": "Area full lifecycle (create→rename→delete)",
+      "category": "R5-B: Full Workflow",
+      "status": "PASS",
+      "message": "Full lifecycle: create→rename→delete OK",
+      "details": {},
+      "duration_s": 8.305
+    },
+    {
+      "test_id": "R5-B02",
+      "name": "Label full lifecycle",
+      "category": "R5-B: Full Workflow",
+      "status": "PASS",
+      "message": "Label lifecycle: create→delete OK",
+      "details": {},
+      "duration_s": 5.314
+    },
+    {
+      "test_id": "R5-B03",
+      "name": "Scene activation + state verification",
+      "category": "R5-B: Full Workflow",
+      "status": "PASS",
+      "message": "Scene activated, state: 2026-03-27T01:09:51.200494+00:00",
+      "details": {},
+      "duration_s": 2.668
+    },
+    {
+      "test_id": "R5-B04",
+      "name": "Automation toggle + verify state change",
+      "category": "R5-B: Full Workflow",
+      "status": "PASS",
+      "message": "State changed: off → on",
+      "details": {},
+      "duration_s": 3.615
+    },
+    {
+      "test_id": "R5-B05",
+      "name": "Light toggle + state verification",
+      "category": "R5-B: Full Workflow",
+      "status": "PASS",
+      "message": "Light toggle: unavailable → unavailable",
+      "details": {},
+      "duration_s": 4.297
+    },
+    {
+      "test_id": "R5-B06",
+      "name": "Switch toggle + state verification",
+      "category": "R5-B: Full Workflow",
+      "status": "PASS",
+      "message": "Switch toggle: unavailable → unavailable",
+      "details": {},
+      "duration_s": 4.305
+    },
+    {
+      "test_id": "R5-B07",
+      "name": "Script execution + state check",
+      "category": "R5-B: Full Workflow",
+      "status": "PASS",
+      "message": "Script executed: script.ai",
+      "details": {},
+      "duration_s": 2.953
+    },
+    {
+      "test_id": "R5-B08",
+      "name": "Sync → service → sync chain",
+      "category": "R5-B: Full Workflow",
+      "status": "PASS",
+      "message": "Sync-service-sync stable: 720",
+      "details": {},
+      "duration_s": 17.824
+    },
+    {
+      "test_id": "R5-B09",
+      "name": "Area CRUD while entity sync running",
+      "category": "R5-B: Full Workflow",
+      "status": "PASS",
+      "message": "Area CRUD during sync: OK",
+      "details": {},
+      "duration_s": 8.555
+    },
+    {
+      "test_id": "R5-B10",
+      "name": "Batch create 3 areas → batch delete",
+      "category": "R5-B: Full Workflow",
+      "status": "PASS",
+      "message": "Batch create → delete: 3/3 OK",
+      "details": {},
+      "duration_s": 9.143
+    },
+    {
+      "test_id": "R5-C01",
+      "name": "Entity area_id refs are valid",
+      "category": "R5-C: Data Consistency",
+      "status": "PASS",
+      "message": "All 5 area refs valid",
+      "details": {},
+      "duration_s": 0.027
+    },
+    {
+      "test_id": "R5-C02",
+      "name": "Entity device_id refs are valid",
+      "category": "R5-C: Data Consistency",
+      "status": "PASS",
+      "message": "All 35 device refs valid",
+      "details": {},
+      "duration_s": 0.021
+    },
+    {
+      "test_id": "R5-C03",
+      "name": "Device area refs are valid",
+      "category": "R5-C: Data Consistency",
+      "status": "PASS",
+      "message": "All 6 device-area refs valid",
+      "details": {},
+      "duration_s": 0.016
+    },
+    {
+      "test_id": "R5-C04",
+      "name": "No orphaned entities",
+      "category": "R5-C: Data Consistency",
+      "status": "PASS",
+      "message": "No orphaned entities",
+      "details": {},
+      "duration_s": 0.008
+    },
+    {
+      "test_id": "R5-C05",
+      "name": "No duplicate entity_ids",
+      "category": "R5-C: Data Consistency",
+      "status": "PASS",
+      "message": "All 720 entity_ids unique",
+      "details": {},
+      "duration_s": 0.021
+    },
+    {
+      "test_id": "R5-C06",
+      "name": "No duplicate area names",
+      "category": "R5-C: Data Consistency",
+      "status": "PASS",
+      "message": "All 9 area names unique",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R5-C07",
+      "name": "ORM vs controller area count match",
+      "category": "R5-C: Data Consistency",
+      "status": "PASS",
+      "message": "Counts match: 10",
+      "details": {},
+      "duration_s": 8.656
+    },
+    {
+      "test_id": "R5-C08",
+      "name": "Entity domain matches entity_id prefix",
+      "category": "R5-C: Data Consistency",
+      "status": "PASS",
+      "message": "All 100 entities match",
+      "details": {},
+      "duration_s": 0.022
+    },
+    {
+      "test_id": "R5-C09",
+      "name": "All instances have api_url",
+      "category": "R5-C: Data Consistency",
+      "status": "PASS",
+      "message": "All 1 instances have api_url",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R5-C10",
+      "name": "Final consistency summary",
+      "category": "R5-C: Data Consistency",
+      "status": "PASS",
+      "message": "Final snapshot: {\"entities\": 720, \"areas\": 10, \"devices\": 175, \"labels\": 3, \"scenes\": 77, \"automations\": 11, \"scripts\": 3, \"websocket\": false}",
+      "details": {},
+      "duration_s": 0.087
+    }
+  ]
+}

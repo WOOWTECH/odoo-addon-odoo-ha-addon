@@ -1,0 +1,466 @@
+{
+  "round": "R4",
+  "description": "Frontend & Page Rendering Tests",
+  "started": "2026-03-27T01:08:28.291680+00:00",
+  "finished": "2026-03-27T01:08:55.318046+00:00",
+  "total": 50,
+  "passed": 49,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 1,
+  "pass_rate": 100.0,
+  "total_duration_s": 25.8,
+  "metadata": {},
+  "results": [
+    {
+      "test_id": "R4-A01",
+      "name": "Login page renders",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "Login page renders OK",
+      "details": {},
+      "duration_s": 0.123
+    },
+    {
+      "test_id": "R4-A02",
+      "name": "Web client loads with auth",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "Web client loads OK",
+      "details": {},
+      "duration_s": 0.075
+    },
+    {
+      "test_id": "R4-A03",
+      "name": "HA Dashboard action registered",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "HA actions found: ['odoo_ha_addon.ha_area_dashboard', 'odoo_ha_addon.ha_info_dashboard', 'odoo_ha_addon.ha_instance_dashboard']",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R4-A04",
+      "name": "HA menu items exist",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "Dashboard menus: 2 items",
+      "details": {},
+      "duration_s": 0.019
+    },
+    {
+      "test_id": "R4-A05",
+      "name": "Frontend JS assets accessible",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "Asset endpoint: HTTP 404, content: HTTP 404",
+      "details": {},
+      "duration_s": 0.012
+    },
+    {
+      "test_id": "R4-A06",
+      "name": "Session info endpoint works",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "Session info: uid=2",
+      "details": {},
+      "duration_s": 0.028
+    },
+    {
+      "test_id": "R4-A07",
+      "name": "Unauthenticated redirect to login",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "Redirected to login: http://localhost:9077/web/login?redirect=%2Fweb%3F",
+      "details": {},
+      "duration_s": 0.062
+    },
+    {
+      "test_id": "R4-A08",
+      "name": "HA addon module installed",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "odoo_ha_addon is installed",
+      "details": {},
+      "duration_s": 0.01
+    },
+    {
+      "test_id": "R4-A09",
+      "name": "HA addon static files accessible",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "Addon icon accessible",
+      "details": {},
+      "duration_s": 0.004
+    },
+    {
+      "test_id": "R4-A10",
+      "name": "QWeb templates for HA registered",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "QWeb templates: 11",
+      "details": {},
+      "duration_s": 0.011
+    },
+    {
+      "test_id": "R4-A11",
+      "name": "HA views registered in Odoo",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "HA views: 30 for models: {'ha.entity.history', 'ha.entity.group.tag', 'ha.entity', 'ha.entity.group', 'ha.area', 'ha.blueprint.wizard', 'ha.entity.tag', 'ha.device.tag', 'ha.entity.share.wizard', 'ha.device'}",
+      "details": {},
+      "duration_s": 0.01
+    },
+    {
+      "test_id": "R4-A12",
+      "name": "HA security groups configured",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "HA groups: ['Administration / Home Assistant Manager', 'Administration / Home Assistant User']",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R4-A13",
+      "name": "ACL rules for HA models exist",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "ACL rules: 25 for HA models",
+      "details": {},
+      "duration_s": 0.026
+    },
+    {
+      "test_id": "R4-A14",
+      "name": "Record rules for HA models exist",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "Record rules: 14 for HA models",
+      "details": {},
+      "duration_s": 0.019
+    },
+    {
+      "test_id": "R4-A15",
+      "name": "Cron jobs for HA configured",
+      "category": "R4-A: Page Load & Routing",
+      "status": "PASS",
+      "message": "Cron jobs: ['Check Expiring Entity Shares', 'Cleanup Expired Entity Shares', 'Discuss: channel member unmute', 'Fetch history for enable entities', 'Fetch states', 'Home Assistant WebSocket Service Monitor', 'Notification: Delete Notifications older than 6 Month', 'Sync Device Related Items (Automations/Scripts/Scenes)']",
+      "details": {},
+      "duration_s": 0.017
+    },
+    {
+      "test_id": "R4-B01",
+      "name": "Areas endpoint",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "OK: dict",
+      "details": {},
+      "duration_s": 8.238
+    },
+    {
+      "test_id": "R4-B02",
+      "name": "Entities by area endpoint",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "Entities by area: dict",
+      "details": {},
+      "duration_s": 0.032
+    },
+    {
+      "test_id": "R4-B03",
+      "name": "WebSocket status endpoint",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "OK: dict",
+      "details": {},
+      "duration_s": 0.011
+    },
+    {
+      "test_id": "R4-B04",
+      "name": "Glances devices endpoint",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "OK: dict",
+      "details": {},
+      "duration_s": 0.361
+    },
+    {
+      "test_id": "R4-B05",
+      "name": "Instances endpoint",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "OK: dict",
+      "details": {},
+      "duration_s": 0.018
+    },
+    {
+      "test_id": "R4-B06",
+      "name": "Switch instance endpoint",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "OK: dict",
+      "details": {},
+      "duration_s": 0.049
+    },
+    {
+      "test_id": "R4-B07",
+      "name": "Area dashboard data endpoint",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "OK: dict",
+      "details": {},
+      "duration_s": 0.06
+    },
+    {
+      "test_id": "R4-B08",
+      "name": "Hardware info endpoint",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "OK: dict",
+      "details": {},
+      "duration_s": 0.656
+    },
+    {
+      "test_id": "R4-B09",
+      "name": "Network info endpoint",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "OK: dict",
+      "details": {},
+      "duration_s": 0.661
+    },
+    {
+      "test_id": "R4-B10",
+      "name": "HA URLs endpoint",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "OK: dict",
+      "details": {},
+      "duration_s": 0.966
+    },
+    {
+      "test_id": "R4-B11",
+      "name": "Call service endpoint format",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "Service response: ['success', 'data']",
+      "details": {},
+      "duration_s": 0.685
+    },
+    {
+      "test_id": "R4-B12",
+      "name": "Response format: {success, data/error}",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "All endpoints consistent",
+      "details": {},
+      "duration_s": 12.539
+    },
+    {
+      "test_id": "R4-B13",
+      "name": "Entities by area endpoint",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "Entities by area: ['success', 'data']",
+      "details": {},
+      "duration_s": 0.032
+    },
+    {
+      "test_id": "R4-B14",
+      "name": "Entity domains in dashboard data",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "Domains: {'remote', 'sun', 'event', 'media_player', 'stt', 'binary_sensor', 'update', 'automation', 'zone', 'person', 'ai_task', 'tts', 'switch', 'tag', 'input_boolean', 'button', 'conversation', 'cover', 'climate', 'device_tracker', 'sensor', 'select', 'scene', 'light', 'input_number', 'todo', 'number', 'script', 'calendar', 'input_text'} (3/3 expected)",
+      "details": {},
+      "duration_s": 0.018
+    },
+    {
+      "test_id": "R4-B15",
+      "name": "Entity states populated",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "20/20 entities have state",
+      "details": {},
+      "duration_s": 0.018
+    },
+    {
+      "test_id": "R4-B16",
+      "name": "Devices have frontend fields",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "Device fields: {'name', 'manufacturer', 'model'} of {'name', 'manufacturer', 'model'}",
+      "details": {},
+      "duration_s": 0.03
+    },
+    {
+      "test_id": "R4-B17",
+      "name": "Labels available for frontend",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "Labels: 3 available",
+      "details": {},
+      "duration_s": 0.017
+    },
+    {
+      "test_id": "R4-B18",
+      "name": "Entity groups for dashboard",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "Entity groups: 0",
+      "details": {},
+      "duration_s": 0.028
+    },
+    {
+      "test_id": "R4-B19",
+      "name": "Scenes for frontend",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "Scenes: 77 (77 with names)",
+      "details": {},
+      "duration_s": 0.028
+    },
+    {
+      "test_id": "R4-B20",
+      "name": "Automations for frontend",
+      "category": "R4-B: Dashboard Endpoints",
+      "status": "PASS",
+      "message": "Automations: 11, states: {'on', 'off'}",
+      "details": {},
+      "duration_s": 0.015
+    },
+    {
+      "test_id": "R4-C01",
+      "name": "Portal /my page accessible",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "Portal /my accessible",
+      "details": {},
+      "duration_s": 0.347
+    },
+    {
+      "test_id": "R4-C02",
+      "name": "Portal /my/ha page",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "Portal HA page: 9106 bytes",
+      "details": {},
+      "duration_s": 0.105
+    },
+    {
+      "test_id": "R4-C03",
+      "name": "Portal entity page renders",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "Portal entity page: 5093 bytes",
+      "details": {},
+      "duration_s": 0.131
+    },
+    {
+      "test_id": "R4-C04",
+      "name": "Portal entity state JSON",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "State endpoint handled: 400",
+      "details": {},
+      "duration_s": 0.009
+    },
+    {
+      "test_id": "R4-C05",
+      "name": "Portal entity group page",
+      "category": "R4-C: Portal Pages",
+      "status": "SKIP",
+      "message": "No shared entity group",
+      "details": {},
+      "duration_s": 0.017
+    },
+    {
+      "test_id": "R4-C06",
+      "name": "Portal entity page without auth",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "Handled: HTTP 200",
+      "details": {},
+      "duration_s": 0.044
+    },
+    {
+      "test_id": "R4-C07",
+      "name": "Portal page has entity content",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "Portal page has entity content",
+      "details": {},
+      "duration_s": 0.038
+    },
+    {
+      "test_id": "R4-C08",
+      "name": "Portal page: no raw XSS in output",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "No XSS vectors in portal output",
+      "details": {},
+      "duration_s": 0.034
+    },
+    {
+      "test_id": "R4-C09",
+      "name": "Portal service call works",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "Portal service call: {'jsonrpc': '2.0', 'id': None, 'error': {'code': 100, 'message': 'Odoo Session Expired', 'data': {'name': 'odoo.http.SessionExpiredException', 'debug': 'Traceback (most recent call last):\\n  File \"/usr/lib/python3/dist-packages/odoo/http.py\", line 2166, in _transactioning\\n    return service_model.retrying(func, env=self.env)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/usr/lib/python3/dist-packages/odoo/service/model.py\", line 156, in retrying\\n    result = func()\\n             ^^^^^^\\n  File \"/usr/lib/python3/dist-packages/odoo/http.py\", line 2131, in _serve_ir_http\\n    self.registry[\\'ir.http\\']._authenticate(rule.endpoint)\\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_http.py\", line 263, in _authenticate\\n    cls._authenticate_explicit(auth)\\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_http.py\", line 272, in _authenticate_explicit\\n    getattr(cls, f\\'_auth_method_{auth}\\')()\\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_http.py\", line 248, in _auth_method_user\\n    raise http.SessionExpiredException(\"Session expired\")\\nodoo.http.SessionExpiredException: Session expired\\n', 'message': 'Session expired', 'arguments': ['Session expired'], 'context': {}}}}",
+      "details": {},
+      "duration_s": 0.023
+    },
+    {
+      "test_id": "R4-C10",
+      "name": "Portal page has security headers",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "Security headers: ['X-Content-Type-Options', 'X-Frame-Options', 'Content-Security-Policy'] of ['X-Content-Type-Options', 'X-Frame-Options', 'Content-Security-Policy']",
+      "details": {},
+      "duration_s": 0.051
+    },
+    {
+      "test_id": "R4-C11",
+      "name": "Portal device page route exists",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "Device portal route: HTTP 200",
+      "details": {},
+      "duration_s": 0.021
+    },
+    {
+      "test_id": "R4-C12",
+      "name": "Portal call-service CSRF validation",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "Call-service response: ['jsonrpc', 'id', 'error']",
+      "details": {},
+      "duration_s": 0.007
+    },
+    {
+      "test_id": "R4-C13",
+      "name": "JSON endpoints return application/json",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "HTTP 400",
+      "details": {},
+      "duration_s": 0.004
+    },
+    {
+      "test_id": "R4-C14",
+      "name": "Portal 404 handled gracefully",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "404 handled: HTTP 404",
+      "details": {},
+      "duration_s": 0.028
+    },
+    {
+      "test_id": "R4-C15",
+      "name": "Multiple shared entities work",
+      "category": "R4-C: Portal Pages",
+      "status": "PASS",
+      "message": "Only 1 shared entity found",
+      "details": {},
+      "duration_s": 0.01
+    }
+  ]
+}
