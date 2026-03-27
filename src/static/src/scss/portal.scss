@@ -9,29 +9,46 @@
 // Theme Variables (CSS Custom Properties)
 // ========================================
 
-// 淺色模式（預設）
+// ========================================
+// Woowtech Brand Color Palette
+// ========================================
+// Primary:   #6183FC (Blue)
+// White:     #FFFFFF (50% ratio)
+// Light Gray:#EFF1F5 (secondary backgrounds)
+// Gray:      #646262 (text/UI, 20%)
+// Deep Gray: #212121 (high contrast, 10%)
+// Accent (5%): Cyan #7BDBE0, Yellow #F8D158, Green #8CD37F,
+//              Orange #E66D3E, Coral #F45D6D, Lavender #C09FE0
+
+// 淺色模式（預設）- Woowtech Brand
 :root {
-  // 背景色
-  --portal-bg-primary: #f8f9fa;
-  --portal-bg-secondary: #e9ecef;
-  --portal-bg-card: #ffffff;
+  // 背景色 - Woowtech: White 50%, Light Gray for secondary
+  --portal-bg-primary: #EFF1F5;
+  --portal-bg-secondary: #E5E7EB;
+  --portal-bg-card: #FFFFFF;
 
-  // 文字色
-  --portal-text-primary: #1f2937;
-  --portal-text-secondary: #6b7280;
-  --portal-text-muted: #9ca3af;
+  // 文字色 - Woowtech: Deep Gray for primary, Gray for secondary
+  --portal-text-primary: #212121;
+  --portal-text-secondary: #646262;
+  --portal-text-muted: #9CA3AF;
 
-  // 強調色
-  --portal-accent-primary: #3b82f6;
-  --portal-accent-success: #047857; // emerald-700 for WCAG AA (4.5:1) contrast
-  --portal-accent-warning: #f59e0b;
-  --portal-accent-danger: #ef4444;
+  // 強調色 - Woowtech: Primary Blue, accent colors for states
+  --portal-accent-primary: #6183FC;
+  --portal-accent-success: #8CD37F; // Woowtech Green
+  --portal-accent-warning: #F8D158; // Woowtech Yellow
+  --portal-accent-danger: #F45D6D;  // Woowtech Coral
+
+  // Woowtech additional accent colors
+  --portal-accent-cyan: #7BDBE0;
+  --portal-accent-orange: #E66D3E;
+  --portal-accent-lavender: #C09FE0;
+  --portal-accent-sky: #65C2E0;
 
   // 邊框和陰影
-  --portal-border-color: rgba(0, 0, 0, 0.1);
+  --portal-border-color: rgba(0, 0, 0, 0.08);
   --portal-border-radius: 12px;
-  --portal-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --portal-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --portal-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --portal-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
 
   // 過渡時間
   --portal-transition-fast: 150ms;
@@ -245,7 +262,7 @@ $portal-card-min-width: 320px;
         }
 
         &:focus {
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+            box-shadow: 0 0 0 3px rgba(97, 131, 252, 0.25);
         }
 
         &:disabled {
@@ -259,10 +276,10 @@ $portal-card-min-width: 320px;
     }
 }
 
-// Light Switch 變體（黃色）
+// Light Switch 變體（Woowtech Yellow）
 .portal-light-switch {
     .form-check-input:checked {
-        background-color: #fbbf24;
+        background-color: var(--portal-accent-warning);
     }
 }
 
@@ -305,7 +322,7 @@ $portal-card-min-width: 320px;
         &.is-on {
             background-color: var(--portal-accent-success);
             color: white;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 0 20px rgba(140, 211, 127, 0.4);
         }
 
         // OFF 狀態
@@ -348,7 +365,7 @@ $portal-card-min-width: 320px;
             }
 
             &:focus {
-                box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+                box-shadow: 0 0 0 3px rgba(97, 131, 252, 0.25);
             }
 
             &:disabled {
@@ -568,15 +585,15 @@ $portal-card-min-width: 320px;
         &::-webkit-slider-runnable-track {
             background: linear-gradient(
                 to right,
-                #374151 0%,
-                #fbbf24 var(--slider-progress, 50%),
+                #212121 0%,
+                var(--portal-accent-warning) var(--slider-progress, 50%),
                 var(--portal-bg-secondary) var(--slider-progress, 50%),
                 var(--portal-bg-secondary) 100%
             );
         }
 
         &::-moz-range-progress {
-            background: linear-gradient(to right, #374151, #fbbf24);
+            background: linear-gradient(to right, #212121, var(--portal-accent-warning));
         }
     }
 }
@@ -626,39 +643,39 @@ $portal-card-min-width: 320px;
         }
     }
 
-    // 圖示
+    // 圖示 - Woowtech Brand Accent Colors
     .sensor-icon {
         font-size: 2rem;
         margin-bottom: 0.5rem;
 
-        // 根據 device_class 的顏色
+        // 根據 device_class 的顏色 (Woowtech palette)
         &.temperature {
-            color: #ef4444; // 紅色 - 溫度
+            color: var(--portal-accent-danger); // Coral - 溫度
         }
         &.humidity {
-            color: #3b82f6; // 藍色 - 濕度
+            color: var(--portal-accent-primary); // Blue - 濕度
         }
         &.power {
-            color: #f59e0b; // 黃色 - 電力
+            color: var(--portal-accent-warning); // Yellow - 電力
         }
         &.motion {
-            color: var(--portal-accent-success); // 綠色 - 動作
+            color: var(--portal-accent-success); // Green - 動作
         }
         &.door, &.window {
-            color: var(--portal-accent-primary); // 主色 - 門窗
+            color: var(--portal-accent-primary); // Blue - 門窗
         }
         &.battery {
-            color: #047857; // 綠色 - 電池 (emerald-700)
+            color: var(--portal-accent-success); // Green - 電池
 
             &.low {
-                color: #f59e0b; // 黃色 - 低電量
+                color: var(--portal-accent-warning); // Yellow - 低電量
             }
             &.critical {
-                color: #ef4444; // 紅色 - 極低
+                color: var(--portal-accent-danger); // Coral - 極低
             }
         }
         &.illuminance {
-            color: #fbbf24; // 黃色 - 光照
+            color: var(--portal-accent-warning); // Yellow - 光照
         }
     }
 
@@ -730,16 +747,16 @@ $portal-card-min-width: 320px;
 // Additional Animations
 // ========================================
 
-// 狀態變化脈動效果
+// 狀態變化脈動效果 (Woowtech Green)
 @keyframes portal-state-pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+        box-shadow: 0 0 0 0 rgba(140, 211, 127, 0.5);
     }
     70% {
-        box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
+        box-shadow: 0 0 0 12px rgba(140, 211, 127, 0);
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        box-shadow: 0 0 0 0 rgba(140, 211, 127, 0);
     }
 }
 
@@ -1055,5 +1072,177 @@ $portal-card-min-width: 320px;
 
     .sensor-value {
         font-size: 1.5rem;
+    }
+}
+
+// ========================================
+// Woowtech Brand Bootstrap Overrides
+// ========================================
+// Override Bootstrap contextual colors within portal pages
+// to match Woowtech brand palette
+
+.portal-page,
+.o_portal_wrap {
+    // Card header overrides
+    .card-header.bg-primary {
+        background-color: var(--portal-accent-primary) !important;
+    }
+
+    .card-header.bg-info {
+        background-color: var(--portal-accent-cyan) !important;
+    }
+
+    .card-header.bg-success {
+        background-color: var(--portal-accent-success) !important;
+    }
+
+    .card-header.bg-secondary {
+        background-color: var(--portal-text-secondary) !important;
+    }
+
+    // Badge overrides
+    .badge.bg-primary {
+        background-color: var(--portal-accent-primary) !important;
+    }
+
+    .badge.bg-info {
+        background-color: var(--portal-accent-cyan) !important;
+        color: #212121 !important;
+    }
+
+    .badge.bg-success {
+        background-color: var(--portal-accent-success) !important;
+        color: #212121 !important;
+    }
+
+    .badge.bg-secondary {
+        background-color: var(--portal-text-secondary) !important;
+    }
+
+    .badge.bg-warning {
+        background-color: var(--portal-accent-warning) !important;
+        color: #212121 !important;
+    }
+
+    .badge.bg-danger {
+        background-color: var(--portal-accent-danger) !important;
+    }
+
+    // Button overrides
+    .btn-primary {
+        background-color: var(--portal-accent-primary);
+        border-color: var(--portal-accent-primary);
+
+        &:hover, &:focus {
+            background-color: #4E6FE8;
+            border-color: #4E6FE8;
+        }
+    }
+
+    .btn-outline-primary {
+        color: var(--portal-accent-primary);
+        border-color: var(--portal-accent-primary);
+
+        &:hover, &:focus {
+            background-color: var(--portal-accent-primary);
+            border-color: var(--portal-accent-primary);
+            color: #FFFFFF;
+        }
+    }
+
+    .btn-success {
+        background-color: var(--portal-accent-success);
+        border-color: var(--portal-accent-success);
+        color: #212121;
+
+        &:hover, &:focus {
+            background-color: #78C66B;
+            border-color: #78C66B;
+        }
+    }
+
+    .btn-warning {
+        background-color: var(--portal-accent-warning);
+        border-color: var(--portal-accent-warning);
+        color: #212121;
+
+        &:hover, &:focus {
+            background-color: #E6BF42;
+            border-color: #E6BF42;
+        }
+    }
+
+    // Alert overrides
+    .alert-success {
+        background-color: rgba(140, 211, 127, 0.15);
+        border-color: rgba(140, 211, 127, 0.3);
+        color: #4A8040;
+    }
+
+    .alert-info {
+        background-color: rgba(123, 219, 224, 0.15);
+        border-color: rgba(123, 219, 224, 0.3);
+        color: #3A8A8E;
+    }
+
+    // Text color overrides
+    .text-primary {
+        color: var(--portal-accent-primary) !important;
+    }
+
+    .text-info {
+        color: var(--portal-accent-cyan) !important;
+    }
+
+    .text-success {
+        color: var(--portal-accent-success) !important;
+    }
+
+    .text-warning {
+        color: var(--portal-accent-warning) !important;
+    }
+
+    .text-danger {
+        color: var(--portal-accent-danger) !important;
+    }
+
+    // Nav tabs brand styling
+    .nav-tabs .nav-link {
+        color: var(--portal-text-secondary);
+        border-radius: var(--portal-border-radius) var(--portal-border-radius) 0 0;
+
+        &.active {
+            color: var(--portal-accent-primary);
+            border-bottom-color: var(--portal-accent-primary);
+            font-weight: 600;
+        }
+
+        &:hover:not(.active) {
+            color: var(--portal-text-primary);
+        }
+    }
+
+    // Table header override
+    .table-light, thead.table-light {
+        --bs-table-bg: var(--portal-bg-primary);
+    }
+}
+
+// ========================================
+// Instance Card Brand Styling
+// ========================================
+
+.portal-ha-instance-card {
+    border-radius: var(--portal-border-radius);
+    transition: transform var(--portal-transition-normal) ease,
+                box-shadow var(--portal-transition-normal) ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--portal-shadow-lg);
+    }
+
+    .rounded-circle {
+        background-color: var(--portal-accent-primary) !important;
     }
 }

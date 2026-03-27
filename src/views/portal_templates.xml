@@ -105,7 +105,7 @@
                 <t t-set="title">Home Assistant</t>
             </t>
 
-            <div class="container py-4">
+            <div class="container py-4 portal-page">
                 <!-- Instances List -->
                 <t t-if="instances">
                     <div class="row">
@@ -114,8 +114,8 @@
                                 <div class="card h-100 shadow-sm border-0 portal-ha-instance-card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-3">
-                                            <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-3"
-                                                 style="width: 48px; height: 48px;">
+                                            <div class="rounded-circle text-white d-flex align-items-center justify-content-center me-3"
+                                                 style="width: 48px; height: 48px; background-color: var(--portal-accent-primary, #6183FC);">
                                                 <i class="fa fa-server fa-lg"></i>
                                             </div>
                                             <div class="flex-grow-1">
@@ -183,13 +183,13 @@
                 <t t-set="title" t-value="instance.name"/>
             </t>
 
-            <div class="container py-4">
+            <div class="container py-4 portal-page">
                 <!-- Instance Header -->
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
-                            <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-3"
-                                 style="width: 64px; height: 64px;">
+                            <div class="rounded-circle text-white d-flex align-items-center justify-content-center me-3"
+                                 style="width: 64px; height: 64px; background-color: var(--portal-accent-primary, #6183FC);">
                                 <i class="fa fa-server fa-2x"></i>
                             </div>
                             <div>
@@ -766,8 +766,8 @@
                         <div class="col-lg-4">
                             <!-- Live Status Card (OWL Component with auto-polling) -->
                             <div class="card shadow-sm mb-4">
-                                <div class="card-header bg-info text-white">
-                                    <h5 class="mb-0">
+                                <div class="card-header text-white" style="background-color: var(--portal-accent-cyan, #7BDBE0); color: #212121 !important;">
+                                    <h5 class="mb-0" style="color: #212121;">
                                         <i class="fa fa-heartbeat mr-2"></i>Live Status
                                     </h5>
                                 </div>
@@ -784,8 +784,8 @@
                             <!-- Control Card (OWL Component for 'control' permission only) -->
                             <t t-if="permission == 'control' and entity.domain in controllable_domains">
                                 <div class="card shadow-sm mb-4" id="control-card">
-                                    <div class="card-header bg-success text-white">
-                                        <h5 class="mb-0">
+                                    <div class="card-header text-white" style="background-color: var(--portal-accent-success, #8CD37F); color: #212121 !important;">
+                                        <h5 class="mb-0" style="color: #212121;">
                                             <i class="fa fa-power-off mr-2"></i>Control
                                         </h5>
                                     </div>
@@ -810,8 +810,8 @@
                             <!-- View-only notice for view permission -->
                             <t t-if="permission == 'view'">
                                 <div class="card shadow-sm mb-4">
-                                    <div class="card-header bg-secondary text-white">
-                                        <h5 class="mb-0">
+                                    <div class="card-header" style="background-color: var(--portal-text-secondary, #646262); color: #FFFFFF;">
+                                        <h5 class="mb-0" style="color: #FFFFFF;">
                                             <i class="fa fa-eye mr-2"></i>View Only
                                         </h5>
                                     </div>
@@ -826,7 +826,7 @@
 
                             <!-- Quick Info Card (static - no polling needed) -->
                             <div class="card shadow-sm">
-                                <div class="card-header bg-light">
+                                <div class="card-header" style="background-color: var(--portal-bg-primary, #EFF1F5);">
                                     <h5 class="mb-0">
                                         <i class="fa fa-info mr-2"></i>Quick Info
                                     </h5>
@@ -834,11 +834,11 @@
                                 <ul class="list-group list-group-flush">
                                     <li class="list-group-item d-flex justify-content-between">
                                         <span>Domain</span>
-                                        <span class="badge badge-primary"><t t-out="entity.domain"/></span>
+                                        <span class="badge bg-primary"><t t-out="entity.domain"/></span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between">
                                         <span>Permission</span>
-                                        <span t-attf-class="badge badge-#{permission == 'control' and 'success' or 'secondary'}">
+                                        <span t-attf-class="badge bg-#{permission == 'control' and 'success' or 'secondary'}">
                                             <t t-out="permission"/>
                                         </span>
                                     </li>
@@ -1127,7 +1127,7 @@
                         <div class="col-lg-4">
                             <!-- Quick Info Card -->
                             <div class="card shadow-sm mb-4">
-                                <div class="card-header bg-light">
+                                <div class="card-header" style="background-color: var(--portal-bg-primary, #EFF1F5);">
                                     <h5 class="mb-0">
                                         <i class="fa fa-info me-2"></i>Quick Info
                                     </h5>
@@ -1161,8 +1161,8 @@
                             <!-- View-only notice for view permission -->
                             <t t-if="permission == 'view'">
                                 <div class="card shadow-sm mb-4">
-                                    <div class="card-header bg-secondary text-white">
-                                        <h5 class="mb-0">
+                                    <div class="card-header" style="background-color: var(--portal-text-secondary, #646262); color: #FFFFFF;">
+                                        <h5 class="mb-0" style="color: #FFFFFF;">
                                             <i class="fa fa-eye mr-2"></i>View Only
                                         </h5>
                                     </div>
