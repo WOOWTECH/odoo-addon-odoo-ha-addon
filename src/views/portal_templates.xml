@@ -197,7 +197,7 @@
                                 <p class="text-muted mb-0">
                                     <span class="me-3">
                                         <i class="fa fa-plug me-1"></i>
-                                        <t t-out="len(entity_shares)"/> Entity<t t-if="len(entity_shares) != 1">s</t>
+                                        <t t-out="len(entity_shares)"/> <t t-if="len(entity_shares) == 1">Entity</t><t t-else="">Entities</t>
                                     </span>
                                     <span class="me-3">
                                         <i class="fa fa-object-group me-1"></i>
