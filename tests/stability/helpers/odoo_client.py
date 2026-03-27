@@ -406,14 +406,17 @@ class OdooClient:
             "name": name,
             "ha_instance_id": instance_id,
         })
-        # Step 2: select blueprint (loads schema)
+        # Step 2: refresh blueprints (populates blueprint_list_json)
+        self.call_kw("ha.blueprint.wizard", "action_refresh_blueprints",
+                      [[wiz_id]])
+        # Step 3: select blueprint (loads schema)
         self.call_kw("ha.blueprint.wizard", "action_select_blueprint",
                       [[wiz_id]])
-        # Step 3: set inputs
+        # Step 4: set inputs
         import json as _json
         self.write("ha.blueprint.wizard", [wiz_id],
                    {"blueprint_inputs_json": _json.dumps(inputs)})
-        # Step 4: create
+        # Step 5: create
         return self.call_kw("ha.blueprint.wizard", "action_create",
                             [[wiz_id]])
 

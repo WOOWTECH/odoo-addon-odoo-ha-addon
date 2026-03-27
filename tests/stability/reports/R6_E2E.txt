@@ -2,9 +2,9 @@
   BROWSER E2E TEST REPORT — R6_E2E
 ======================================================================
 
-  Started:  2026-03-27T03:49:17.886723+00:00
-  Finished: 2026-03-27T03:53:31.764090+00:00
-  Duration: 253.9s
+  Started:  2026-03-27T06:43:33.850511+00:00
+  Finished: 2026-03-27T06:47:46.942245+00:00
+  Duration: 253.1s
 
   Total: 35  |  PASS: 30  |  FAIL: 0  |  ERROR: 0  |  SKIP: 5
   Pass Rate: 100.0%
@@ -12,41 +12,41 @@
 
   [PASS] E2E-01: Admin login (7.1s)
   [PASS] E2E-02: Instance dashboard loads (5.5s)
-  [PASS] E2E-03: Info dashboard loads (5.5s)
-  [PASS] E2E-04: Area dashboard loads (5.5s)
+  [PASS] E2E-03: Info dashboard loads (5.4s)
+  [PASS] E2E-04: Area dashboard loads (5.2s)
   [PASS] E2E-05: Entity list view loads (4.3s)
-  [PASS] E2E-06: Entity form view opens (8.5s)
+  [PASS] E2E-06: Entity form view opens (8.4s)
   [PASS] E2E-07: Scene list view (4.3s)
   [PASS] E2E-08: Automation list view (4.3s)
-  [PASS] E2E-09: Script list view (4.2s)
+  [PASS] E2E-09: Script list view (4.3s)
   [PASS] E2E-10: Area list view (4.3s)
-  [PASS] E2E-11: Device list view (4.2s)
+  [PASS] E2E-11: Device list view (4.3s)
   [PASS] E2E-12: Label list view (4.3s)
-  [PASS] E2E-13: Instance list view (4.3s)
-  [PASS] E2E-14: Entity tag list view (4.4s)
+  [PASS] E2E-13: Instance list view (4.2s)
+  [PASS] E2E-14: Entity tag list view (4.3s)
   [PASS] E2E-15: Entity group list view (4.3s)
-  [PASS] E2E-16: Entity search works (8.9s)
-  [PASS] E2E-17: Form view: switch entity (7.6s)
-  [PASS] E2E-18: Form view: light entity (7.8s)
-  [PASS] E2E-19: Form view: sensor entity (7.5s)
-  [PASS] E2E-20: Form view: climate entity (7.7s)
-  [SKIP] E2E-21: Form view: cover entity (8.5s)
+  [PASS] E2E-16: Entity search works (9.1s)
+  [PASS] E2E-17: Form view: switch entity (7.5s)
+  [PASS] E2E-18: Form view: light entity (7.6s)
+  [PASS] E2E-19: Form view: sensor entity (7.7s)
+  [PASS] E2E-20: Form view: climate entity (7.5s)
+  [SKIP] E2E-21: Form view: cover entity (8.3s)
          -> No cover entities in list
-  [SKIP] E2E-22: Form view: fan entity (8.5s)
+  [SKIP] E2E-22: Form view: fan entity (8.2s)
          -> No fan entities in list
   [SKIP] E2E-23: Form view: automation entity (8.3s)
          -> No automation entities in list
   [PASS] E2E-24: Form view: scene entity (7.7s)
-  [SKIP] E2E-25: Form view: script entity (8.2s)
+  [SKIP] E2E-25: Form view: script entity (8.4s)
          -> No script entities in list
   [PASS] E2E-26: Entity kanban view (6.4s)
-  [PASS] E2E-27: Dashboard shows connection status (5.3s)
+  [PASS] E2E-27: Dashboard shows connection status (5.2s)
   [PASS] E2E-28: Dashboard shows statistics (3.3s)
   [PASS] E2E-29: Portal entity route accessible (3.3s)
-  [SKIP] E2E-30: Portal user login (35.3s)
+  [SKIP] E2E-30: Portal user login (35.8s)
          -> Portal user credentials invalid
   [PASS] E2E-31: Responsive layout (mobile) (5.6s)
-  [PASS] E2E-32: Top menu navigation (6.6s)
+  [PASS] E2E-32: Top menu navigation (6.4s)
   [PASS] E2E-33: Breadcrumb navigation (9.6s)
   [PASS] E2E-34: Entity list pagination (7.4s)
   [PASS] E2E-35: No critical JS errors (5.3s)

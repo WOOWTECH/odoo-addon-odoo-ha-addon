@@ -107,7 +107,9 @@ class HADevice(models.Model):
     )
     disabled_by = fields.Char(
         string='Disabled By',
-        help='Who/what disabled this device (user, integration, etc.)'
+        readonly=True,
+        help='Who/what disabled this device (e.g., "user", "integration"). '
+             'Managed by Home Assistant; use HA UI to disable/enable devices.'
     )
     label_ids = fields.Many2many(
         'ha.label',

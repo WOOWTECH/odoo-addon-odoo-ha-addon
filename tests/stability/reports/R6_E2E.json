@@ -6,9 +6,9 @@
     "error": 0,
     "skip": 5,
     "pass_rate": 100.0,
-    "duration_s": 253.9,
-    "started": "2026-03-27T03:49:17.886723+00:00",
-    "finished": "2026-03-27T03:53:31.764090+00:00"
+    "duration_s": 253.1,
+    "started": "2026-03-27T06:43:33.850511+00:00",
+    "finished": "2026-03-27T06:47:46.942245+00:00"
   },
   "tests": [
     {
@@ -30,14 +30,14 @@
       "name": "Info dashboard loads",
       "status": "PASS",
       "message": "Info dashboard loaded",
-      "duration_s": 5.5
+      "duration_s": 5.4
     },
     {
       "id": "E2E-04",
       "name": "Area dashboard loads",
       "status": "PASS",
       "message": "Area dashboard loaded",
-      "duration_s": 5.5
+      "duration_s": 5.2
     },
     {
       "id": "E2E-05",
@@ -51,7 +51,7 @@
       "name": "Entity form view opens",
       "status": "PASS",
       "message": "Form view opened",
-      "duration_s": 8.5
+      "duration_s": 8.4
     },
     {
       "id": "E2E-07",
@@ -64,7 +64,7 @@
       "id": "E2E-08",
       "name": "Automation list view",
       "status": "PASS",
-      "message": "11 rows visible",
+      "message": "12 rows visible",
       "duration_s": 4.3
     },
     {
@@ -72,13 +72,13 @@
       "name": "Script list view",
       "status": "PASS",
       "message": "3 rows visible",
-      "duration_s": 4.2
+      "duration_s": 4.3
     },
     {
       "id": "E2E-10",
       "name": "Area list view",
       "status": "PASS",
-      "message": "10 rows visible",
+      "message": "11 rows visible",
       "duration_s": 4.3
     },
     {
@@ -86,13 +86,13 @@
       "name": "Device list view",
       "status": "PASS",
       "message": "80 rows visible",
-      "duration_s": 4.2
+      "duration_s": 4.3
     },
     {
       "id": "E2E-12",
       "name": "Label list view",
       "status": "PASS",
-      "message": "13 labels visible",
+      "message": "12 labels visible",
       "duration_s": 4.3
     },
     {
@@ -100,14 +100,14 @@
       "name": "Instance list view",
       "status": "PASS",
       "message": "1 instances visible",
-      "duration_s": 4.3
+      "duration_s": 4.2
     },
     {
       "id": "E2E-14",
       "name": "Entity tag list view",
       "status": "PASS",
       "message": "0 tags visible",
-      "duration_s": 4.4
+      "duration_s": 4.3
     },
     {
       "id": "E2E-15",
@@ -121,49 +121,49 @@
       "name": "Entity search works",
       "status": "PASS",
       "message": "Search returned 8 rows",
-      "duration_s": 8.9
+      "duration_s": 9.1
     },
     {
       "id": "E2E-17",
       "name": "Form view: switch entity",
       "status": "PASS",
       "message": "Form loaded for switch",
-      "duration_s": 7.6
+      "duration_s": 7.5
     },
     {
       "id": "E2E-18",
       "name": "Form view: light entity",
       "status": "PASS",
       "message": "Form loaded for light",
-      "duration_s": 7.8
+      "duration_s": 7.6
     },
     {
       "id": "E2E-19",
       "name": "Form view: sensor entity",
       "status": "PASS",
       "message": "Form loaded for sensor",
-      "duration_s": 7.5
+      "duration_s": 7.7
     },
     {
       "id": "E2E-20",
       "name": "Form view: climate entity",
       "status": "PASS",
       "message": "Form loaded for climate",
-      "duration_s": 7.7
+      "duration_s": 7.5
     },
     {
       "id": "E2E-21",
       "name": "Form view: cover entity",
       "status": "SKIP",
       "message": "No cover entities in list",
-      "duration_s": 8.5
+      "duration_s": 8.3
     },
     {
       "id": "E2E-22",
       "name": "Form view: fan entity",
       "status": "SKIP",
       "message": "No fan entities in list",
-      "duration_s": 8.5
+      "duration_s": 8.2
     },
     {
       "id": "E2E-23",
@@ -184,7 +184,7 @@
       "name": "Form view: script entity",
       "status": "SKIP",
       "message": "No script entities in list",
-      "duration_s": 8.2
+      "duration_s": 8.4
     },
     {
       "id": "E2E-26",
@@ -198,7 +198,7 @@
       "name": "Dashboard shows connection status",
       "status": "PASS",
       "message": "Status: \u5df2\u9023\u7dda, \u555f\u7528\u4e2d",
-      "duration_s": 5.3
+      "duration_s": 5.2
     },
     {
       "id": "E2E-28",
@@ -219,7 +219,7 @@
       "name": "Portal user login",
       "status": "SKIP",
       "message": "Portal user credentials invalid",
-      "duration_s": 35.3
+      "duration_s": 35.8
     },
     {
       "id": "E2E-31",
@@ -233,7 +233,7 @@
       "name": "Top menu navigation",
       "status": "PASS",
       "message": "Menu navigation works",
-      "duration_s": 6.6
+      "duration_s": 6.4
     },
     {
       "id": "E2E-33",

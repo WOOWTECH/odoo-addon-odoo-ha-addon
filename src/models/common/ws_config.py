@@ -118,3 +118,22 @@ REST_API_FUTURE_TIMEOUT = 15
 
 # REST API extended future timeout (seconds)
 REST_API_FUTURE_EXTENDED_TIMEOUT = 35
+
+
+# ============================================================================
+# Odoo Cron Worker Limits (Reference Documentation)
+# ============================================================================
+# Odoo WorkerCron has a 120s hard limit per cron job execution.
+# Heavy sync operations (full entity + device + history) may approach this.
+# After timeout, HTTP sessions may reset, causing [Errno 104] errors.
+#
+# Known behavior:
+# - WebSocket retry handles reconnection automatically (5 attempts, backoff)
+# - HTTP session needs re-authentication after cron worker restart
+# - This is infrastructure-level, not a code bug
+#
+# Mitigation:
+# 1. Registry sync operations have individual timeouts (15s each)
+# 2. History sync is capped at WS_HISTORY_BATCH_TIMEOUT (within limit)
+# 3. Breaking syncs into smaller batches prevents worker timeout
+ODOO_CRON_WORKER_TIMEOUT = 120  # Reference only, cannot change via code

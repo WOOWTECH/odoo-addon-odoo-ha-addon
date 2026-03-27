@@ -3,6 +3,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, AccessError
 import logging
+from odoo.addons.odoo_ha_addon.models.common.hass_rest_api import HassRestApi
 from odoo.addons.odoo_ha_addon.models.common.ws_config import (
     WS_CLOSE_TIMEOUT,
     WS_AUTH_TIMEOUT,
@@ -666,7 +667,10 @@ class HAInstance(models.Model):
                 ('ha_instance_id', '=', self.id)
             ])
 
-            _logger.info(f"Registry sync completed for {self.name}")
+            _logger.info(
+                f"Registry sync completed for instance '{self.name}': "
+                f"labels={label_count}, areas={area_count}, devices={device_count}"
+            )
 
             return {
                 'type': 'ir.actions.client',
@@ -918,6 +922,17 @@ class HAInstance(models.Model):
             'instance_id': self.id,
             'instance_name': self.name
         }
+
+    def _get_rest_api(self):
+        """取得此實例的 REST API 客戶端
+
+        用於 Blueprint Wizard 等需要 REST API 存取的模型。
+
+        Returns:
+            HassRestApi: 已設定的 REST API 客戶端
+        """
+        self.ensure_one()
+        return HassRestApi(self.env, self.id)
 
     def _clear_instance_data(self):
         """

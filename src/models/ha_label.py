@@ -1,5 +1,5 @@
-from odoo import models, fields, api
-from odoo.exceptions import AccessError
+from odoo import models, fields, api, _
+from odoo.exceptions import AccessError, ValidationError
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -145,7 +145,8 @@ class HALabel(models.Model):
         """
         Override create: After creating label in Odoo, sync to HA
 
-        Use context['from_ha_sync'] = True to prevent sync loop
+        Use context['from_ha_sync'] = True to prevent sync loop.
+        Handles HA label_id slug collisions gracefully.
         """
         records = super().create(vals_list)
 
@@ -155,7 +156,14 @@ class HALabel(models.Model):
                 try:
                     record._create_label_in_ha()
                 except Exception as e:
-                    _logger.error(f"Failed to sync label {record.name} to HA: {e}")
+                    err_str = str(e).lower()
+                    if 'unique' in err_str or 'label_instance_unique' in err_str:
+                        _logger.warning(
+                            f"Label '{record.name}' created in Odoo but HA label_id "
+                            f"collision occurred (will reconcile on next sync): {e}"
+                        )
+                    else:
+                        _logger.error(f"Failed to sync label {record.name} to HA: {e}")
 
         return records
 
@@ -234,12 +242,21 @@ class HALabel(models.Model):
                 # Update Odoo with HA-generated label_id
                 ha_label_id = result.get('label_id')
                 if ha_label_id and ha_label_id != self.label_id:
-                    self.with_context(from_ha_sync=True).write({
-                        'label_id': ha_label_id,
-                        'created_at': result.get('created_at', 0),
-                        'modified_at': result.get('modified_at', 0),
-                    })
-                    _logger.info(f"Updated label_id from HA: {ha_label_id}")
+                    try:
+                        self.with_context(from_ha_sync=True).write({
+                            'label_id': ha_label_id,
+                            'created_at': result.get('created_at', 0),
+                            'modified_at': result.get('modified_at', 0),
+                        })
+                        _logger.info(f"Updated label_id from HA: {ha_label_id}")
+                    except Exception as write_err:
+                        if 'unique' in str(write_err).lower():
+                            _logger.warning(
+                                f"label_id collision writing back '{ha_label_id}' "
+                                f"for label '{self.name}': will reconcile on next sync"
+                            )
+                        else:
+                            raise
 
             _logger.info(f"Label {self.name} created in HA successfully")
 
