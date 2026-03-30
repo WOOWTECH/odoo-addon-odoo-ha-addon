@@ -14,8 +14,8 @@ services:
     volumes:
       # Odoo configuration
       - ./config/odoo:/etc/odoo
-      # Custom addons - mount src directory as the addon
-      - ./src:/mnt/extra-addons/odoo_ha_addon
+      # Custom addons - mount repository root as the addon
+      - .:/mnt/extra-addons/odoo_ha_addon
       # Odoo data persistence
       - odoo-data:/var/lib/odoo
     environment:
