@@ -740,7 +740,7 @@ class HADevice(models.Model):
 
         try:
             # Get all active HA instances
-            instances = self.env['ha.instance'].sudo().search([('state', '=', 'active')])
+            instances = self.env['ha.instance'].sudo().search([('active', '=', True)])
 
             for instance in instances:
                 try:

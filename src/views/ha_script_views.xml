@@ -59,7 +59,7 @@
                     <div class="oe_button_box" name="button_box">
                         <button class="oe_stat_button" icon="fa-cube"
                                 invisible="not is_blueprint_based">
-                            <field name="is_blueprint_based" widget="statinfo" string="Blueprint"/>
+                            <span class="o_stat_text">Blueprint</span>
                         </button>
                     </div>
                     <div class="oe_title">

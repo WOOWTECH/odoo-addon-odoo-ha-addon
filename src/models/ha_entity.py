@@ -1659,6 +1659,210 @@ class HAEntity(models.Model):
             },
         }
 
+    # ========== Automation-specific Methods ==========
+
+    def action_toggle_automation(self):
+        """Toggle an automation on/off in Home Assistant."""
+        self.ensure_one()
+
+        if self.domain != 'automation':
+            raise ValidationError(_('This action is only available for automation entities.'))
+
+        if not self.ha_instance_id:
+            raise ValidationError(_('No HA instance configured for this entity.'))
+
+        try:
+            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
+            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
+
+            payload = {
+                'domain': 'automation',
+                'service': 'toggle',
+                'target': {
+                    'entity_id': self.entity_id
+                }
+            }
+
+            _logger.info(f"Toggling automation: {self.entity_id}")
+            client.call_websocket_api_sync('call_service', payload)
+            _logger.info(f"Automation {self.entity_id} toggled successfully")
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Automation Toggled'),
+                    'message': _('Automation "%s" has been toggled.') % (self.name or self.entity_id),
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f"Failed to toggle automation {self.entity_id}: {e}", exc_info=True)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Toggle Failed'),
+                    'message': _('Failed to toggle automation: %s') % str(e),
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    def action_trigger_automation(self):
+        """Trigger an automation manually in Home Assistant."""
+        self.ensure_one()
+
+        if self.domain != 'automation':
+            raise ValidationError(_('This action is only available for automation entities.'))
+
+        if not self.ha_instance_id:
+            raise ValidationError(_('No HA instance configured for this entity.'))
+
+        try:
+            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
+            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
+
+            payload = {
+                'domain': 'automation',
+                'service': 'trigger',
+                'target': {
+                    'entity_id': self.entity_id
+                }
+            }
+
+            _logger.info(f"Triggering automation: {self.entity_id}")
+            client.call_websocket_api_sync('call_service', payload)
+            _logger.info(f"Automation {self.entity_id} triggered successfully")
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Automation Triggered'),
+                    'message': _('Automation "%s" has been triggered.') % (self.name or self.entity_id),
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f"Failed to trigger automation {self.entity_id}: {e}", exc_info=True)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Trigger Failed'),
+                    'message': _('Failed to trigger automation: %s') % str(e),
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    # ========== Script-specific Methods ==========
+
+    def action_run_script(self):
+        """Run a script in Home Assistant."""
+        self.ensure_one()
+
+        if self.domain != 'script':
+            raise ValidationError(_('This action is only available for script entities.'))
+
+        if not self.ha_instance_id:
+            raise ValidationError(_('No HA instance configured for this entity.'))
+
+        try:
+            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
+            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
+
+            payload = {
+                'domain': 'script',
+                'service': 'turn_on',
+                'target': {
+                    'entity_id': self.entity_id
+                }
+            }
+
+            _logger.info(f"Running script: {self.entity_id}")
+            client.call_websocket_api_sync('call_service', payload)
+            _logger.info(f"Script {self.entity_id} started successfully")
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Script Started'),
+                    'message': _('Script "%s" has been started.') % (self.name or self.entity_id),
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f"Failed to run script {self.entity_id}: {e}", exc_info=True)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Script Failed'),
+                    'message': _('Failed to run script: %s') % str(e),
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
+    def action_toggle_script(self):
+        """Toggle a script on/off in Home Assistant."""
+        self.ensure_one()
+
+        if self.domain != 'script':
+            raise ValidationError(_('This action is only available for script entities.'))
+
+        if not self.ha_instance_id:
+            raise ValidationError(_('No HA instance configured for this entity.'))
+
+        try:
+            from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
+            client = get_websocket_client(self.env, instance_id=self.ha_instance_id.id)
+
+            payload = {
+                'domain': 'script',
+                'service': 'toggle',
+                'target': {
+                    'entity_id': self.entity_id
+                }
+            }
+
+            _logger.info(f"Toggling script: {self.entity_id}")
+            client.call_websocket_api_sync('call_service', payload)
+            _logger.info(f"Script {self.entity_id} toggled successfully")
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Script Toggled'),
+                    'message': _('Script "%s" has been toggled.') % (self.name or self.entity_id),
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f"Failed to toggle script {self.entity_id}: {e}", exc_info=True)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Toggle Failed'),
+                    'message': _('Failed to toggle script: %s') % str(e),
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+
     # ========== Scene-specific Methods ==========
 
     def action_activate_scene(self):
