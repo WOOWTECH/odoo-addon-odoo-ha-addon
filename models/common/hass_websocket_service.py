@@ -1012,14 +1012,24 @@ class HassWebSocketService:
                 )
                 return
 
+            # 處理 create action - 新 entity 註冊，同步所有 registry 欄位
+            if action == 'create':
+                self._logger.info(
+                    f"New entity registered in HA: {entity_id} (instance {self.instance_id})"
+                )
+                # 新 entity：同步 area、name、labels 和 device 關聯
+                await self._fetch_and_sync_entity_registry_full(entity_id)
+                return
+
             # 處理 update action
             if action == 'update':
                 # 檢查是否有我們關心的欄位變更
                 area_changed = 'area_id' in changes
                 name_changed = 'name' in changes
                 labels_changed = 'labels' in changes
+                device_changed = 'device_id' in changes
 
-                if area_changed or name_changed or labels_changed:
+                if area_changed or name_changed or labels_changed or device_changed:
                     changed_fields = []
                     if area_changed:
                         changed_fields.append('area_id')
@@ -1027,20 +1037,25 @@ class HassWebSocketService:
                         changed_fields.append('name')
                     if labels_changed:
                         changed_fields.append('labels')
+                    if device_changed:
+                        changed_fields.append('device_id')
 
                     self._logger.info(
                         f"Entity registry changed in HA: {entity_id}, "
                         f"fields: {', '.join(changed_fields)} (instance {self.instance_id})"
                     )
 
-                    # 查詢 HA 獲取最新的 entity 資料並同步到 Odoo
-                    # 注意：changes 中的是舊值，需要從 HA 查詢新值
-                    await self._fetch_and_sync_entity_registry(
-                        entity_id,
-                        sync_area=area_changed,
-                        sync_name=name_changed,
-                        sync_labels=labels_changed
-                    )
+                    # device_id 變更會影響 follows_device_area，需要完整同步
+                    if device_changed or area_changed:
+                        await self._fetch_and_sync_entity_registry_full(entity_id)
+                    else:
+                        # 只同步 name 或 labels
+                        await self._fetch_and_sync_entity_registry(
+                            entity_id,
+                            sync_area=False,
+                            sync_name=name_changed,
+                            sync_labels=labels_changed
+                        )
 
         except Exception as e:
             self._logger.error(f"Error handling entity registry update: {e}", exc_info=True)
@@ -1227,12 +1242,12 @@ class HassWebSocketService:
     async def _fetch_and_sync_entity_area(self, entity_id: str):
         """
         從 HA 查詢 entity 的最新 area_id 並同步到 Odoo
-        （保留此方法以維持向後相容性，實際調用 _fetch_and_sync_entity_registry）
+        使用完整 registry 同步以正確處理 follows_device_area
 
         Args:
             entity_id: HA 的 entity_id（如 "switch.test_switch"）
         """
-        await self._fetch_and_sync_entity_registry(entity_id, sync_area=True, sync_name=False)
+        await self._fetch_and_sync_entity_registry_full(entity_id)
 
     async def _fetch_and_sync_entity_registry(
         self,
@@ -1321,6 +1336,169 @@ class HassWebSocketService:
         except Exception as e:
             self._logger.error(
                 f"Failed to fetch entity {entity_id} from HA: {e}",
+                exc_info=True
+            )
+
+    async def _fetch_and_sync_entity_registry_full(self, entity_id: str):
+        """
+        從 HA 查詢 entity 的完整 registry 資料並同步到 Odoo
+        包含 area_id、device_id、follows_device_area、name 和 labels
+
+        用於：
+        - entity_registry create 事件（新 entity 需要完整同步）
+        - entity_registry update 事件中 area_id 或 device_id 變更
+
+        Args:
+            entity_id: HA 的 entity_id（如 "switch.test_switch"）
+        """
+        try:
+            result = await self.send_request(
+                'config/entity_registry/get',
+                entity_id=entity_id,
+                timeout=WS_ENTITY_REGISTRY_TIMEOUT
+            )
+
+            if result and isinstance(result, dict):
+                ha_area_id = result.get('area_id')
+                ha_device_id = result.get('device_id')
+                ha_name = result.get('name') or result.get('original_name')
+                ha_labels = result.get('labels', [])
+
+                self._logger.debug(
+                    f"Full registry sync for {entity_id}: "
+                    f"area_id={ha_area_id}, device_id={ha_device_id}, "
+                    f"name={ha_name!r}, labels={ha_labels}"
+                )
+
+                await self._run_sync(
+                    self._sync_entity_registry_full_from_ha,
+                    entity_id,
+                    ha_area_id,
+                    ha_device_id,
+                    ha_name,
+                    ha_labels
+                )
+            else:
+                self._logger.warning(
+                    f"Failed to get entity {entity_id} from HA: unexpected result {result}"
+                )
+
+        except asyncio.TimeoutError:
+            self._logger.error(f"Timeout fetching entity {entity_id} from HA")
+        except Exception as e:
+            self._logger.error(
+                f"Failed to fetch entity {entity_id} from HA: {e}",
+                exc_info=True
+            )
+
+    def _sync_entity_registry_full_from_ha(
+        self, entity_id: str, ha_area_id, ha_device_id, ha_name, ha_labels
+    ):
+        """
+        同步方法：從 HA 完整更新 Entity 的 registry 欄位到 Odoo
+        包含 area_id、device_id、follows_device_area、name 和 labels
+
+        Args:
+            entity_id: HA 的 entity_id
+            ha_area_id: HA 的 area_id（可為 None）
+            ha_device_id: HA 的 device_id（可為 None）
+            ha_name: HA 的顯示名稱
+            ha_labels: HA 的 labels 列表
+        """
+        try:
+            with db.db_connect(self.db_name).cursor() as cr:
+                env = api.Environment(cr, 1, {})
+
+                entity = env['ha.entity'].sudo().search([
+                    ('entity_id', '=', entity_id),
+                    ('ha_instance_id', '=', self.instance_id)
+                ], limit=1)
+
+                if not entity:
+                    self._logger.debug(
+                        f"Entity {entity_id} not found in Odoo, skipping full registry sync "
+                        f"(instance {self.instance_id})"
+                    )
+                    return
+
+                update_vals = {}
+
+                # 處理 area_id 和 follows_device_area
+                if ha_area_id:
+                    # Entity 有自己的 area
+                    area = env['ha.area'].sudo().search([
+                        ('area_id', '=', ha_area_id),
+                        ('ha_instance_id', '=', self.instance_id)
+                    ], limit=1)
+                    if not area:
+                        area = env['ha.area'].sudo().create({
+                            'area_id': ha_area_id,
+                            'name': ha_area_id,
+                            'ha_instance_id': self.instance_id,
+                        })
+                    if entity.area_id.id != area.id:
+                        update_vals['area_id'] = area.id
+                    if entity.follows_device_area:
+                        update_vals['follows_device_area'] = False
+                elif not ha_area_id and ha_device_id:
+                    # 沒有 area 但有 device -> 跟隨裝置分區
+                    if entity.area_id:
+                        update_vals['area_id'] = False
+                    if not entity.follows_device_area:
+                        update_vals['follows_device_area'] = True
+                elif not ha_area_id and not ha_device_id:
+                    # 沒有 area 也沒有 device
+                    if entity.area_id:
+                        update_vals['area_id'] = False
+                    if entity.follows_device_area:
+                        update_vals['follows_device_area'] = False
+
+                # 處理 device_id
+                if ha_device_id:
+                    device = env['ha.device'].sudo().search([
+                        ('device_id', '=', ha_device_id),
+                        ('ha_instance_id', '=', self.instance_id)
+                    ], limit=1)
+                    if device and entity.device_id.id != device.id:
+                        update_vals['device_id'] = device.id
+                    elif not device:
+                        self._logger.warning(
+                            f"Device {ha_device_id} not found in Odoo for entity {entity_id}"
+                        )
+                elif not ha_device_id and entity.device_id:
+                    update_vals['device_id'] = False
+
+                # 處理 name
+                if ha_name and entity.name != ha_name:
+                    update_vals['name'] = ha_name
+
+                # 處理 labels
+                if ha_labels:
+                    label_records = env['ha.label'].get_or_create_labels(
+                        ha_labels, self.instance_id
+                    )
+                    if set(entity.label_ids.ids) != set(label_records.ids):
+                        update_vals['label_ids'] = [(6, 0, label_records.ids)]
+                elif entity.label_ids:
+                    update_vals['label_ids'] = [(5, 0, 0)]
+
+                if update_vals:
+                    entity.with_context(from_ha_sync=True).write(update_vals)
+                    cr.commit()
+                    self._logger.info(
+                        f"Full registry sync for {entity_id}: updated {list(update_vals.keys())} "
+                        f"(instance {self.instance_id})"
+                    )
+                else:
+                    self._logger.debug(
+                        f"Full registry sync for {entity_id}: no changes needed "
+                        f"(instance {self.instance_id})"
+                    )
+
+        except Exception as e:
+            self._logger.error(
+                f"Failed to sync full entity registry for {entity_id} "
+                f"(instance {self.instance_id}): {e}",
                 exc_info=True
             )
 
@@ -2394,6 +2572,7 @@ class HassWebSocketService:
     ) -> None:
         """
         在 Odoo 中更新實體狀態（非阻塞版本）
+        如果建立了新實體，會自動觸發 registry 同步以設定 device/area 關聯
 
         Args:
             entity_id: Home Assistant entity ID
@@ -2401,12 +2580,19 @@ class HassWebSocketService:
             old_state_data: 舊的狀態資料（可選）
         """
         try:
-            await self._run_sync(
+            is_new = await self._run_sync(
                 self._sync_update_entity,
                 entity_id,
                 new_state_data,
                 old_state_data
             )
+            # 新建立的 entity 需要同步 registry 資料（device_id, area_id 等）
+            if is_new:
+                self._logger.info(
+                    f"New entity {entity_id} created, scheduling registry sync "
+                    f"(instance {self.instance_id})"
+                )
+                await self._fetch_and_sync_entity_registry_full(entity_id)
         except Exception as e:
             self._logger.error(f"Failed to update entity in Odoo: {e}")
 
@@ -2414,7 +2600,11 @@ class HassWebSocketService:
         """
         同步版本的實體更新（在背景執行緒中執行）
         Phase 2: 加入 ha_instance_id 過濾和設定
+
+        Returns:
+            bool: True if a new entity was created, False if existing entity was updated
         """
+        is_new = False
         try:
             # 建立新的資料庫連線和環境
             with db.db_connect(self.db_name).cursor() as cr:
@@ -2451,6 +2641,7 @@ class HassWebSocketService:
                 else:
                     # 建立新實體
                     entity = env['ha.entity'].create(entity_values)
+                    is_new = True
                     self._logger.info(f"Created new entity: {entity_id} (instance {self.instance_id})")
 
                 # 如果啟用歷史記錄，則建立歷史記錄
@@ -2482,6 +2673,8 @@ class HassWebSocketService:
 
         except Exception as e:
             self._logger.error(f"Error in sync entity update for instance {self.instance_id}: {e}")
+
+        return is_new
 
     def _get_next_id(self) -> int:
         """取得下一個訊息 ID"""
