@@ -108,22 +108,6 @@ def post_init_hook(env):
     _logger.info("✓ Home Assistant WebSocket integration module installed successfully")
     _logger.info("=" * 60)
 
-    # 自動把 admin 用戶加入 HA Manager 群組
-    try:
-        admin_user = env.ref('base.user_admin', raise_if_not_found=False)
-        ha_manager_group = env.ref('odoo_ha_addon.group_ha_manager', raise_if_not_found=False)
-
-        if admin_user and ha_manager_group:
-            if ha_manager_group not in admin_user.groups_id:
-                admin_user.write({'groups_id': [(4, ha_manager_group.id)]})
-                _logger.info(f"✓ Added admin user to HA Manager group")
-            else:
-                _logger.info("Admin user already in HA Manager group")
-        else:
-            _logger.warning("Could not find admin user or HA Manager group")
-    except Exception as e:
-        _logger.warning(f"Failed to add admin to HA Manager group: {e}")
-
 def uninstall_hook(env):
     """
     在模組卸載時執行的 Hook

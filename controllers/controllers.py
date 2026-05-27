@@ -1655,6 +1655,8 @@ class AwesomeDashboard(http.Controller):
                 'error': _('entity_id is required')
             })
 
+        # Ensure entity_id is a string (HA API expects string like 'switch.living_room')
+        entity_id = str(entity_id)
         _logger.debug(f"Getting related info for entity: {entity_id}")
 
         # Phase 3: 如果沒指定實例 ID，使用當前實例

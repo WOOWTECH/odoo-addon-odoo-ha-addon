@@ -2051,7 +2051,7 @@ class HassWebSocketService:
                     'area_id': area.area_id,
                     'name': area.name,
                     'aliases': area.aliases or [],
-                    'labels': area.labels or [],
+                    'labels': area.label_ids.mapped('label_id') if area.label_ids else [],
                 } for area in areas]
         except Exception as e:
             self._logger.error(f"Failed to get Odoo areas for sync: {e}", exc_info=True)

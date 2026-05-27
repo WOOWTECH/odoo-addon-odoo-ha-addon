@@ -360,6 +360,16 @@ class HAPortalController(http.Controller):
                 'error_code': 'missing_entity_id'
             }
 
+        # Validate record_id is a valid integer
+        try:
+            record_id = int(record_id)
+        except (ValueError, TypeError):
+            return {
+                'success': False,
+                'error': _('Invalid entity_id: must be a numeric ID'),
+                'error_code': 'invalid_entity_id'
+            }
+
         # 2. Check entity exists
         entity = request.env['ha.entity'].sudo().browse(record_id)
         if not entity.exists():

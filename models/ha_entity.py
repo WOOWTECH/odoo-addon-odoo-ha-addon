@@ -5,6 +5,7 @@ import json
 import re
 import threading
 import unicodedata
+from psycopg2 import errors as psycopg2_errors
 from .common.utils import parse_iso_datetime, parse_domain_from_entitiy_id
 from .common.hass_rest_api import HassRestApi
 
@@ -1375,11 +1376,11 @@ class HAEntity(models.Model):
         error_count = 0
 
         for i, record in enumerate(records):
-            # 使用 savepoint 隔離每個實體的更新
-            # 如果與 WebSocket state_changed 並發，只影響此實體
-            with self.env.cr.savepoint():
-                try:
-                    entity_id = record['entity_id']
+            entity_id = record.get('entity_id', 'unknown')
+            try:
+                # 使用 savepoint 隔離每個實體的更新
+                # 如果與 WebSocket state_changed 並發，只影響此實體
+                with self.env.cr.savepoint():
                     _logger.debug(f"Batch update {i+1}/{len(records)}: {entity_id}")
 
                     # Phase 3: 檢查是否已存在（加上 instance_id 過濾）
@@ -1415,12 +1416,35 @@ class HAEntity(models.Model):
                         created_count += 1
                         _logger.info(f"Created entity: {entity_id} (domain: {record['domain']})")
 
-                except Exception as e:
-                    # savepoint 會自動 rollback 此次迭代
+            except psycopg2_errors.UniqueViolation:
+                # Race condition: WebSocket sync created the same entity concurrently
+                # Savepoint already rolled back by context manager; retry as update
+                try:
+                    with self.env.cr.savepoint():
+                        existing = self.env[self._name].search([
+                            ('entity_id', '=', entity_id),
+                            ('ha_instance_id', '=', instance_id)
+                        ], limit=1)
+                        if existing:
+                            existing.with_context(from_ha_sync=True).write({
+                                'name': record['name'],
+                                'entity_state': record['entity_state'],
+                                'last_changed': record['last_changed'],
+                                'attributes': record['attributes']
+                            })
+                            updated_count += 1
+                            _logger.info(f"Race condition resolved for entity: {entity_id} (updated instead of create)")
+                        else:
+                            _logger.warning(f"Race condition for entity {entity_id}: UniqueViolation but record not found after retry")
+                except Exception as retry_error:
                     error_count += 1
-                    entity_id = record.get('entity_id', 'unknown')
-                    _logger.error(f"Error updating entity {entity_id}: {e}")
-                    _logger.debug(f"Problematic record: {record}")
+                    _logger.error(f"Error retrying entity {entity_id} after race condition: {retry_error}")
+
+            except Exception as e:
+                # savepoint 會自動 rollback 此次迭代
+                error_count += 1
+                _logger.error(f"Error updating entity {entity_id}: {e}")
+                _logger.debug(f"Problematic record: {record}")
 
         _logger.info(f"Batch update summary (instance {instance_id}): {created_count} created, {updated_count} updated, {error_count} errors")
         _logger.debug("=== Batch update completed ===")
