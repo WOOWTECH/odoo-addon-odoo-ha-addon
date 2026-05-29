@@ -40,6 +40,7 @@ export class PortalEntityController extends Component {
         this.sliderValues = useState({
             fanPercentage: null,
             brightness: null,
+            colorTemp: null,
             coverPosition: null,
         });
     }
@@ -95,6 +96,12 @@ export class PortalEntityController extends Component {
             : this.attributes.brightness || 0;
     }
 
+    get currentColorTemp() {
+        return this.sliderValues.colorTemp !== null
+            ? this.sliderValues.colorTemp
+            : this.attributes.color_temp_kelvin || this.attributes.min_color_temp_kelvin || 2700;
+    }
+
     get currentCoverPosition() {
         return this.sliderValues.coverPosition !== null
             ? this.sliderValues.coverPosition
@@ -130,6 +137,25 @@ export class PortalEntityController extends Component {
             }, 1000);
         } catch (e) {
             this.sliderValues.brightness = null;
+        }
+    }
+
+    // Color temperature controls
+    onColorTempInput(colorTemp) {
+        this.sliderValues.colorTemp = parseInt(colorTemp);
+    }
+
+    async onSetColorTemp(colorTemp) {
+        const finalValue = parseInt(colorTemp);
+        this.sliderValues.colorTemp = finalValue;
+
+        try {
+            await this.actions.setColorTemp(finalValue);
+            setTimeout(() => {
+                this.sliderValues.colorTemp = null;
+            }, 1000);
+        } catch (e) {
+            this.sliderValues.colorTemp = null;
         }
     }
 

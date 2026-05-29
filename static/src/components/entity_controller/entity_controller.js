@@ -33,6 +33,7 @@ export class EntityController extends Component {
     this.sliderValues = useState({
       fanPercentage: null,
       brightness: null,
+      colorTemp: null,
       coverPosition: null,
     });
   }
@@ -61,6 +62,12 @@ export class EntityController extends Component {
     return this.sliderValues.brightness !== null
       ? this.sliderValues.brightness
       : (this.state.attributes?.brightness || 0);
+  }
+
+  get currentColorTemp() {
+    return this.sliderValues.colorTemp !== null
+      ? this.sliderValues.colorTemp
+      : (this.state.attributes?.color_temp_kelvin || this.state.attributes?.min_color_temp_kelvin || 2700);
   }
 
   get currentCoverPosition() {
@@ -94,6 +101,24 @@ export class EntityController extends Component {
     } catch (error) {
       // On error, immediately clear temporary value to show actual state
       this.sliderValues.brightness = null;
+    }
+  }
+
+  onColorTempInput(colorTemp) {
+    this.sliderValues.colorTemp = parseInt(colorTemp);
+  }
+
+  async onSetColorTemp(colorTemp) {
+    const finalValue = parseInt(colorTemp);
+    this.sliderValues.colorTemp = finalValue;
+
+    try {
+      await this.actions.setColorTemp(finalValue);
+      setTimeout(() => {
+        this.sliderValues.colorTemp = null;
+      }, 1000);
+    } catch (error) {
+      this.sliderValues.colorTemp = null;
     }
   }
 
@@ -197,6 +222,10 @@ export class EntityController extends Component {
   }
 
   // Climate domain actions
+  async onSetHvacMode(mode) {
+    await this.actions.setHvacMode(mode);
+  }
+
   async onSetFanMode(fanMode) {
     await this.actions.setFanMode(fanMode);
   }

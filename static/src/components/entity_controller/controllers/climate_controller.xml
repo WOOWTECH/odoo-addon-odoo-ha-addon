@@ -62,8 +62,8 @@
                                 type="button"
                                 class="btn btn-sm"
                                 t-att-class="{
-                                    'btn-primary': state.attributes?.hvac_mode === mode,
-                                    'btn-outline-secondary': state.attributes?.hvac_mode !== mode
+                                    'btn-primary': state.entityState === mode,
+                                    'btn-outline-secondary': state.entityState !== mode
                                 }"
                                 t-on-click.stop="() => this.onSetHvacMode(mode)"
                                 t-att-disabled="state.isLoading"

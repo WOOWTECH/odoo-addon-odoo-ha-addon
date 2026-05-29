@@ -52,7 +52,7 @@ export const DOMAIN_CONFIGS = {
             },
             setColorTemp: {
                 service: "turn_on",
-                buildParams: (colorTemp) => ({ color_temp: colorTemp }),
+                buildParams: (colorTempKelvin) => ({ color_temp_kelvin: parseInt(colorTempKelvin) }),
             },
         },
     },

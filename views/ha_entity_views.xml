@@ -32,7 +32,7 @@
         <field name="name">ha.entity.list</field>
         <field name="model">ha.entity</field>
         <field name="arch" type="xml">
-            <list string="Entity">
+            <list string="Entity" create="0">
                 <field name="id" readonly="1"/>
                 <field name="name" readonly="1"/>
                 <field name="entity_id" readonly="1"/>
