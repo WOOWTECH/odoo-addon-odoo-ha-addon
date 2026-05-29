@@ -101,6 +101,30 @@
                     </div>
                 </div>
             </t>
+
+            <!-- Color temperature slider (only when light is on and supports color_temp) -->
+            <t t-if="isOn and attributes.supported_color_modes?.includes('color_temp') and attributes.min_color_temp_kelvin">
+                <div class="color-temp-control portal-value-slider portal-color-temp-slider mt-3">
+                    <div class="slider-track-container d-flex align-items-center gap-2">
+                        <i class="fa fa-fire text-muted" title="Warm"/>
+                        <input
+                            type="range"
+                            t-att-min="attributes.min_color_temp_kelvin"
+                            t-att-max="attributes.max_color_temp_kelvin"
+                            step="50"
+                            t-att-value="currentColorTemp"
+                            t-att-style="'--slider-progress: ' + Math.round(((currentColorTemp - attributes.min_color_temp_kelvin) / (attributes.max_color_temp_kelvin - attributes.min_color_temp_kelvin)) * 100) + '%'"
+                            t-on-input.stop="(ev) => this.onColorTempInput(ev.target.value)"
+                            t-on-change.stop="(ev) => this.onSetColorTemp(ev.target.value)"
+                            t-att-disabled="isLoading"
+                        />
+                        <i class="fa fa-snowflake-o text-muted" title="Cool"/>
+                        <span class="slider-value-badge">
+                            <t t-esc="currentColorTemp"/>K
+                        </span>
+                    </div>
+                </div>
+            </t>
         </div>
     </t>
 
@@ -270,8 +294,8 @@
                                 type="button"
                                 class="btn btn-sm"
                                 t-att-class="{
-                                    'btn-primary': attributes.hvac_mode === mode,
-                                    'btn-outline-secondary': attributes.hvac_mode !== mode
+                                    'btn-primary': entityState === mode,
+                                    'btn-outline-secondary': entityState !== mode
                                 }"
                                 t-on-click.stop="() => this.onSetHvacMode(mode)"
                                 t-att-disabled="isLoading"
