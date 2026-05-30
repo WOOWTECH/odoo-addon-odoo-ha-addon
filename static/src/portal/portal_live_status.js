@@ -16,16 +16,17 @@ import { fetchState } from "./portal_entity_service";
  * - Visual feedback on state changes
  * - Visibility-aware polling (pauses when tab is hidden)
  *
- * Usage:
- *   <owl-component
- *       name="odoo_ha_addon.PortalLiveStatus"
- *       props="{entityId: 123, initialState: 'on'}"/>
+ * Props:
+ *   entityId: {Number} - Entity Odoo record ID
+ *   initialState: {String} - Initial state value
+ *   stateUrl: {String} - State polling URL
  */
 export class PortalLiveStatus extends Component {
     static template = "odoo_ha_addon.PortalLiveStatus";
     static props = {
         entityId: { type: Number },
         initialState: { type: String, optional: true },
+        stateUrl: { type: String, optional: true },
     };
 
     setup() {
@@ -34,6 +35,9 @@ export class PortalLiveStatus extends Component {
             entityState: this.props.initialState || "unknown",
             stateChanged: false,
         });
+
+        // Store state URL for polling
+        this.stateUrl = this.props.stateUrl;
 
         // Polling configuration
         this.pollTimer = null;
@@ -61,7 +65,7 @@ export class PortalLiveStatus extends Component {
 
     async fetchAndUpdate() {
         try {
-            const result = await fetchState(this.props.entityId);
+            const result = await fetchState(this.stateUrl);
 
             if (result.success && result.data) {
                 const newState = result.data.entity_state;

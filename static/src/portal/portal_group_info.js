@@ -18,10 +18,14 @@ import { PortalEntityController } from "./portal_entity_controller";
  * - Auto-polling with visibility control
  * - Permission-based control display
  *
- * Usage:
- *   <owl-component
- *       name="odoo_ha_addon.PortalGroupInfo"
- *       props="{group: {...}, permission: 'view', controllableDomains: [...]}"/>
+ * Mount point pattern (server-rendered):
+ *   <div class="o_portal_group_info"
+ *        data-group-id="456"
+ *        data-group-name="Living Room"
+ *        data-permission="control"
+ *        data-state-url="/my/ha/1/group/456/state"
+ *        data-service-url="/my/ha/1/entity/0/service"
+ *        data-controllable-domains="light,switch,fan"/>
  */
 export class PortalGroupInfo extends Component {
     static template = "odoo_ha_addon.PortalGroupInfo";
@@ -30,6 +34,8 @@ export class PortalGroupInfo extends Component {
         group: { type: Object },
         permission: { type: String, optional: true },
         controllableDomains: { type: Array, optional: true },
+        stateUrl: { type: String, optional: true },
+        serviceUrl: { type: String, optional: true },
     };
 
     setup() {
@@ -44,6 +50,10 @@ export class PortalGroupInfo extends Component {
             entities: initialEntities,
             lastStates: {}, // Track previous states for change detection
         });
+
+        // Store URLs for polling and service calls
+        this.stateUrl = this.props.stateUrl;
+        this.serviceUrl = this.props.serviceUrl;
 
         // Polling configuration
         this.pollTimer = null;
@@ -122,13 +132,33 @@ export class PortalGroupInfo extends Component {
         return this.canControl && this.controllableDomains.includes(entity.domain);
     }
 
+    /**
+     * Get service URL for an entity within this group
+     * The service URL template uses entity_id=0 placeholder;
+     * each entity replaces it with its own ID.
+     */
+    getEntityServiceUrl(entity) {
+        if (!this.serviceUrl) return null;
+        // Replace /entity/0/ with /entity/{id}/
+        return this.serviceUrl.replace('/entity/0/', `/entity/${entity.id}/`);
+    }
+
+    /**
+     * Get state URL for an entity within this group
+     */
+    getEntityStateUrl(entity) {
+        if (!this.serviceUrl) return null;
+        // Derive entity state URL from service URL pattern
+        return this.serviceUrl.replace('/entity/0/service', `/entity/${entity.id}/state`);
+    }
+
     // ========================================
     // Polling Methods
     // ========================================
 
     async fetchAndUpdate() {
         try {
-            const result = await fetchGroupState(this.props.group.id);
+            const result = await fetchGroupState(this.stateUrl);
 
             if (result.success && result.data) {
                 const newEntities = result.data.entities || [];

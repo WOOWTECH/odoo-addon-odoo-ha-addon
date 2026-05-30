@@ -17,15 +17,16 @@ import { fetchState } from "./portal_entity_service";
  * - Attributes Card (dynamic attributes table)
  * - Auto-polling with visibility control
  *
- * Usage:
- *   <owl-component
- *       name="odoo_ha_addon.PortalEntityInfo"
- *       props="{entity: {...}}"/>
+ * Mount point pattern (server-rendered):
+ *   <div class="o_portal_entity_info"
+ *        data-entity-id="123"
+ *        data-state-url="/my/ha/1/entity/123/state"/>
  */
 export class PortalEntityInfo extends Component {
     static template = "odoo_ha_addon.PortalEntityInfo";
     static props = {
         entity: { type: Object },
+        stateUrl: { type: String, optional: true },
     };
 
     setup() {
@@ -36,6 +37,9 @@ export class PortalEntityInfo extends Component {
             attributes: this.props.entity.attributes || {},
             stateChanged: false,
         });
+
+        // Store state URL for polling
+        this.stateUrl = this.props.stateUrl;
 
         // Polling configuration
         this.pollTimer = null;
@@ -96,7 +100,7 @@ export class PortalEntityInfo extends Component {
 
     async fetchAndUpdate() {
         try {
-            const result = await fetchState(this.props.entity.id);
+            const result = await fetchState(this.stateUrl);
 
             if (result.success && result.data) {
                 const newState = result.data.entity_state;

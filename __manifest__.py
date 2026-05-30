@@ -28,9 +28,9 @@
         'views/ha_device_tag_views.xml',  # ha_device_tag_action
         'views/ha_label_views.xml',  # ha_label_action
         'views/ha_scene_views.xml',  # ha_scene_action
-        'views/ha_blueprint_wizard_views.xml',  # Blueprint wizard (must load before automation/script views)
         'views/ha_automation_views.xml',  # ha_automation_action
         'views/ha_script_views.xml',  # ha_script_action
+        'views/ha_blueprint_wizard_views.xml',  # Blueprint wizard
         'views/ha_config_action.xml',  # ha_settings_action
         'views/res_config_settings.xml',
         # ha_instance 定義 action_ha_instance（引用 entity_action）
@@ -169,11 +169,11 @@
             'odoo_ha_addon/static/src/hooks/entity_control/core.js',
             'odoo_ha_addon/static/src/hooks/entity_control/index.js',
 
-            # Portal Service Layer - Token-based API
+            # Portal Service Layer - Session-based API
             'odoo_ha_addon/static/src/portal/portal_entity_service.js',
             'odoo_ha_addon/static/src/portal/hooks/usePortalEntityControl.js',
 
-            # Portal Entity Controller (registered to public_components for <owl-component> tag)
+            # Portal Entity Controller (registered to public_components)
             'odoo_ha_addon/static/src/portal/portal_entity_controller.js',
             'odoo_ha_addon/static/src/portal/portal_entity_controller.xml',
 

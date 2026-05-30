@@ -16,6 +16,7 @@ import { createActionExecutor, buildActionsFromConfig } from "../../hooks/entity
  * - refresh: Portal-specific manual refresh method
  *
  * @param {Object} entityData - Entity initial data { id, domain, entity_state, ... }
+ * @param {Object} urls - API endpoint URLs { stateUrl, serviceUrl }
  * @returns {Object} { state, actions, entityId, domain, refresh }
  *   - state: Reactive state with entityState, attributes, isLoading, error
  *   - actions: Domain-specific actions plus generic callService(service, additionalData)
@@ -23,11 +24,13 @@ import { createActionExecutor, buildActionsFromConfig } from "../../hooks/entity
  *   - domain: Entity domain string
  *   - refresh: Async function to manually refresh state from server
  */
-export function usePortalEntityControl(entityData) {
+export function usePortalEntityControl(entityData, urls = {}) {
     // Use Odoo record ID for API calls, HA entity_id for display
     const odooId = entityData.id;  // Odoo record ID (integer)
     const haEntityId = entityData.entity_id;  // HA entity ID string (e.g., "switch.test_switch")
     const domain = entityData.domain;
+    const stateUrl = urls.stateUrl;
+    const serviceUrl = urls.serviceUrl;
 
     const state = useState({
         entityState: entityData.entity_state || "unknown",
@@ -38,7 +41,7 @@ export function usePortalEntityControl(entityData) {
 
     // Create service caller using portal service (no token needed)
     const serviceCaller = async (serviceDomain, service, serviceData) => {
-        const result = await portalCallService(serviceDomain, service, serviceData);
+        const result = await portalCallService(serviceUrl, serviceDomain, service, serviceData);
 
         if (result.success) {
             state.entityState = result.state;
@@ -79,7 +82,7 @@ export function usePortalEntityControl(entityData) {
         state.error = null;
 
         try {
-            const result = await fetchState(odooId);
+            const result = await fetchState(stateUrl);
             if (result.success && result.data) {
                 state.entityState = result.data.entity_state;
                 state.attributes = result.data.attributes || {};

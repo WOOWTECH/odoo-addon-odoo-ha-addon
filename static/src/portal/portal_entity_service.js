@@ -50,13 +50,14 @@ async function _fetch(url, options, isJsonRpc = false) {
 
 /**
  * Call HA service (unified entry point)
+ * @param {string} serviceUrl - Service endpoint URL (from data-service-url attribute)
  * @param {string} domain - e.g., "light", "switch", "climate"
  * @param {string} service - e.g., "turn_on", "set_temperature"
  * @param {Object} serviceData - Contains entity_id and other parameters
  * @returns {Promise<Object>} { success, state, last_changed, error }
  */
-export async function callService(domain, service, serviceData) {
-    return _fetch('/portal/call-service', {
+export async function callService(serviceUrl, domain, service, serviceData) {
+    return _fetch(serviceUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -68,11 +69,11 @@ export async function callService(domain, service, serviceData) {
 
 /**
  * Get Entity state
- * @param {number} entityId - Entity ID
+ * @param {string} stateUrl - State endpoint URL (from data-state-url attribute)
  * @returns {Promise<Object>} { success, data: { entity_state, last_changed, attributes }, error }
  */
-export async function fetchState(entityId) {
-    return _fetch(`/portal/entity/${entityId}/state`, {
+export async function fetchState(stateUrl) {
+    return _fetch(stateUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,11 +87,11 @@ export async function fetchState(entityId) {
 
 /**
  * Get Entity Group state
- * @param {number} groupId - Entity Group ID
+ * @param {string} stateUrl - Group state endpoint URL (from data-state-url attribute)
  * @returns {Promise<Object>} { success, data: { name, description, entities: [...] }, error }
  */
-export async function fetchGroupState(groupId) {
-    return _fetch(`/portal/entity_group/${groupId}/state`, {
+export async function fetchGroupState(stateUrl) {
+    return _fetch(stateUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

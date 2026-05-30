@@ -13,21 +13,37 @@ import { usePortalEntityControl } from "./hooks/usePortalEntityControl";
  *
  * Only users with 'control' permission can see and use this component.
  *
- * Usage:
- *   <PortalEntityController entity="entityData" permission="control"/>
+ * Mount point pattern (server-rendered):
+ *   <div class="o_portal_entity_controller"
+ *        data-entity-id="123"
+ *        data-entity-domain="light"
+ *        data-entity-state="on"
+ *        data-entity-name="Living Room Light"
+ *        data-entity-ha-id="light.living_room"
+ *        data-attributes='{"brightness": 255}'
+ *        data-state-url="/my/ha/1/entity/123/state"
+ *        data-service-url="/my/ha/1/entity/123/service"
+ *        data-permission="control"/>
  */
 export class PortalEntityController extends Component {
     static template = "odoo_ha_addon.PortalEntityController";
     static props = {
         entity: { type: Object },
         permission: { type: String, optional: true },
+        stateUrl: { type: String, optional: true },
+        serviceUrl: { type: String, optional: true },
     };
 
     setup() {
+        const urls = {
+            stateUrl: this.props.stateUrl,
+            serviceUrl: this.props.serviceUrl,
+        };
+
         // Use Portal-specific hook for control logic
         // API matches useEntityControl: { state, actions, entityId, domain, refresh }
         const { state, actions, entityId, domain, refresh } = usePortalEntityControl(
-            this.props.entity
+            this.props.entity, urls
         );
 
         this.controlState = state;
