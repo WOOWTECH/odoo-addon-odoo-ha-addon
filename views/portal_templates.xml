@@ -747,7 +747,7 @@
                                     You do not have permission to access this resource.
                                     Please contact the owner to request access.
                                 </p>
-                                <a href="/my/ha" class="btn btn-outline-secondary">
+                                <a href="/my/ha" class="btn btn-light">
                                     Back to Home Assistant
                                 </a>
                             </div>
@@ -774,7 +774,7 @@
                                     The requested resource does not exist or has been removed.
                                     Please check the link and try again.
                                 </p>
-                                <a href="/my/ha" class="btn btn-outline-secondary">
+                                <a href="/my/ha" class="btn btn-light">
                                     Back to Home Assistant
                                 </a>
                             </div>
