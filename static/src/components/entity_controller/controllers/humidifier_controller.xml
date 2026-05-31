@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Humidifier Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Humidifier">
+        <div class="humidifier-controller">
+            <div class="d-flex align-items-center gap-3">
+                <div class="form-check form-switch entity-large-switch">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        role="switch"
+                        t-att-checked="isOn"
+                        t-att-disabled="state.isLoading"
+                        t-att-class="{'entity-loading': state.isLoading}"
+                        t-on-click.stop.prevent="() => this.onToggle()"
+                    />
+                </div>
+                <i class="fa fa-tint fa-lg" t-att-class="{'text-info': isOn, 'text-muted': isOff}"/>
+            </div>
+
+            <t t-if="isOn and state.attributes?.humidity !== undefined">
+                <div class="humidity-control mt-3">
+                    <label class="form-label d-flex justify-content-between">
+                        <span>Target Humidity</span>
+                        <span class="badge bg-secondary">
+                            <t t-esc="state.attributes.humidity"/>%
+                        </span>
+                    </label>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-tint text-muted"/>
+                        <input
+                            type="range"
+                            class="form-range"
+                            min="0" max="100" step="1"
+                            t-att-value="state.attributes.humidity"
+                            t-on-change.stop="(ev) => this.onSetHumidity(ev.target.value)"
+                            t-att-disabled="state.isLoading"
+                        />
+                    </div>
+                </div>
+            </t>
+
+            <t t-if="isOn and state.attributes?.available_modes?.length > 0">
+                <div class="mode-control mt-3">
+                    <label class="form-label">Mode</label>
+                    <div class="btn-group" role="group">
+                        <t t-foreach="state.attributes.available_modes" t-as="mode" t-key="mode">
+                            <button type="button" class="btn btn-sm"
+                                t-att-class="{'btn-info': state.attributes.mode === mode, 'btn-outline-secondary': state.attributes.mode !== mode}"
+                                t-on-click.stop="() => this.onSetMode(mode)"
+                                t-att-disabled="state.isLoading">
+                                <t t-esc="mode"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

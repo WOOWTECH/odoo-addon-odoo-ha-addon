@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Device Tracker / Person Domain Controller (Read-only) -->
+    <t t-name="odoo_ha_addon.EntityController.Tracker">
+        <div class="tracker-controller d-flex align-items-center gap-3">
+            <i class="fa fa-map-marker fa-lg" t-att-class="{
+                'text-success': state.entityState === 'home',
+                'text-danger': state.entityState === 'not_home',
+                'text-info': state.entityState !== 'home' &amp;&amp; state.entityState !== 'not_home'
+            }"/>
+            <span class="fs-5 fw-bold">
+                <t t-if="state.entityState === 'home'">Home</t>
+                <t t-elif="state.entityState === 'not_home'">Away</t>
+                <t t-else=""><t t-esc="state.entityState"/></t>
+            </span>
+            <t t-if="state.attributes?.source_type">
+                <span class="badge bg-light text-dark">
+                    <t t-esc="state.attributes.source_type"/>
+                </span>
+            </t>
+        </div>
+    </t>
+</templates>

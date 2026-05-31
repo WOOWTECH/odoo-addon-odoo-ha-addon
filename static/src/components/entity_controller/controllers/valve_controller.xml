@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Valve Domain Controller (similar to Cover) -->
+    <t t-name="odoo_ha_addon.EntityController.Valve">
+        <div class="valve-controller">
+            <div class="btn-group mb-3" role="group">
+                <button class="btn btn-outline-success btn-sm" t-on-click.stop="() => this.onOpenValve()" t-att-disabled="state.isLoading" title="Open">
+                    <i class="fa fa-arrow-up"/>
+                </button>
+                <button class="btn btn-outline-warning btn-sm" t-on-click.stop="() => this.onStopValve()" t-att-disabled="state.isLoading" title="Stop">
+                    <i class="fa fa-stop"/>
+                </button>
+                <button class="btn btn-outline-danger btn-sm" t-on-click.stop="() => this.onCloseValve()" t-att-disabled="state.isLoading" title="Close">
+                    <i class="fa fa-arrow-down"/>
+                </button>
+            </div>
+
+            <t t-if="state.attributes?.current_position !== undefined">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa fa-arrows-v text-muted"/>
+                    <input type="range" class="form-range flex-grow-1"
+                        min="0" max="100" step="1"
+                        t-att-value="state.attributes.current_position || 0"
+                        t-on-change.stop="(ev) => this.onSetValvePosition(ev.target.value)"
+                        t-att-disabled="state.isLoading"
+                    />
+                    <span class="badge bg-secondary"><t t-esc="state.attributes.current_position || 0"/>%</span>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

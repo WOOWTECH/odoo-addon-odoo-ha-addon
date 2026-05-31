@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Button Domain Controller (also used for input_button) -->
+    <t t-name="odoo_ha_addon.EntityController.Button">
+        <div class="button-controller">
+            <button class="btn btn-info" t-on-click.stop="() => this.onPress()" t-att-disabled="state.isLoading">
+                <i t-if="state.isLoading" class="fa fa-spinner entity-spin me-1"/>
+                <i t-else="" class="fa fa-dot-circle-o me-1"/>
+                Press
+            </button>
+        </div>
+    </t>
+</templates>

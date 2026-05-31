@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Vacuum Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Vacuum">
+        <div class="vacuum-controller">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="fa fa-superpowers fa-lg" t-att-class="{
+                    'text-success': state.entityState === 'cleaning',
+                    'text-info': state.entityState === 'returning',
+                    'text-warning': state.entityState === 'paused',
+                    'text-muted': state.entityState === 'docked' || state.entityState === 'idle'
+                }"/>
+                <span class="badge bg-secondary"><t t-esc="state.entityState"/></span>
+                <t t-if="state.attributes?.battery_level !== undefined">
+                    <span class="badge bg-light text-dark">
+                        <i class="fa fa-battery-half me-1"/>
+                        <t t-esc="state.attributes.battery_level"/>%
+                    </span>
+                </t>
+            </div>
+
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-success btn-sm"
+                    t-on-click.stop="() => this.onStart()" t-att-disabled="state.isLoading" title="Start">
+                    <i class="fa fa-play me-1"/>Start
+                </button>
+                <button class="btn btn-outline-warning btn-sm"
+                    t-on-click.stop="() => this.onPause()" t-att-disabled="state.isLoading" title="Pause">
+                    <i class="fa fa-pause me-1"/>Pause
+                </button>
+                <button class="btn btn-outline-danger btn-sm"
+                    t-on-click.stop="() => this.onStop()" t-att-disabled="state.isLoading" title="Stop">
+                    <i class="fa fa-stop me-1"/>Stop
+                </button>
+                <button class="btn btn-outline-info btn-sm"
+                    t-on-click.stop="() => this.onReturnToBase()" t-att-disabled="state.isLoading" title="Return to Base">
+                    <i class="fa fa-home me-1"/>Dock
+                </button>
+            </div>
+
+            <t t-if="state.attributes?.fan_speed_list?.length > 0">
+                <div class="mt-3 d-flex align-items-center gap-2">
+                    <i class="fa fa-tachometer text-muted"/>
+                    <select class="form-select form-select-sm"
+                        t-att-value="state.attributes.fan_speed || ''"
+                        t-on-change.stop="(ev) => this.onSetFanSpeed(ev.target.value)"
+                        t-att-disabled="state.isLoading">
+                        <t t-foreach="state.attributes.fan_speed_list" t-as="speed" t-key="speed">
+                            <option t-att-value="speed" t-att-selected="state.attributes.fan_speed === speed">
+                                <t t-esc="speed"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

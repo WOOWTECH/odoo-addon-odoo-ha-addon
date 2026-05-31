@@ -229,4 +229,168 @@ export class EntityController extends Component {
   async onSetFanMode(fanMode) {
     await this.actions.setFanMode(fanMode);
   }
+
+  // Phase 1: Button / Lock / Humidifier actions
+  async onPress() {
+    await this.actions.press();
+  }
+
+  async onLock() {
+    await this.actions.lock();
+  }
+
+  async onUnlock() {
+    await this.actions.unlock();
+  }
+
+  async onOpen() {
+    await this.actions.open();
+  }
+
+  async onSetHumidity(humidity) {
+    await this.actions.setHumidity(parseInt(humidity));
+  }
+
+  async onSetMode(mode) {
+    await this.actions.setMode(mode);
+  }
+
+  // Phase 2: Number / Text / Select / Datetime actions
+  async onSetValue(value) {
+    await this.actions.setValue(value);
+  }
+
+  async onSelectOption(option) {
+    await this.actions.selectOption(option);
+  }
+
+  async onSetDatetime(datetime) {
+    await this.actions.setDatetime(datetime);
+  }
+
+  // Phase 3: Media Player actions
+  async onMediaPlay() {
+    await this.actions.mediaPlay();
+  }
+
+  async onMediaPause() {
+    await this.actions.mediaPause();
+  }
+
+  async onMediaStop() {
+    await this.actions.mediaStop();
+  }
+
+  async onMediaNextTrack() {
+    await this.actions.mediaNextTrack();
+  }
+
+  async onMediaPreviousTrack() {
+    await this.actions.mediaPreviousTrack();
+  }
+
+  async onSetVolume(volume) {
+    await this.actions.setVolume(parseFloat(volume));
+  }
+
+  async onVolumeMute(mute) {
+    await this.actions.volumeMute(mute);
+  }
+
+  async onSelectSource(source) {
+    await this.actions.selectSource(source);
+  }
+
+  // Vacuum actions
+  async onStart() {
+    await this.actions.start();
+  }
+
+  async onStop() {
+    await this.actions.stop();
+  }
+
+  async onPause() {
+    await this.actions.pause();
+  }
+
+  async onReturnToBase() {
+    await this.actions.returnToBase();
+  }
+
+  async onSetFanSpeed(speed) {
+    await this.actions.setFanSpeed(speed);
+  }
+
+  // Valve actions
+  async onOpenValve() {
+    await this.actions.openValve();
+  }
+
+  async onCloseValve() {
+    await this.actions.closeValve();
+  }
+
+  async onStopValve() {
+    await this.actions.stopValve();
+  }
+
+  async onSetValvePosition(position) {
+    await this.actions.setValvePosition(parseInt(position));
+  }
+
+  // Water Heater actions
+  async onSetOperationMode(mode) {
+    await this.actions.setOperationMode(mode);
+  }
+
+  // Alarm Control Panel actions
+  async onArmHome(code) {
+    await this.actions.armHome(code);
+  }
+
+  async onArmAway(code) {
+    await this.actions.armAway(code);
+  }
+
+  async onArmNight(code) {
+    await this.actions.armNight(code);
+  }
+
+  async onDisarm(code) {
+    await this.actions.disarm(code);
+  }
+
+  // Remote actions
+  async onSendCommand(command) {
+    await this.actions.sendCommand(command);
+  }
+
+  // Lawn Mower actions
+  async onStartMowing() {
+    await this.actions.startMowing();
+  }
+
+  async onDock() {
+    await this.actions.dock();
+  }
+
+  // Phase 5: Todo actions
+  async onAddItem(item) {
+    await this.actions.addItem(item);
+  }
+
+  // Update actions
+  async onInstall() {
+    await this.actions.install();
+  }
+
+  async onSkip() {
+    await this.actions.skip();
+  }
+
+  // TTS actions
+  async onSpeak(message) {
+    await this.actions.speak({ message, entity_id: this.entityId });
+  }
 }

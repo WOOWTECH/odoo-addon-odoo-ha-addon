@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Lock Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Lock">
+        <div class="lock-controller d-flex align-items-center gap-3">
+            <div class="btn-group" role="group">
+                <button class="btn btn-sm"
+                    t-att-class="{'btn-danger': state.entityState === 'locked', 'btn-outline-danger': state.entityState !== 'locked'}"
+                    t-on-click.stop="() => this.onLock()" t-att-disabled="state.isLoading" title="Lock">
+                    <i class="fa fa-lock me-1"/>Lock
+                </button>
+                <button class="btn btn-sm"
+                    t-att-class="{'btn-success': state.entityState === 'unlocked', 'btn-outline-success': state.entityState !== 'unlocked'}"
+                    t-on-click.stop="() => this.onUnlock()" t-att-disabled="state.isLoading" title="Unlock">
+                    <i class="fa fa-unlock me-1"/>Unlock
+                </button>
+                <button class="btn btn-outline-warning btn-sm"
+                    t-on-click.stop="() => this.onOpen()" t-att-disabled="state.isLoading" title="Open">
+                    <i class="fa fa-unlock-alt me-1"/>Open
+                </button>
+            </div>
+            <i class="fa fa-lg" t-att-class="{
+                'fa-lock text-danger': state.entityState === 'locked',
+                'fa-unlock text-success': state.entityState === 'unlocked',
+                'fa-unlock-alt text-warning': state.entityState !== 'locked' &amp;&amp; state.entityState !== 'unlocked'
+            }"/>
+        </div>
+    </t>
+</templates>

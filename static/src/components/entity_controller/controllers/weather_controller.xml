@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Weather Domain Controller (Read-only) -->
+    <t t-name="odoo_ha_addon.EntityController.Weather">
+        <div class="weather-controller">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <i class="fa fa-lg" t-att-class="{
+                    'fa-sun-o text-warning': state.entityState === 'sunny' || state.entityState === 'clear-night',
+                    'fa-cloud text-secondary': state.entityState === 'cloudy' || state.entityState === 'partlycloudy',
+                    'fa-umbrella text-info': state.entityState === 'rainy' || state.entityState === 'pouring',
+                    'fa-snowflake-o text-primary': state.entityState === 'snowy',
+                    'fa-bolt text-warning': state.entityState === 'lightning',
+                    'fa-cloud text-muted': !['sunny','clear-night','cloudy','partlycloudy','rainy','pouring','snowy','lightning'].includes(state.entityState)
+                }"/>
+                <span class="fs-4 fw-bold"><t t-esc="state.attributes?.temperature || '--'"/>°C</span>
+                <span class="badge bg-secondary"><t t-esc="state.entityState"/></span>
+            </div>
+            <div class="d-flex flex-wrap gap-3 text-muted small">
+                <t t-if="state.attributes?.humidity !== undefined">
+                    <span><i class="fa fa-tint me-1"/>Humidity: <t t-esc="state.attributes.humidity"/>%</span>
+                </t>
+                <t t-if="state.attributes?.wind_speed !== undefined">
+                    <span><i class="fa fa-flag me-1"/>Wind: <t t-esc="state.attributes.wind_speed"/> km/h</span>
+                </t>
+                <t t-if="state.attributes?.pressure !== undefined">
+                    <span><i class="fa fa-compress me-1"/>Pressure: <t t-esc="state.attributes.pressure"/> hPa</span>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

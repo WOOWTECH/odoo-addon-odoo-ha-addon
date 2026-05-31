@@ -67,6 +67,7 @@ PORTAL_GROUP_FIELDS = [
 # Services whitelist using HA call_service naming convention
 # Includes advanced controls like brightness, temperature, etc.
 PORTAL_CONTROL_SERVICES = {
+    # Original 9 domains
     'switch': ['toggle', 'turn_on', 'turn_off'],
     'light': ['toggle', 'turn_on', 'turn_off', 'set_brightness', 'set_color_temp'],
     'fan': ['toggle', 'turn_on', 'turn_off', 'set_percentage', 'set_preset_mode', 'set_direction', 'oscillate'],
@@ -76,6 +77,46 @@ PORTAL_CONTROL_SERVICES = {
     'script': ['toggle', 'turn_on', 'turn_off'],
     'automation': ['toggle', 'trigger', 'turn_on', 'turn_off'],
     'sensor': [],  # Read-only, no control actions
+    # Phase 1: Toggle / Simple Button Domains
+    'input_boolean': ['toggle', 'turn_on', 'turn_off'],
+    'siren': ['toggle', 'turn_on', 'turn_off'],
+    'button': ['press'],
+    'input_button': ['press'],
+    'lock': ['lock', 'unlock', 'open'],
+    'humidifier': ['toggle', 'turn_on', 'turn_off', 'set_humidity', 'set_mode'],
+    # Phase 2: Input Domains
+    'input_number': ['set_value', 'increment', 'decrement'],
+    'number': ['set_value'],
+    'input_text': ['set_value'],
+    'text': ['set_value'],
+    'input_select': ['select_option', 'select_next', 'select_previous'],
+    'select': ['select_option', 'select_first', 'select_last', 'select_next', 'select_previous'],
+    'input_datetime': ['set_datetime'],
+    'date': ['set_value'],
+    'time': ['set_value'],
+    'datetime': ['set_value'],
+    # Phase 3: Complex Control Domains
+    'media_player': ['toggle', 'turn_on', 'turn_off', 'media_play', 'media_pause', 'media_stop',
+                     'media_next_track', 'media_previous_track', 'volume_set', 'volume_mute', 'select_source'],
+    'vacuum': ['start', 'stop', 'pause', 'return_to_base', 'locate', 'set_fan_speed'],
+    'valve': ['open_valve', 'close_valve', 'stop_valve', 'set_valve_position'],
+    'water_heater': ['set_temperature', 'set_operation_mode', 'set_away_mode'],
+    'alarm_control_panel': ['alarm_arm_home', 'alarm_arm_away', 'alarm_arm_night',
+                            'alarm_arm_vacation', 'alarm_disarm', 'alarm_trigger'],
+    'remote': ['toggle', 'turn_on', 'turn_off', 'send_command'],
+    'lawn_mower': ['start_mowing', 'pause', 'dock'],
+    # Phase 4: Read-only Display Domains (no control services)
+    'binary_sensor': [],
+    'weather': [],
+    'device_tracker': [],
+    'person': [],
+    'calendar': [],
+    'event': [],
+    # Phase 5: Special Control Domains
+    'todo': ['add_item', 'update_item', 'remove_item'],
+    'update': ['install', 'skip'],
+    'camera': [],  # Read-only
+    'tts': ['speak'],
 }
 
 

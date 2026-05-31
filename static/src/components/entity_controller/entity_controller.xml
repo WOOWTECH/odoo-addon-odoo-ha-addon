@@ -39,6 +39,83 @@
             <t t-elif="domain === 'script'">
                 <t t-call="odoo_ha_addon.EntityController.Script"/>
             </t>
+            <!-- Phase 1: Toggle / Simple Button Domains -->
+            <t t-elif="domain === 'input_boolean'">
+                <t t-call="odoo_ha_addon.EntityController.InputBoolean"/>
+            </t>
+            <t t-elif="domain === 'siren'">
+                <t t-call="odoo_ha_addon.EntityController.Siren"/>
+            </t>
+            <t t-elif="domain === 'button' or domain === 'input_button'">
+                <t t-call="odoo_ha_addon.EntityController.Button"/>
+            </t>
+            <t t-elif="domain === 'lock'">
+                <t t-call="odoo_ha_addon.EntityController.Lock"/>
+            </t>
+            <t t-elif="domain === 'humidifier'">
+                <t t-call="odoo_ha_addon.EntityController.Humidifier"/>
+            </t>
+            <!-- Phase 2: Input Domains -->
+            <t t-elif="domain === 'input_number' or domain === 'number'">
+                <t t-call="odoo_ha_addon.EntityController.Number"/>
+            </t>
+            <t t-elif="domain === 'input_text' or domain === 'text'">
+                <t t-call="odoo_ha_addon.EntityController.Text"/>
+            </t>
+            <t t-elif="domain === 'input_select' or domain === 'select'">
+                <t t-call="odoo_ha_addon.EntityController.Select"/>
+            </t>
+            <t t-elif="domain === 'input_datetime' or domain === 'date' or domain === 'time' or domain === 'datetime'">
+                <t t-call="odoo_ha_addon.EntityController.Datetime"/>
+            </t>
+            <!-- Phase 3: Complex Control Domains -->
+            <t t-elif="domain === 'media_player'">
+                <t t-call="odoo_ha_addon.EntityController.MediaPlayer"/>
+            </t>
+            <t t-elif="domain === 'vacuum'">
+                <t t-call="odoo_ha_addon.EntityController.Vacuum"/>
+            </t>
+            <t t-elif="domain === 'valve'">
+                <t t-call="odoo_ha_addon.EntityController.Valve"/>
+            </t>
+            <t t-elif="domain === 'water_heater'">
+                <t t-call="odoo_ha_addon.EntityController.WaterHeater"/>
+            </t>
+            <t t-elif="domain === 'alarm_control_panel'">
+                <t t-call="odoo_ha_addon.EntityController.AlarmControlPanel"/>
+            </t>
+            <t t-elif="domain === 'remote'">
+                <t t-call="odoo_ha_addon.EntityController.Remote"/>
+            </t>
+            <t t-elif="domain === 'lawn_mower'">
+                <t t-call="odoo_ha_addon.EntityController.LawnMower"/>
+            </t>
+            <!-- Phase 4: Read-only Display Domains -->
+            <t t-elif="domain === 'binary_sensor'">
+                <t t-call="odoo_ha_addon.EntityController.BinarySensor"/>
+            </t>
+            <t t-elif="domain === 'weather'">
+                <t t-call="odoo_ha_addon.EntityController.Weather"/>
+            </t>
+            <t t-elif="domain === 'device_tracker' or domain === 'person'">
+                <t t-call="odoo_ha_addon.EntityController.Tracker"/>
+            </t>
+            <t t-elif="domain === 'calendar' or domain === 'event'">
+                <t t-call="odoo_ha_addon.EntityController.Calendar"/>
+            </t>
+            <!-- Phase 5: Special Control Domains -->
+            <t t-elif="domain === 'todo'">
+                <t t-call="odoo_ha_addon.EntityController.Todo"/>
+            </t>
+            <t t-elif="domain === 'update'">
+                <t t-call="odoo_ha_addon.EntityController.Update"/>
+            </t>
+            <t t-elif="domain === 'camera'">
+                <t t-call="odoo_ha_addon.EntityController.Camera"/>
+            </t>
+            <t t-elif="domain === 'tts'">
+                <t t-call="odoo_ha_addon.EntityController.Tts"/>
+            </t>
             <t t-else="">
                 <t t-call="odoo_ha_addon.EntityController.Generic"/>
             </t>

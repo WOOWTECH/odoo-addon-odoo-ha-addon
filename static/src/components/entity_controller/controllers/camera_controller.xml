@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Camera Domain Controller (Read-only) -->
+    <t t-name="odoo_ha_addon.EntityController.Camera">
+        <div class="camera-controller d-flex align-items-center gap-3">
+            <i class="fa fa-video-camera fa-lg" t-att-class="{'text-success': state.entityState === 'streaming', 'text-muted': state.entityState !== 'streaming'}"/>
+            <span class="badge bg-secondary"><t t-esc="state.entityState"/></span>
+            <t t-if="state.attributes?.brand">
+                <span class="text-muted small"><t t-esc="state.attributes.brand"/></span>
+            </t>
+        </div>
+    </t>
+</templates>

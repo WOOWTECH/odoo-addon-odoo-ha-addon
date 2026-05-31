@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Water Heater Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.WaterHeater">
+        <div class="water-heater-controller">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="fa fa-shower fa-lg text-info"/>
+                <span class="fs-5">
+                    <t t-esc="state.attributes?.current_temperature || '--'"/>°C
+                </span>
+                <span class="badge bg-secondary"><t t-esc="state.entityState"/></span>
+            </div>
+
+            <t t-if="state.attributes?.temperature !== undefined">
+                <div class="temperature-control mt-3">
+                    <label class="form-label d-flex justify-content-between">
+                        <span>Target Temperature</span>
+                        <span class="badge bg-secondary"><t t-esc="state.attributes.temperature"/>°C</span>
+                    </label>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-outline-secondary btn-sm"
+                            t-on-click.stop="() => this.onSetTemperature(state.attributes.temperature - 1)"
+                            t-att-disabled="state.isLoading">
+                            <i class="fa fa-minus"/>
+                        </button>
+                        <input type="number" class="form-control text-center" style="width: 80px;"
+                            step="1"
+                            t-att-min="state.attributes?.min_temp || 30"
+                            t-att-max="state.attributes?.max_temp || 60"
+                            t-att-value="state.attributes.temperature"
+                            t-on-change.stop="(ev) => this.onSetTemperature(ev.target.value)"
+                            t-att-disabled="state.isLoading"
+                        />
+                        <button class="btn btn-outline-secondary btn-sm"
+                            t-on-click.stop="() => this.onSetTemperature(state.attributes.temperature + 1)"
+                            t-att-disabled="state.isLoading">
+                            <i class="fa fa-plus"/>
+                        </button>
+                    </div>
+                </div>
+            </t>
+
+            <t t-if="state.attributes?.operation_list?.length > 0">
+                <div class="mode-control mt-3">
+                    <label class="form-label">Operation Mode</label>
+                    <div class="btn-group" role="group">
+                        <t t-foreach="state.attributes.operation_list" t-as="mode" t-key="mode">
+                            <button type="button" class="btn btn-sm"
+                                t-att-class="{'btn-info': state.attributes.operation_mode === mode, 'btn-outline-secondary': state.attributes.operation_mode !== mode}"
+                                t-on-click.stop="() => this.onSetOperationMode(mode)"
+                                t-att-disabled="state.isLoading">
+                                <t t-esc="mode"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

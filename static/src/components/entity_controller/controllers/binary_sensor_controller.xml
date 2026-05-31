@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Binary Sensor Domain Controller (Read-only) -->
+    <t t-name="odoo_ha_addon.EntityController.BinarySensor">
+        <div class="binary-sensor-controller d-flex align-items-center gap-3">
+            <i class="fa fa-lg" t-att-class="{
+                'fa-check-circle text-success': isOn,
+                'fa-times-circle text-muted': isOff
+            }"/>
+            <span class="fs-5 fw-bold" t-att-class="{'text-success': isOn, 'text-muted': isOff}">
+                <t t-if="isOn">Detected</t>
+                <t t-else="">Clear</t>
+            </span>
+            <t t-if="state.attributes?.device_class">
+                <span class="badge bg-light text-dark">
+                    <t t-esc="state.attributes.device_class"/>
+                </span>
+            </t>
+        </div>
+    </t>
+</templates>

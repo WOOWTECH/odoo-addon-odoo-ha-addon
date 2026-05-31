@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Datetime Domain Controller (input_datetime / date / time / datetime) -->
+    <t t-name="odoo_ha_addon.EntityController.Datetime">
+        <div class="datetime-controller d-flex align-items-center gap-2">
+            <i class="fa fa-calendar fa-lg text-muted"/>
+            <t t-if="state.attributes?.has_date and state.attributes?.has_time">
+                <input type="datetime-local" class="form-control"
+                    t-att-value="state.entityState"
+                    t-att-disabled="state.isLoading"
+                    t-on-change.stop="(ev) => this.onSetDatetime(ev.target.value)"
+                />
+            </t>
+            <t t-elif="state.attributes?.has_date">
+                <input type="date" class="form-control"
+                    t-att-value="state.entityState"
+                    t-att-disabled="state.isLoading"
+                    t-on-change.stop="(ev) => this.onSetDatetime(ev.target.value)"
+                />
+            </t>
+            <t t-elif="state.attributes?.has_time">
+                <input type="time" class="form-control"
+                    t-att-value="state.entityState"
+                    t-att-disabled="state.isLoading"
+                    t-on-change.stop="(ev) => this.onSetDatetime(ev.target.value)"
+                />
+            </t>
+            <t t-else="">
+                <input type="datetime-local" class="form-control"
+                    t-att-value="state.entityState"
+                    t-att-disabled="state.isLoading"
+                    t-on-change.stop="(ev) => this.onSetDatetime(ev.target.value)"
+                />
+            </t>
+        </div>
+    </t>
+</templates>

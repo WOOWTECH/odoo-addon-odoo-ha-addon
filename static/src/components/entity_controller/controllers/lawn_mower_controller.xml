@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Lawn Mower Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.LawnMower">
+        <div class="lawn-mower-controller">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="fa fa-leaf fa-lg" t-att-class="{
+                    'text-success': state.entityState === 'mowing',
+                    'text-info': state.entityState === 'returning',
+                    'text-warning': state.entityState === 'paused',
+                    'text-muted': state.entityState === 'docked' || state.entityState === 'idle'
+                }"/>
+                <span class="badge bg-secondary"><t t-esc="state.entityState"/></span>
+            </div>
+
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-success btn-sm"
+                    t-on-click.stop="() => this.onStartMowing()" t-att-disabled="state.isLoading" title="Start Mowing">
+                    <i class="fa fa-play me-1"/>Start
+                </button>
+                <button class="btn btn-outline-warning btn-sm"
+                    t-on-click.stop="() => this.onPause()" t-att-disabled="state.isLoading" title="Pause">
+                    <i class="fa fa-pause me-1"/>Pause
+                </button>
+                <button class="btn btn-outline-info btn-sm"
+                    t-on-click.stop="() => this.onDock()" t-att-disabled="state.isLoading" title="Return to Dock">
+                    <i class="fa fa-home me-1"/>Dock
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

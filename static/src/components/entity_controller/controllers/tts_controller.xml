@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- TTS Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Tts">
+        <div class="tts-controller">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="fa fa-volume-up fa-lg text-primary"/>
+                <span class="badge bg-secondary"><t t-esc="state.entityState"/></span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="text" class="form-control form-control-sm"
+                    placeholder="Text to speak..."
+                    t-att-disabled="state.isLoading"
+                    t-on-keydown="(ev) => { if(ev.key === 'Enter' &amp;&amp; ev.target.value) this.onSpeak(ev.target.value); }"
+                />
+                <button class="btn btn-primary btn-sm"
+                    t-on-click.stop="(ev) => this.onSpeak(ev.target.closest('.tts-controller').querySelector('input').value)"
+                    t-att-disabled="state.isLoading">
+                    <i class="fa fa-play me-1"/>Speak
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

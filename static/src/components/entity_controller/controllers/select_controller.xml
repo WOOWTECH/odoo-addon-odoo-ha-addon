@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Select Domain Controller (input_select / select) -->
+    <t t-name="odoo_ha_addon.EntityController.Select">
+        <div class="select-controller d-flex align-items-center gap-2">
+            <i class="fa fa-list fa-lg text-muted"/>
+            <select class="form-select"
+                t-att-value="state.entityState"
+                t-on-change.stop="(ev) => this.onSelectOption(ev.target.value)"
+                t-att-disabled="state.isLoading">
+                <t t-foreach="state.attributes?.options || []" t-as="opt" t-key="opt">
+                    <option t-att-value="opt" t-att-selected="state.entityState === opt">
+                        <t t-esc="opt"/>
+                    </option>
+                </t>
+            </select>
+        </div>
+    </t>
+</templates>

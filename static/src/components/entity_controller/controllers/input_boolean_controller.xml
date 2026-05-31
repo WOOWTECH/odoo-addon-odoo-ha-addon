@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Input Boolean Domain Controller (same UI as Switch) -->
+    <t t-name="odoo_ha_addon.EntityController.InputBoolean">
+        <div class="input-boolean-controller d-flex align-items-center gap-3">
+            <div class="form-check form-switch entity-large-switch">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    t-att-checked="isOn"
+                    t-att-disabled="state.isLoading"
+                    t-att-class="{'entity-loading': state.isLoading}"
+                    t-on-click.stop.prevent="() => this.onToggle()"
+                />
+            </div>
+            <i class="fa fa-toggle-on fa-lg" t-att-class="{'text-success': isOn, 'text-muted': isOff}"/>
+        </div>
+    </t>
+</templates>

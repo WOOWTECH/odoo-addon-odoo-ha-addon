@@ -1,6 +1,6 @@
 {
     'name': 'WOOW Dashboard',
-    'version': '18.0.6.2',
+    'version': '18.0.7.0',
     'category': 'WOOW/Extra Tools',
     'summary': 'Dashboard with Home Assistant integration',
     'depends': ['base', 'web', 'mail', 'portal'],
@@ -99,6 +99,35 @@
             'odoo_ha_addon/static/src/components/entity_controller/controllers/scene_controller.xml',
             'odoo_ha_addon/static/src/components/entity_controller/controllers/script_controller.xml',
             'odoo_ha_addon/static/src/components/entity_controller/controllers/generic_controller.xml',
+            # Phase 1: Toggle / Simple Button Domains
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/input_boolean_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/siren_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/button_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/lock_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/humidifier_controller.xml',
+            # Phase 2: Input Domains
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/number_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/text_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/select_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/datetime_controller.xml',
+            # Phase 3: Complex Control Domains
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/media_player_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/vacuum_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/valve_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/water_heater_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/alarm_control_panel_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/remote_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/lawn_mower_controller.xml',
+            # Phase 4: Read-only Display Domains
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/binary_sensor_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/weather_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/tracker_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/calendar_controller.xml',
+            # Phase 5: Special Control Domains
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/todo_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/update_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/camera_controller.xml',
+            'odoo_ha_addon/static/src/components/entity_controller/controllers/tts_controller.xml',
 
             # RelatedEntityDialog - Entity related information dialog
             'odoo_ha_addon/static/src/components/related_entity_dialog/related_entity_dialog.js',

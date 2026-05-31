@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Number Domain Controller (input_number / number) -->
+    <t t-name="odoo_ha_addon.EntityController.Number">
+        <div class="number-controller">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa fa-sliders fa-lg text-muted"/>
+                <span class="fs-5 fw-bold"><t t-esc="state.entityState"/></span>
+                <t t-if="state.attributes?.unit_of_measurement">
+                    <span class="text-muted"><t t-esc="state.attributes.unit_of_measurement"/></span>
+                </t>
+            </div>
+            <div class="mt-3 d-flex align-items-center gap-2">
+                <t t-set="minVal" t-value="state.attributes?.min || 0"/>
+                <t t-set="maxVal" t-value="state.attributes?.max || 100"/>
+                <t t-set="stepVal" t-value="state.attributes?.step || 1"/>
+                <button class="btn btn-outline-secondary btn-sm"
+                    t-on-click.stop="() => this.onSetValue(parseFloat(state.entityState) - (state.attributes?.step || 1))"
+                    t-att-disabled="state.isLoading">
+                    <i class="fa fa-minus"/>
+                </button>
+                <input
+                    type="range"
+                    class="form-range flex-grow-1"
+                    t-att-min="state.attributes?.min || 0"
+                    t-att-max="state.attributes?.max || 100"
+                    t-att-step="state.attributes?.step || 1"
+                    t-att-value="state.entityState"
+                    t-on-change.stop="(ev) => this.onSetValue(ev.target.value)"
+                    t-att-disabled="state.isLoading"
+                />
+                <button class="btn btn-outline-secondary btn-sm"
+                    t-on-click.stop="() => this.onSetValue(parseFloat(state.entityState) + (state.attributes?.step || 1))"
+                    t-att-disabled="state.isLoading">
+                    <i class="fa fa-plus"/>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -37,6 +37,83 @@
             <t t-elif="domain === 'scene'">
                 <t t-call="odoo_ha_addon.PortalEntityController.Scene"/>
             </t>
+            <!-- Phase 1: Toggle / Simple Button Domains -->
+            <t t-elif="domain === 'input_boolean'">
+                <t t-call="odoo_ha_addon.PortalEntityController.InputBoolean"/>
+            </t>
+            <t t-elif="domain === 'siren'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Siren"/>
+            </t>
+            <t t-elif="domain === 'button' or domain === 'input_button'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Button"/>
+            </t>
+            <t t-elif="domain === 'lock'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Lock"/>
+            </t>
+            <t t-elif="domain === 'humidifier'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Humidifier"/>
+            </t>
+            <!-- Phase 2: Input Domains -->
+            <t t-elif="domain === 'input_number' or domain === 'number'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Number"/>
+            </t>
+            <t t-elif="domain === 'input_text' or domain === 'text'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Text"/>
+            </t>
+            <t t-elif="domain === 'input_select' or domain === 'select'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Select"/>
+            </t>
+            <t t-elif="domain === 'input_datetime' or domain === 'date' or domain === 'time' or domain === 'datetime'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Datetime"/>
+            </t>
+            <!-- Phase 3: Complex Control Domains -->
+            <t t-elif="domain === 'media_player'">
+                <t t-call="odoo_ha_addon.PortalEntityController.MediaPlayer"/>
+            </t>
+            <t t-elif="domain === 'vacuum'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Vacuum"/>
+            </t>
+            <t t-elif="domain === 'valve'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Valve"/>
+            </t>
+            <t t-elif="domain === 'water_heater'">
+                <t t-call="odoo_ha_addon.PortalEntityController.WaterHeater"/>
+            </t>
+            <t t-elif="domain === 'alarm_control_panel'">
+                <t t-call="odoo_ha_addon.PortalEntityController.AlarmControlPanel"/>
+            </t>
+            <t t-elif="domain === 'remote'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Remote"/>
+            </t>
+            <t t-elif="domain === 'lawn_mower'">
+                <t t-call="odoo_ha_addon.PortalEntityController.LawnMower"/>
+            </t>
+            <!-- Phase 4: Read-only Display Domains -->
+            <t t-elif="domain === 'binary_sensor'">
+                <t t-call="odoo_ha_addon.PortalEntityController.BinarySensor"/>
+            </t>
+            <t t-elif="domain === 'weather'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Weather"/>
+            </t>
+            <t t-elif="domain === 'device_tracker' or domain === 'person'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Tracker"/>
+            </t>
+            <t t-elif="domain === 'calendar' or domain === 'event'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Calendar"/>
+            </t>
+            <!-- Phase 5: Special Control Domains -->
+            <t t-elif="domain === 'todo'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Todo"/>
+            </t>
+            <t t-elif="domain === 'update'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Update"/>
+            </t>
+            <t t-elif="domain === 'camera'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Camera"/>
+            </t>
+            <t t-elif="domain === 'tts'">
+                <t t-call="odoo_ha_addon.PortalEntityController.Tts"/>
+            </t>
             <t t-else="">
                 <t t-call="odoo_ha_addon.PortalEntityController.Generic"/>
             </t>
@@ -444,6 +521,706 @@
                 <small class="text-muted">
                     此裝置類型 (<t t-esc="domain"/>) 暫不支援控制功能
                 </small>
+            </div>
+        </div>
+    </t>
+
+    <!-- ============================================= -->
+    <!-- Phase 1: Toggle / Simple Button Domains       -->
+    <!-- ============================================= -->
+
+    <!-- Input Boolean Controller (same as Switch) -->
+    <t t-name="odoo_ha_addon.PortalEntityController.InputBoolean">
+        <div class="input-boolean-controller portal-simple-toggle d-flex align-items-center gap-3 p-3 bg-light rounded">
+            <div class="form-check form-switch portal-large-switch">
+                <input class="form-check-input" type="checkbox" role="switch"
+                    t-att-checked="isOn" t-att-disabled="isLoading"
+                    t-att-class="{'portal-loading': isLoading}"
+                    t-on-click.stop.prevent="() => this.onToggle()"/>
+            </div>
+            <i class="fa fa-toggle-on fa-lg" t-att-class="{'text-success': isOn, 'text-muted': isOff}"/>
+        </div>
+    </t>
+
+    <!-- Siren Controller -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Siren">
+        <div class="siren-controller portal-simple-toggle d-flex align-items-center gap-3 p-3 bg-light rounded">
+            <div class="form-check form-switch portal-large-switch">
+                <input class="form-check-input" type="checkbox" role="switch"
+                    t-att-checked="isOn" t-att-disabled="isLoading"
+                    t-att-class="{'portal-loading': isLoading}"
+                    t-on-click.stop.prevent="() => this.onToggle()"/>
+            </div>
+            <i class="fa fa-bell fa-lg" t-att-class="{'text-danger': isOn, 'text-muted': isOff}"/>
+        </div>
+    </t>
+
+    <!-- Button Controller (button / input_button) -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Button">
+        <div class="button-controller portal-simple-toggle p-3 bg-light rounded">
+            <button class="btn btn-info" t-on-click.stop="() => this.onPress()" t-att-disabled="isLoading">
+                <i t-if="isLoading" class="fa fa-spinner portal-spin me-1"/>
+                <i t-else="" class="fa fa-dot-circle-o me-1"/>
+                按下
+            </button>
+        </div>
+    </t>
+
+    <!-- Lock Controller -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Lock">
+        <div class="lock-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-3">
+                <div class="btn-group" role="group">
+                    <button class="btn btn-sm"
+                        t-att-class="{'btn-danger': entityState === 'locked', 'btn-outline-danger': entityState !== 'locked'}"
+                        t-on-click.stop="() => this.onLock()" t-att-disabled="isLoading" title="鎖定">
+                        <i class="fa fa-lock me-1"/>鎖定
+                    </button>
+                    <button class="btn btn-sm"
+                        t-att-class="{'btn-success': entityState === 'unlocked', 'btn-outline-success': entityState !== 'unlocked'}"
+                        t-on-click.stop="() => this.onUnlock()" t-att-disabled="isLoading" title="解鎖">
+                        <i class="fa fa-unlock me-1"/>解鎖
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm"
+                        t-on-click.stop="() => this.onOpen()" t-att-disabled="isLoading" title="開啟">
+                        <i class="fa fa-unlock-alt me-1"/>開啟
+                    </button>
+                </div>
+                <i class="fa fa-lg" t-att-class="{
+                    'fa-lock text-danger': entityState === 'locked',
+                    'fa-unlock text-success': entityState === 'unlocked',
+                    'fa-unlock-alt text-warning': entityState !== 'locked' &amp;&amp; entityState !== 'unlocked'
+                }"/>
+            </div>
+        </div>
+    </t>
+
+    <!-- Humidifier Controller -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Humidifier">
+        <div class="humidifier-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-3">
+                <div class="form-check form-switch portal-large-switch">
+                    <input class="form-check-input" type="checkbox" role="switch"
+                        t-att-checked="isOn" t-att-disabled="isLoading"
+                        t-att-class="{'portal-loading': isLoading}"
+                        t-on-click.stop.prevent="() => this.onToggle()"/>
+                </div>
+                <i class="fa fa-tint fa-lg" t-att-class="{'text-info': isOn, 'text-muted': isOff}"/>
+            </div>
+
+            <t t-if="isOn and attributes.humidity !== undefined">
+                <div class="humidity-control portal-value-slider mt-3">
+                    <div class="slider-track-container d-flex align-items-center gap-2">
+                        <i class="fa fa-tint text-muted"/>
+                        <input type="range" min="0" max="100" step="1"
+                            t-att-value="attributes.humidity"
+                            t-on-change.stop="(ev) => this.onSetHumidity(ev.target.value)"
+                            t-att-disabled="isLoading"/>
+                        <span class="slider-value-badge"><t t-esc="attributes.humidity"/>%</span>
+                    </div>
+                </div>
+            </t>
+
+            <t t-if="isOn and attributes.available_modes?.length > 0">
+                <div class="mode-control mt-3">
+                    <div class="btn-group" role="group">
+                        <t t-foreach="attributes.available_modes" t-as="mode" t-key="mode">
+                            <button type="button" class="btn btn-sm"
+                                t-att-class="{'btn-info': attributes.mode === mode, 'btn-outline-secondary': attributes.mode !== mode}"
+                                t-on-click.stop="() => this.onSetMode(mode)"
+                                t-att-disabled="isLoading">
+                                <t t-esc="mode"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- ============================================= -->
+    <!-- Phase 2: Input Domains                        -->
+    <!-- ============================================= -->
+
+    <!-- Number Controller (input_number / number) -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Number">
+        <div class="number-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="fa fa-sliders fa-lg text-muted"/>
+                <span class="fs-5 fw-bold"><t t-esc="entityState"/></span>
+                <t t-if="attributes.unit_of_measurement">
+                    <span class="text-muted"><t t-esc="attributes.unit_of_measurement"/></span>
+                </t>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary btn-sm"
+                    t-on-click.stop="() => this.onSetValue(parseFloat(entityState) - (attributes.step || 1))"
+                    t-att-disabled="isLoading">
+                    <i class="fa fa-minus"/>
+                </button>
+                <input type="range" class="form-range flex-grow-1"
+                    t-att-min="attributes.min || 0"
+                    t-att-max="attributes.max || 100"
+                    t-att-step="attributes.step || 1"
+                    t-att-value="entityState"
+                    t-on-change.stop="(ev) => this.onSetValue(ev.target.value)"
+                    t-att-disabled="isLoading"/>
+                <button class="btn btn-outline-secondary btn-sm"
+                    t-on-click.stop="() => this.onSetValue(parseFloat(entityState) + (attributes.step || 1))"
+                    t-att-disabled="isLoading">
+                    <i class="fa fa-plus"/>
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <!-- Text Controller (input_text / text) -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Text">
+        <div class="text-controller p-3 bg-light rounded d-flex align-items-center gap-2">
+            <i class="fa fa-pencil fa-lg text-muted"/>
+            <input type="text" class="form-control"
+                t-att-value="entityState"
+                t-att-disabled="isLoading"
+                t-on-keydown="(ev) => { if(ev.key === 'Enter') this.onSetValue(ev.target.value); }"/>
+            <button class="btn btn-primary btn-sm"
+                t-on-click.stop="(ev) => this.onSetValue(ev.target.closest('.text-controller').querySelector('input').value)"
+                t-att-disabled="isLoading">
+                <i class="fa fa-check"/>
+            </button>
+        </div>
+    </t>
+
+    <!-- Select Controller (input_select / select) -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Select">
+        <div class="select-controller p-3 bg-light rounded d-flex align-items-center gap-2">
+            <i class="fa fa-list fa-lg text-muted"/>
+            <select class="form-select"
+                t-att-value="entityState"
+                t-on-change.stop="(ev) => this.onSelectOption(ev.target.value)"
+                t-att-disabled="isLoading">
+                <t t-foreach="attributes.options || []" t-as="opt" t-key="opt">
+                    <option t-att-value="opt" t-att-selected="entityState === opt">
+                        <t t-esc="opt"/>
+                    </option>
+                </t>
+            </select>
+        </div>
+    </t>
+
+    <!-- Datetime Controller (input_datetime / date / time / datetime) -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Datetime">
+        <div class="datetime-controller p-3 bg-light rounded d-flex align-items-center gap-2">
+            <i class="fa fa-calendar fa-lg text-muted"/>
+            <t t-if="attributes.has_date and attributes.has_time">
+                <input type="datetime-local" class="form-control"
+                    t-att-value="entityState" t-att-disabled="isLoading"
+                    t-on-change.stop="(ev) => this.onSetDatetime(ev.target.value)"/>
+            </t>
+            <t t-elif="attributes.has_date">
+                <input type="date" class="form-control"
+                    t-att-value="entityState" t-att-disabled="isLoading"
+                    t-on-change.stop="(ev) => this.onSetDatetime(ev.target.value)"/>
+            </t>
+            <t t-elif="attributes.has_time">
+                <input type="time" class="form-control"
+                    t-att-value="entityState" t-att-disabled="isLoading"
+                    t-on-change.stop="(ev) => this.onSetDatetime(ev.target.value)"/>
+            </t>
+            <t t-else="">
+                <input type="datetime-local" class="form-control"
+                    t-att-value="entityState" t-att-disabled="isLoading"
+                    t-on-change.stop="(ev) => this.onSetDatetime(ev.target.value)"/>
+            </t>
+        </div>
+    </t>
+
+    <!-- ============================================= -->
+    <!-- Phase 3: Complex Control Domains              -->
+    <!-- ============================================= -->
+
+    <!-- Media Player Controller -->
+    <t t-name="odoo_ha_addon.PortalEntityController.MediaPlayer">
+        <div class="media-player-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="form-check form-switch portal-large-switch">
+                    <input class="form-check-input" type="checkbox" role="switch"
+                        t-att-checked="isOn" t-att-disabled="isLoading"
+                        t-att-class="{'portal-loading': isLoading}"
+                        t-on-click.stop.prevent="() => this.onToggle()"/>
+                </div>
+                <i class="fa fa-music fa-lg" t-att-class="{'text-primary': isOn, 'text-muted': isOff}"/>
+                <span class="badge bg-secondary"><t t-esc="entityState"/></span>
+            </div>
+
+            <t t-if="entityState !== 'off' and entityState !== 'unavailable'">
+                <t t-if="attributes.media_title">
+                    <div class="mb-2 text-muted small">
+                        <i class="fa fa-music me-1"/>
+                        <t t-esc="attributes.media_artist ? attributes.media_artist + ' - ' : ''"/>
+                        <t t-esc="attributes.media_title"/>
+                    </div>
+                </t>
+
+                <div class="btn-group mb-3" role="group">
+                    <button class="btn btn-outline-secondary btn-sm"
+                        t-on-click.stop="() => this.onMediaPreviousTrack()" t-att-disabled="isLoading">
+                        <i class="fa fa-step-backward"/>
+                    </button>
+                    <t t-if="entityState === 'playing'">
+                        <button class="btn btn-outline-primary btn-sm"
+                            t-on-click.stop="() => this.onMediaPause()" t-att-disabled="isLoading">
+                            <i class="fa fa-pause"/>
+                        </button>
+                    </t>
+                    <t t-else="">
+                        <button class="btn btn-outline-primary btn-sm"
+                            t-on-click.stop="() => this.onMediaPlay()" t-att-disabled="isLoading">
+                            <i class="fa fa-play"/>
+                        </button>
+                    </t>
+                    <button class="btn btn-outline-secondary btn-sm"
+                        t-on-click.stop="() => this.onMediaStop()" t-att-disabled="isLoading">
+                        <i class="fa fa-stop"/>
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm"
+                        t-on-click.stop="() => this.onMediaNextTrack()" t-att-disabled="isLoading">
+                        <i class="fa fa-step-forward"/>
+                    </button>
+                </div>
+
+                <t t-if="attributes.volume_level !== undefined">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <button class="btn btn-outline-secondary btn-sm"
+                            t-on-click.stop="() => this.onVolumeMute(!attributes.is_volume_muted)" t-att-disabled="isLoading">
+                            <i t-att-class="attributes.is_volume_muted ? 'fa fa-volume-off' : 'fa fa-volume-up'"/>
+                        </button>
+                        <input type="range" class="form-range flex-grow-1"
+                            min="0" max="1" step="0.01"
+                            t-att-value="attributes.volume_level"
+                            t-on-change.stop="(ev) => this.onSetVolume(ev.target.value)"
+                            t-att-disabled="isLoading"/>
+                        <span class="badge bg-secondary">
+                            <t t-esc="Math.round((attributes.volume_level || 0) * 100)"/>%
+                        </span>
+                    </div>
+                </t>
+
+                <t t-if="attributes.source_list?.length > 0">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-plug text-muted"/>
+                        <select class="form-select form-select-sm"
+                            t-att-value="attributes.source || ''"
+                            t-on-change.stop="(ev) => this.onSelectSource(ev.target.value)"
+                            t-att-disabled="isLoading">
+                            <option value="" disabled="">選擇來源</option>
+                            <t t-foreach="attributes.source_list" t-as="src" t-key="src">
+                                <option t-att-value="src" t-att-selected="attributes.source === src">
+                                    <t t-esc="src"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                </t>
+            </t>
+        </div>
+    </t>
+
+    <!-- Vacuum Controller -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Vacuum">
+        <div class="vacuum-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="fa fa-superpowers fa-lg" t-att-class="{
+                    'text-success': entityState === 'cleaning',
+                    'text-info': entityState === 'returning',
+                    'text-warning': entityState === 'paused',
+                    'text-muted': entityState === 'docked' || entityState === 'idle'
+                }"/>
+                <span class="badge bg-secondary"><t t-esc="entityState"/></span>
+                <t t-if="attributes.battery_level !== undefined">
+                    <span class="badge bg-light text-dark">
+                        <i class="fa fa-battery-half me-1"/><t t-esc="attributes.battery_level"/>%
+                    </span>
+                </t>
+            </div>
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-success btn-sm"
+                    t-on-click.stop="() => this.onStart()" t-att-disabled="isLoading">
+                    <i class="fa fa-play me-1"/>開始
+                </button>
+                <button class="btn btn-outline-warning btn-sm"
+                    t-on-click.stop="() => this.onPause()" t-att-disabled="isLoading">
+                    <i class="fa fa-pause me-1"/>暫停
+                </button>
+                <button class="btn btn-outline-danger btn-sm"
+                    t-on-click.stop="() => this.onStop()" t-att-disabled="isLoading">
+                    <i class="fa fa-stop me-1"/>停止
+                </button>
+                <button class="btn btn-outline-info btn-sm"
+                    t-on-click.stop="() => this.onReturnToBase()" t-att-disabled="isLoading">
+                    <i class="fa fa-home me-1"/>返回基座
+                </button>
+            </div>
+            <t t-if="attributes.fan_speed_list?.length > 0">
+                <div class="mt-3 d-flex align-items-center gap-2">
+                    <i class="fa fa-tachometer text-muted"/>
+                    <select class="form-select form-select-sm"
+                        t-att-value="attributes.fan_speed || ''"
+                        t-on-change.stop="(ev) => this.onSetFanSpeed(ev.target.value)"
+                        t-att-disabled="isLoading">
+                        <t t-foreach="attributes.fan_speed_list" t-as="speed" t-key="speed">
+                            <option t-att-value="speed" t-att-selected="attributes.fan_speed === speed">
+                                <t t-esc="speed"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- Valve Controller (similar to Cover) -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Valve">
+        <div class="valve-controller p-3 bg-light rounded">
+            <div class="btn-group mb-3" role="group">
+                <button class="btn btn-outline-success" t-on-click.stop="() => this.onOpenValve()" t-att-disabled="isLoading" title="開啟">
+                    <i class="fa fa-arrow-up"/>
+                </button>
+                <button class="btn btn-outline-warning" t-on-click.stop="() => this.onStopValve()" t-att-disabled="isLoading" title="停止">
+                    <i class="fa fa-stop"/>
+                </button>
+                <button class="btn btn-outline-danger" t-on-click.stop="() => this.onCloseValve()" t-att-disabled="isLoading" title="關閉">
+                    <i class="fa fa-arrow-down"/>
+                </button>
+            </div>
+            <t t-if="attributes.current_position !== undefined">
+                <div class="position-control portal-value-slider">
+                    <div class="slider-track-container d-flex align-items-center gap-2">
+                        <i class="fa fa-arrows-v text-muted"/>
+                        <input type="range" min="0" max="100" step="1"
+                            t-att-value="attributes.current_position || 0"
+                            t-on-change.stop="(ev) => this.onSetValvePosition(ev.target.value)"
+                            t-att-disabled="isLoading"/>
+                        <span class="slider-value-badge"><t t-esc="attributes.current_position || 0"/>%</span>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- Water Heater Controller -->
+    <t t-name="odoo_ha_addon.PortalEntityController.WaterHeater">
+        <div class="water-heater-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="fa fa-shower fa-lg text-info"/>
+                <span class="fs-5"><t t-esc="attributes.current_temperature || '--'"/>°C</span>
+                <span class="badge bg-secondary"><t t-esc="entityState"/></span>
+            </div>
+            <t t-if="attributes.temperature !== undefined">
+                <div class="temperature-control mt-3">
+                    <label class="form-label d-flex justify-content-between">
+                        <span>目標溫度</span>
+                        <span class="badge bg-secondary"><t t-esc="attributes.temperature"/>°C</span>
+                    </label>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-outline-secondary btn-sm"
+                            t-on-click.stop="() => this.onSetTemperature(attributes.temperature - 1)" t-att-disabled="isLoading">
+                            <i class="fa fa-minus"/>
+                        </button>
+                        <input type="number" class="form-control text-center" style="width: 80px;"
+                            step="1" t-att-value="attributes.temperature"
+                            t-on-change.stop="(ev) => this.onSetTemperature(ev.target.value)" t-att-disabled="isLoading"/>
+                        <button class="btn btn-outline-secondary btn-sm"
+                            t-on-click.stop="() => this.onSetTemperature(attributes.temperature + 1)" t-att-disabled="isLoading">
+                            <i class="fa fa-plus"/>
+                        </button>
+                    </div>
+                </div>
+            </t>
+            <t t-if="attributes.operation_list?.length > 0">
+                <div class="mode-control mt-3">
+                    <label class="form-label">運作模式</label>
+                    <div class="btn-group" role="group">
+                        <t t-foreach="attributes.operation_list" t-as="mode" t-key="mode">
+                            <button type="button" class="btn btn-sm"
+                                t-att-class="{'btn-info': attributes.operation_mode === mode, 'btn-outline-secondary': attributes.operation_mode !== mode}"
+                                t-on-click.stop="() => this.onSetOperationMode(mode)" t-att-disabled="isLoading">
+                                <t t-esc="mode"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- Alarm Control Panel Controller -->
+    <t t-name="odoo_ha_addon.PortalEntityController.AlarmControlPanel">
+        <div class="alarm-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="fa fa-shield fa-lg" t-att-class="{
+                    'text-success': entityState === 'disarmed',
+                    'text-danger': entityState === 'triggered',
+                    'text-warning': entityState.startsWith('armed'),
+                    'text-muted': entityState === 'unavailable'
+                }"/>
+                <span class="badge fs-6" t-att-class="{
+                    'bg-success': entityState === 'disarmed',
+                    'bg-danger': entityState === 'triggered',
+                    'bg-warning': entityState.startsWith('armed'),
+                    'bg-secondary': !entityState.startsWith('armed') &amp;&amp; entityState !== 'disarmed' &amp;&amp; entityState !== 'triggered'
+                }">
+                    <t t-esc="entityState"/>
+                </span>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-outline-success btn-sm"
+                    t-on-click.stop="() => this.onDisarm()" t-att-disabled="isLoading">
+                    <i class="fa fa-unlock me-1"/>解除
+                </button>
+                <button class="btn btn-outline-warning btn-sm"
+                    t-on-click.stop="() => this.onArmHome()" t-att-disabled="isLoading">
+                    <i class="fa fa-home me-1"/>居家佈防
+                </button>
+                <button class="btn btn-outline-danger btn-sm"
+                    t-on-click.stop="() => this.onArmAway()" t-att-disabled="isLoading">
+                    <i class="fa fa-car me-1"/>外出佈防
+                </button>
+                <button class="btn btn-outline-info btn-sm"
+                    t-on-click.stop="() => this.onArmNight()" t-att-disabled="isLoading">
+                    <i class="fa fa-moon-o me-1"/>夜間佈防
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <!-- Remote Controller -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Remote">
+        <div class="remote-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="form-check form-switch portal-large-switch">
+                    <input class="form-check-input" type="checkbox" role="switch"
+                        t-att-checked="isOn" t-att-disabled="isLoading"
+                        t-att-class="{'portal-loading': isLoading}"
+                        t-on-click.stop.prevent="() => this.onToggle()"/>
+                </div>
+                <i class="fa fa-wifi fa-lg" t-att-class="{'text-success': isOn, 'text-muted': isOff}"/>
+            </div>
+            <t t-if="isOn">
+                <div class="d-flex align-items-center gap-2">
+                    <input type="text" class="form-control form-control-sm"
+                        placeholder="指令..." t-att-disabled="isLoading"
+                        t-on-keydown="(ev) => { if(ev.key === 'Enter') this.onSendCommand(ev.target.value); }"/>
+                    <button class="btn btn-primary btn-sm"
+                        t-on-click.stop="(ev) => this.onSendCommand(ev.target.closest('.remote-controller').querySelector('input').value)"
+                        t-att-disabled="isLoading">
+                        <i class="fa fa-paper-plane"/>
+                    </button>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- Lawn Mower Controller -->
+    <t t-name="odoo_ha_addon.PortalEntityController.LawnMower">
+        <div class="lawn-mower-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="fa fa-leaf fa-lg" t-att-class="{
+                    'text-success': entityState === 'mowing',
+                    'text-info': entityState === 'returning',
+                    'text-warning': entityState === 'paused',
+                    'text-muted': entityState === 'docked' || entityState === 'idle'
+                }"/>
+                <span class="badge bg-secondary"><t t-esc="entityState"/></span>
+            </div>
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-success btn-sm"
+                    t-on-click.stop="() => this.onStartMowing()" t-att-disabled="isLoading">
+                    <i class="fa fa-play me-1"/>開始
+                </button>
+                <button class="btn btn-outline-warning btn-sm"
+                    t-on-click.stop="() => this.onPause()" t-att-disabled="isLoading">
+                    <i class="fa fa-pause me-1"/>暫停
+                </button>
+                <button class="btn btn-outline-info btn-sm"
+                    t-on-click.stop="() => this.onDock()" t-att-disabled="isLoading">
+                    <i class="fa fa-home me-1"/>返回基座
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <!-- ============================================= -->
+    <!-- Phase 4: Read-only Display Domains            -->
+    <!-- ============================================= -->
+
+    <!-- Binary Sensor Controller (Read-only) -->
+    <t t-name="odoo_ha_addon.PortalEntityController.BinarySensor">
+        <div class="binary-sensor-controller portal-sensor-display p-3 bg-light rounded d-flex align-items-center gap-3">
+            <i class="fa fa-lg" t-att-class="{
+                'fa-check-circle text-success': isOn,
+                'fa-times-circle text-muted': isOff
+            }"/>
+            <span class="fs-5 fw-bold" t-att-class="{'text-success': isOn, 'text-muted': isOff}">
+                <t t-if="isOn">偵測到</t>
+                <t t-else="">正常</t>
+            </span>
+            <t t-if="attributes.device_class">
+                <span class="badge bg-light text-dark"><t t-esc="attributes.device_class"/></span>
+            </t>
+        </div>
+    </t>
+
+    <!-- Weather Controller (Read-only) -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Weather">
+        <div class="weather-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <i class="fa fa-lg" t-att-class="{
+                    'fa-sun-o text-warning': entityState === 'sunny' || entityState === 'clear-night',
+                    'fa-cloud text-secondary': entityState === 'cloudy' || entityState === 'partlycloudy',
+                    'fa-umbrella text-info': entityState === 'rainy' || entityState === 'pouring',
+                    'fa-snowflake-o text-primary': entityState === 'snowy',
+                    'fa-bolt text-warning': entityState === 'lightning',
+                    'fa-cloud text-muted': !['sunny','clear-night','cloudy','partlycloudy','rainy','pouring','snowy','lightning'].includes(entityState)
+                }"/>
+                <span class="fs-4 fw-bold"><t t-esc="attributes.temperature || '--'"/>°C</span>
+                <span class="badge bg-secondary"><t t-esc="entityState"/></span>
+            </div>
+            <div class="d-flex flex-wrap gap-3 text-muted small">
+                <t t-if="attributes.humidity !== undefined">
+                    <span><i class="fa fa-tint me-1"/>濕度: <t t-esc="attributes.humidity"/>%</span>
+                </t>
+                <t t-if="attributes.wind_speed !== undefined">
+                    <span><i class="fa fa-flag me-1"/>風速: <t t-esc="attributes.wind_speed"/> km/h</span>
+                </t>
+                <t t-if="attributes.pressure !== undefined">
+                    <span><i class="fa fa-compress me-1"/>氣壓: <t t-esc="attributes.pressure"/> hPa</span>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <!-- Device Tracker / Person Controller (Read-only) -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Tracker">
+        <div class="tracker-controller portal-sensor-display p-3 bg-light rounded d-flex align-items-center gap-3">
+            <i class="fa fa-map-marker fa-lg" t-att-class="{
+                'text-success': entityState === 'home',
+                'text-danger': entityState === 'not_home',
+                'text-info': entityState !== 'home' &amp;&amp; entityState !== 'not_home'
+            }"/>
+            <span class="fs-5 fw-bold">
+                <t t-if="entityState === 'home'">在家</t>
+                <t t-elif="entityState === 'not_home'">外出</t>
+                <t t-else=""><t t-esc="entityState"/></t>
+            </span>
+            <t t-if="attributes.source_type">
+                <span class="badge bg-light text-dark"><t t-esc="attributes.source_type"/></span>
+            </t>
+        </div>
+    </t>
+
+    <!-- Calendar / Event Controller (Read-only) -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Calendar">
+        <div class="calendar-controller p-3 bg-light rounded d-flex align-items-center gap-3">
+            <i class="fa fa-calendar fa-lg" t-att-class="{'text-primary': isOn, 'text-muted': isOff}"/>
+            <div>
+                <t t-if="attributes.message">
+                    <div class="fw-bold"><t t-esc="attributes.message"/></div>
+                </t>
+                <t t-if="attributes.start_time">
+                    <div class="text-muted small">
+                        <t t-esc="attributes.start_time"/>
+                        <t t-if="attributes.end_time"> — <t t-esc="attributes.end_time"/></t>
+                    </div>
+                </t>
+                <t t-if="!attributes.message">
+                    <span class="badge bg-secondary"><t t-esc="entityState"/></span>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <!-- ============================================= -->
+    <!-- Phase 5: Special Control Domains              -->
+    <!-- ============================================= -->
+
+    <!-- Todo Controller -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Todo">
+        <div class="todo-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="fa fa-tasks fa-lg text-primary"/>
+                <span class="badge bg-secondary"><t t-esc="entityState"/></span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="text" class="form-control form-control-sm"
+                    placeholder="新增項目..." t-att-disabled="isLoading"
+                    t-on-keydown="(ev) => { if(ev.key === 'Enter' &amp;&amp; ev.target.value) { this.onAddItem(ev.target.value); ev.target.value=''; } }"/>
+                <button class="btn btn-primary btn-sm"
+                    t-on-click.stop="(ev) => { const input = ev.target.closest('.todo-controller').querySelector('input'); if(input.value) { this.onAddItem(input.value); input.value=''; } }"
+                    t-att-disabled="isLoading">
+                    <i class="fa fa-plus"/>
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <!-- Update Controller -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Update">
+        <div class="update-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <i class="fa fa-download fa-lg" t-att-class="{'text-warning': isOn, 'text-success': isOff}"/>
+                <t t-if="isOn">
+                    <span class="badge bg-warning text-dark">有可用更新</span>
+                </t>
+                <t t-else="">
+                    <span class="badge bg-success">已是最新版本</span>
+                </t>
+            </div>
+            <t t-if="attributes.installed_version">
+                <div class="text-muted small mb-1">已安裝: <t t-esc="attributes.installed_version"/></div>
+            </t>
+            <t t-if="isOn and attributes.latest_version">
+                <div class="text-muted small mb-2">可用版本: <t t-esc="attributes.latest_version"/></div>
+                <button class="btn btn-warning btn-sm"
+                    t-on-click.stop="() => this.onInstall()" t-att-disabled="isLoading">
+                    <i t-if="isLoading" class="fa fa-spinner portal-spin me-1"/>
+                    <i t-else="" class="fa fa-download me-1"/>
+                    安裝更新
+                </button>
+                <button class="btn btn-outline-secondary btn-sm ms-2"
+                    t-on-click.stop="() => this.onSkip()" t-att-disabled="isLoading">
+                    跳過
+                </button>
+            </t>
+        </div>
+    </t>
+
+    <!-- Camera Controller (Read-only) -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Camera">
+        <div class="camera-controller portal-sensor-display p-3 bg-light rounded d-flex align-items-center gap-3">
+            <i class="fa fa-video-camera fa-lg" t-att-class="{'text-success': entityState === 'streaming', 'text-muted': entityState !== 'streaming'}"/>
+            <span class="badge bg-secondary"><t t-esc="entityState"/></span>
+            <t t-if="attributes.brand">
+                <span class="text-muted small"><t t-esc="attributes.brand"/></span>
+            </t>
+        </div>
+    </t>
+
+    <!-- TTS Controller -->
+    <t t-name="odoo_ha_addon.PortalEntityController.Tts">
+        <div class="tts-controller p-3 bg-light rounded">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="fa fa-volume-up fa-lg text-primary"/>
+                <span class="badge bg-secondary"><t t-esc="entityState"/></span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="text" class="form-control form-control-sm"
+                    placeholder="輸入朗讀文字..." t-att-disabled="isLoading"
+                    t-on-keydown="(ev) => { if(ev.key === 'Enter' &amp;&amp; ev.target.value) this.onSpeak(ev.target.value); }"/>
+                <button class="btn btn-primary btn-sm"
+                    t-on-click.stop="(ev) => this.onSpeak(ev.target.closest('.tts-controller').querySelector('input').value)"
+                    t-att-disabled="isLoading">
+                    <i class="fa fa-play me-1"/>朗讀
+                </button>
             </div>
         </div>
     </t>

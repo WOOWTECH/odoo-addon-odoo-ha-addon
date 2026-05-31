@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Remote Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Remote">
+        <div class="remote-controller">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="form-check form-switch entity-large-switch">
+                    <input class="form-check-input" type="checkbox" role="switch"
+                        t-att-checked="isOn"
+                        t-att-disabled="state.isLoading"
+                        t-att-class="{'entity-loading': state.isLoading}"
+                        t-on-click.stop.prevent="() => this.onToggle()"
+                    />
+                </div>
+                <i class="fa fa-wifi fa-lg" t-att-class="{'text-success': isOn, 'text-muted': isOff}"/>
+            </div>
+
+            <t t-if="isOn">
+                <div class="d-flex align-items-center gap-2">
+                    <input type="text" class="form-control form-control-sm"
+                        placeholder="Command..."
+                        t-att-disabled="state.isLoading"
+                        t-on-keydown="(ev) => { if(ev.key === 'Enter') this.onSendCommand(ev.target.value); }"
+                    />
+                    <button class="btn btn-primary btn-sm"
+                        t-on-click.stop="(ev) => this.onSendCommand(ev.target.closest('.remote-controller').querySelector('input').value)"
+                        t-att-disabled="state.isLoading">
+                        <i class="fa fa-paper-plane"/>
+                    </button>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

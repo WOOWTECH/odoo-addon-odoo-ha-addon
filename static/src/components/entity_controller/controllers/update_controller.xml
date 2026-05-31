@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Update Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.Update">
+        <div class="update-controller">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <i class="fa fa-download fa-lg" t-att-class="{'text-warning': isOn, 'text-success': isOff}"/>
+                <t t-if="isOn">
+                    <span class="badge bg-warning text-dark">Update Available</span>
+                </t>
+                <t t-else="">
+                    <span class="badge bg-success">Up to Date</span>
+                </t>
+            </div>
+            <t t-if="state.attributes?.installed_version">
+                <div class="text-muted small mb-1">
+                    Installed: <t t-esc="state.attributes.installed_version"/>
+                </div>
+            </t>
+            <t t-if="isOn and state.attributes?.latest_version">
+                <div class="text-muted small mb-2">
+                    Available: <t t-esc="state.attributes.latest_version"/>
+                </div>
+                <button class="btn btn-warning btn-sm"
+                    t-on-click.stop="() => this.onInstall()" t-att-disabled="state.isLoading">
+                    <i t-if="state.isLoading" class="fa fa-spinner entity-spin me-1"/>
+                    <i t-else="" class="fa fa-download me-1"/>
+                    Install Update
+                </button>
+                <button class="btn btn-outline-secondary btn-sm ms-2"
+                    t-on-click.stop="() => this.onSkip()" t-att-disabled="state.isLoading">
+                    Skip
+                </button>
+            </t>
+        </div>
+    </t>
+</templates>

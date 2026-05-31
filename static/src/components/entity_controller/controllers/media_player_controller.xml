@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Media Player Domain Controller -->
+    <t t-name="odoo_ha_addon.EntityController.MediaPlayer">
+        <div class="media-player-controller">
+            <!-- Power + State -->
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="form-check form-switch entity-large-switch">
+                    <input class="form-check-input" type="checkbox" role="switch"
+                        t-att-checked="isOn"
+                        t-att-disabled="state.isLoading"
+                        t-att-class="{'entity-loading': state.isLoading}"
+                        t-on-click.stop.prevent="() => this.onToggle()"
+                    />
+                </div>
+                <i class="fa fa-music fa-lg" t-att-class="{'text-primary': isOn, 'text-muted': isOff}"/>
+                <span class="badge bg-secondary"><t t-esc="state.entityState"/></span>
+            </div>
+
+            <t t-if="state.entityState !== 'off' and state.entityState !== 'unavailable'">
+                <!-- Now Playing -->
+                <t t-if="state.attributes?.media_title">
+                    <div class="mb-2 text-muted small">
+                        <i class="fa fa-music me-1"/>
+                        <t t-esc="state.attributes.media_artist ? state.attributes.media_artist + ' - ' : ''"/>
+                        <t t-esc="state.attributes.media_title"/>
+                    </div>
+                </t>
+
+                <!-- Playback Controls -->
+                <div class="btn-group mb-3" role="group">
+                    <button class="btn btn-outline-secondary btn-sm"
+                        t-on-click.stop="() => this.onMediaPreviousTrack()" t-att-disabled="state.isLoading" title="Previous">
+                        <i class="fa fa-step-backward"/>
+                    </button>
+                    <t t-if="state.entityState === 'playing'">
+                        <button class="btn btn-outline-primary btn-sm"
+                            t-on-click.stop="() => this.onMediaPause()" t-att-disabled="state.isLoading" title="Pause">
+                            <i class="fa fa-pause"/>
+                        </button>
+                    </t>
+                    <t t-else="">
+                        <button class="btn btn-outline-primary btn-sm"
+                            t-on-click.stop="() => this.onMediaPlay()" t-att-disabled="state.isLoading" title="Play">
+                            <i class="fa fa-play"/>
+                        </button>
+                    </t>
+                    <button class="btn btn-outline-secondary btn-sm"
+                        t-on-click.stop="() => this.onMediaStop()" t-att-disabled="state.isLoading" title="Stop">
+                        <i class="fa fa-stop"/>
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm"
+                        t-on-click.stop="() => this.onMediaNextTrack()" t-att-disabled="state.isLoading" title="Next">
+                        <i class="fa fa-step-forward"/>
+                    </button>
+                </div>
+
+                <!-- Volume -->
+                <t t-if="state.attributes?.volume_level !== undefined">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <button class="btn btn-outline-secondary btn-sm"
+                            t-on-click.stop="() => this.onVolumeMute(!state.attributes.is_volume_muted)"
+                            t-att-disabled="state.isLoading">
+                            <i t-att-class="state.attributes.is_volume_muted ? 'fa fa-volume-off' : 'fa fa-volume-up'"/>
+                        </button>
+                        <input type="range" class="form-range flex-grow-1"
+                            min="0" max="1" step="0.01"
+                            t-att-value="state.attributes.volume_level"
+                            t-on-change.stop="(ev) => this.onSetVolume(ev.target.value)"
+                            t-att-disabled="state.isLoading"
+                        />
+                        <span class="badge bg-secondary">
+                            <t t-esc="Math.round((state.attributes.volume_level || 0) * 100)"/>%
+                        </span>
+                    </div>
+                </t>
+
+                <!-- Source Select -->
+                <t t-if="state.attributes?.source_list?.length > 0">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-plug text-muted"/>
+                        <select class="form-select form-select-sm"
+                            t-att-value="state.attributes.source || ''"
+                            t-on-change.stop="(ev) => this.onSelectSource(ev.target.value)"
+                            t-att-disabled="state.isLoading">
+                            <option value="" disabled="">Select Source</option>
+                            <t t-foreach="state.attributes.source_list" t-as="src" t-key="src">
+                                <option t-att-value="src" t-att-selected="state.attributes.source === src">
+                                    <t t-esc="src"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                </t>
+            </t>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Calendar / Event Domain Controller (Read-only) -->
+    <t t-name="odoo_ha_addon.EntityController.Calendar">
+        <div class="calendar-controller d-flex align-items-center gap-3">
+            <i class="fa fa-calendar fa-lg" t-att-class="{'text-primary': isOn, 'text-muted': isOff}"/>
+            <div>
+                <t t-if="state.attributes?.message">
+                    <div class="fw-bold"><t t-esc="state.attributes.message"/></div>
+                </t>
+                <t t-if="state.attributes?.start_time">
+                    <div class="text-muted small">
+                        <t t-esc="state.attributes.start_time"/>
+                        <t t-if="state.attributes?.end_time"> — <t t-esc="state.attributes.end_time"/></t>
+                    </div>
+                </t>
+                <t t-if="!state.attributes?.message">
+                    <span class="badge bg-secondary"><t t-esc="state.entityState"/></span>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>
