@@ -79,7 +79,9 @@
                                     <div class="entity-controller">
                                         <PortalEntityController
                                             entity="entity"
-                                            permission="permission"/>
+                                            permission="permission"
+                                            stateUrl="getEntityStateUrl(entity)"
+                                            serviceUrl="getEntityServiceUrl(entity)"/>
                                     </div>
                                 </t>
 
