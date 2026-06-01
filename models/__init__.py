@@ -17,4 +17,3 @@ from . import ha_realtime_update
 from . import res_config_settings
 from . import ha_ws_request_queue
 from . import ha_entity_share
-from . import ha_blueprint_wizard

@@ -106,34 +106,29 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Automations" name="automations">
-                            <field name="related_automation_ids" readonly="1">
-                                <list>
-                                    <field name="entity_id"/>
-                                    <field name="name"/>
-                                    <field name="entity_state" string="State"/>
-                                    <field name="last_changed" string="Last Triggered"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="Scripts" name="scripts">
-                            <field name="related_script_ids" readonly="1">
-                                <list>
-                                    <field name="entity_id"/>
-                                    <field name="name"/>
-                                    <field name="entity_state" string="State"/>
-                                    <field name="last_changed" string="Last Triggered"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="Scenes" name="scenes">
-                            <field name="related_scene_ids" readonly="1">
-                                <list>
-                                    <field name="entity_id"/>
-                                    <field name="name"/>
-                                    <field name="entity_state" string="State"/>
-                                </list>
-                            </field>
+                        <page string="Related Entities" name="related_entities">
+                            <group>
+                                <div class="d-flex gap-2">
+                                    <button name="%(odoo_ha_addon.entity_action)d"
+                                            string="Automations"
+                                            type="action"
+                                            icon="fa-magic"
+                                            class="btn-secondary"
+                                            context="{'search_default_domain_automation': 1}"/>
+                                    <button name="%(odoo_ha_addon.entity_action)d"
+                                            string="Scripts"
+                                            type="action"
+                                            icon="fa-code"
+                                            class="btn-secondary"
+                                            context="{'search_default_domain_script': 1}"/>
+                                    <button name="%(odoo_ha_addon.entity_action)d"
+                                            string="Scenes"
+                                            type="action"
+                                            icon="fa-picture-o"
+                                            class="btn-secondary"
+                                            context="{'search_default_domain_scene': 1}"/>
+                                </div>
+                            </group>
                         </page>
                         <page string="Technical" name="technical">
                             <group>

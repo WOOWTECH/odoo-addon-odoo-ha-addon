@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-#	* odoo_ha_addon
+# * odoo_ha_addon
 #
 msgid ""
 msgstr ""
@@ -16,7 +16,6 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-
 #. module: odoo_ha_addon
 #. odoo-python
 #: code:addons/odoo_ha_addon/models/ha_device_tag.py:0
@@ -27,12 +26,6 @@ msgstr ""
 #: code:addons/odoo_ha_addon/wizard/ha_entity_share_wizard.py:0
 msgid " (and %d more)"
 msgstr "（還有 %d 個）"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "\" - using text input"
-msgstr "\" - 使用文字輸入"
 
 #. module: odoo_ha_addon
 #. odoo-python
@@ -52,7 +45,8 @@ msgstr "%(target_type)s \"%(target)s\" 已與 %(user)s 共享"
 msgid ""
 "%(target_type)s \"%(target_name)s\" shared with %(user_name)s will expire on"
 " %(expiry_date)s"
-msgstr "%(target_type)s \"%(target_name)s\" 與 %(user_name)s 的共享將於 %(expiry_date)s 到期"
+msgstr ""
+"%(target_type)s \"%(target_name)s\" 與 %(user_name)s 的共享將於 %(expiry_date)s 到期"
 
 #. module: odoo_ha_addon
 #. odoo-python
@@ -82,30 +76,6 @@ msgstr ") 暫不支援控制功能"
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.odoo_ha_addon_settings_view
 msgid "+ New Instance"
 msgstr "+ 新增連線"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "-- Select area --"
-msgstr "-- 選擇區域 --"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "-- Select entity --"
-msgstr "-- 選擇實體 --"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "-- Select option --"
-msgstr "-- 選擇選項 --"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "-- Select target entity --"
-msgstr "-- 選擇目標實體 --"
 
 #. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.odoo_ha_addon_settings_view
@@ -408,7 +378,8 @@ msgid ""
 "<strong>Description:</strong> The fingerprint is a unique identifier "
 "calculated based on the API URL. When the URL changes, a detection is "
 "triggered to remind you whether old data needs to be cleared."
-msgstr "<strong>說明：</strong> 指紋是根據 API URL 計算的唯一識別碼。當 URL 變更時，會觸發偵測提醒您是否需要清除舊資料。"
+msgstr ""
+"<strong>說明：</strong> 指紋是根據 API URL 計算的唯一識別碼。當 URL 變更時，會觸發偵測提醒您是否需要清除舊資料。"
 
 #. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.odoo_ha_addon_settings_view
@@ -503,12 +474,6 @@ msgstr "需要操作"
 #: model:ir.model,name:odoo_ha_addon.model_ir_actions_act_window_view
 msgid "Action Window View"
 msgstr "操作視窗檢視"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Action sequences - Enter as JSON array"
-msgstr "操作序列 - 以 JSON 陣列輸入"
 
 #. module: odoo_ha_addon
 #. odoo-javascript
@@ -841,11 +806,6 @@ msgid "Automation \"%s\" has been triggered."
 msgstr "自動化 \"%s\" 已觸發。"
 
 #. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__automation_count
-msgid "Automation Count (deprecated)"
-msgstr "自動化數量（已棄用）"
-
-#. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_list
 msgid "Automation ID"
@@ -887,11 +847,6 @@ msgid "Automations ("
 msgstr "自動化（"
 
 #. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__automation_ids
-msgid "Automations (deprecated)"
-msgstr "自動化（已棄用）"
-
-#. module: odoo_ha_addon
 #: model:ir.model.fields,help:odoo_ha_addon.field_ha_device__related_automation_ids
 msgid "Automations that reference this device's entities"
 msgstr "參照此裝置實體的自動化"
@@ -928,12 +883,6 @@ msgstr "基本資訊"
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_form_modal
 msgid "Basic Information"
 msgstr "基本資訊"
-
-#. module: odoo_ha_addon
-#. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_entity.py:0
-msgid "Batch Scene Sync Complete"
-msgstr "批次場景同步完成"
 
 #. module: odoo_ha_addon
 #. odoo-javascript
@@ -976,41 +925,14 @@ msgid "Blueprint Inputs"
 msgstr "藍圖輸入"
 
 #. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_blueprint_wizard__blueprint_inputs_json
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__blueprint_inputs
-msgid "Blueprint Inputs (JSON)"
-msgstr "藍圖輸入 (JSON)"
-
-#. module: odoo_ha_addon
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_blueprint_wizard__blueprint_list_json
 msgid "Blueprint List (JSON)"
 msgstr "藍圖清單 (JSON)"
 
 #. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__blueprint_metadata
-msgid "Blueprint Metadata (JSON)"
-msgstr "藍圖元數據 (JSON)"
-
-#. module: odoo_ha_addon
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_blueprint_wizard__blueprint_name
 msgid "Blueprint Name"
 msgstr "藍圖名稱"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_blueprint_wizard__blueprint_path
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__blueprint_path
-#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
-#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_list
-#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
-#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_list
-msgid "Blueprint Path"
-msgstr "藍圖路徑"
-
-#. module: odoo_ha_addon
-#. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_entity.py:0
-msgid "Blueprint Refreshed"
-msgstr "藍圖已重新整理"
 
 #. module: odoo_ha_addon
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_blueprint_wizard__blueprint_schema_json
@@ -1110,12 +1032,6 @@ msgid "Clear all data (entities, history, areas, groups) for this instance"
 msgstr "清除此連線的所有資料（實體、歷史、區域、群組）"
 
 #. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_selector.xml:0
-msgid "Clear selection"
-msgstr "清除選擇"
-
-#. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_group_view_form
 msgid "Click to add authorized users"
 msgstr "點擊新增授權使用者"
@@ -1167,12 +1083,6 @@ msgstr "Odoo UI 中顯示用的顏色索引"
 #: model:ir.model.fields,help:odoo_ha_addon.field_ha_label__ha_color
 msgid "Color name from HA (e.g., red, blue, green)"
 msgstr "HA 的顏色名稱（例如 red、blue、green）"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Conditions - Enter as JSON array"
-msgstr "條件 - 以 JSON 陣列輸入"
 
 #. module: odoo_ha_addon
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__config_entries
@@ -1371,12 +1281,6 @@ msgid "Create your first Home Assistant instance"
 msgstr "建立您的第一個 Home Assistant 連線"
 
 #. module: odoo_ha_addon
-#. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
-msgid "Created %s '%s'. Please sync entities to see it in the list."
-msgstr "已建立 %s「%s」。請同步實體以在列表中查看。"
-
-#. module: odoo_ha_addon
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__created_at
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_label__created_at
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_ws_request_queue__create_date
@@ -1402,11 +1306,6 @@ msgstr "建立時間"
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_ws_request_queue__create_uid
 msgid "Created by"
 msgstr "建立者"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields.selection,name:odoo_ha_addon.selection__ha_entity__scene_source__odoo
-msgid "Created in Odoo"
-msgstr "在 Odoo 中建立"
 
 #. module: odoo_ha_addon
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_area__create_date
@@ -1635,11 +1534,6 @@ msgid "Device Properties Definition"
 msgstr "設備屬性定義"
 
 #. module: odoo_ha_addon
-#: model:ir.model.fields.selection,name:odoo_ha_addon.selection__ha_entity__scene_source__device
-msgid "Device Scene"
-msgstr "裝置場景"
-
-#. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_search
 msgid "Device Search"
 msgstr "搜尋裝置"
@@ -1725,7 +1619,6 @@ msgstr "擁有此標籤的裝置"
 
 #. module: odoo_ha_addon
 #. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_search
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_search
 msgid "Disabled"
@@ -1832,7 +1725,6 @@ msgstr "啟用紀錄"
 
 #. module: odoo_ha_addon
 #. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_search
 msgid "Enabled"
 msgstr "已啟用"
@@ -1841,12 +1733,6 @@ msgstr "已啟用"
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_blueprint_wizard_form_select
 msgid "Enter a name for the automation/script..."
 msgstr "輸入自動化/腳本的名稱..."
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Enter icon name (e.g., mdi:lightbulb)"
-msgstr "輸入圖示名稱（例如 mdi:lightbulb）"
 
 #. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_form
@@ -2232,12 +2118,6 @@ msgid "Failed to activate scene: %s"
 msgstr "啟用場景失敗：%s"
 
 #. module: odoo_ha_addon
-#. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
-msgid "Failed to create %s in Home Assistant: %s"
-msgstr "無法在 Home Assistant 中建立 %s：%s"
-
-#. module: odoo_ha_addon
 #. odoo-javascript
 #: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
 msgid "Failed to execute %s.%s: "
@@ -2278,18 +2158,6 @@ msgstr "無法載入 HA 實例列表："
 #: code:addons/odoo_ha_addon/controllers/controllers.py:0
 msgid "Failed to load HA instances. Please try again."
 msgstr "載入 HA 實例失敗。請重試。"
-
-#. module: odoo_ha_addon
-#. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
-msgid "Failed to load blueprint details: %s"
-msgstr "無法載入藍圖詳細資訊：%s"
-
-#. module: odoo_ha_addon
-#. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
-msgid "Failed to load blueprints from Home Assistant: %s"
-msgstr "無法從 Home Assistant 載入藍圖：%s"
 
 #. module: odoo_ha_addon
 #. odoo-javascript
@@ -2550,11 +2418,6 @@ msgid "HA Areas"
 msgstr "HA 區域"
 
 #. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__ha_automation_id
-msgid "HA Automation/Script ID"
-msgstr "HA 自動化/腳本 ID"
-
-#. module: odoo_ha_addon
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_label__ha_color
 msgid "HA Color"
 msgstr "HA 顏色"
@@ -2646,11 +2509,6 @@ msgid "HA Managers can always view and manage all groups"
 msgstr "HA Manager 始終可以查看和管理所有群組"
 
 #. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__ha_scene_id
-msgid "HA Scene ID"
-msgstr "HA 場景 ID"
-
-#. module: odoo_ha_addon
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__hw_version
 msgid "Hardware Version"
 msgstr "硬體版本"
@@ -2701,12 +2559,6 @@ msgstr "歷史同步設定"
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_res_config_settings__ha_history_sync_max_workers
 msgid "History Sync Max Workers"
 msgstr "歷史同步最大工作數"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Hold Ctrl/Cmd to select multiple"
-msgstr "按住 Ctrl/Cmd 選擇多個"
 
 #. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.portal_breadcrumbs_ha
@@ -2874,12 +2726,6 @@ msgstr "Home Assistant 網路資訊"
 #: model:ir.model.fields,help:odoo_ha_addon.field_ha_ws_request_queue__subscription_id
 msgid "Home Assistant 返回的訂閱 ID"
 msgstr "Home Assistant 返回的訂閱 ID"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Hours"
-msgstr "小時"
 
 #. module: odoo_ha_addon
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_area__id
@@ -3080,12 +2926,6 @@ msgstr ""
 
 #. module: odoo_ha_addon
 #. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
-msgid "Invalid JSON in Blueprint Inputs: %s"
-msgstr "藍圖輸入中的 JSON 無效：%s"
-
-#. module: odoo_ha_addon
-#. odoo-python
 #: code:addons/odoo_ha_addon/models/ha_entity.py:0
 msgid "Invalid blueprint inputs JSON format."
 msgstr "無效的藍圖輸入 JSON 格式。"
@@ -3095,11 +2935,6 @@ msgstr "無效的藍圖輸入 JSON 格式。"
 #: code:addons/odoo_ha_addon/wizard/ha_instance_clear_wizard.py:0
 msgid "Invalid instance ID"
 msgstr "無效的實例 ID"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__is_blueprint_based
-msgid "Is Blueprint Based"
-msgstr "基於藍圖"
 
 #. module: odoo_ha_addon
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_current_instance_filter_mixin__is_current_user_instance
@@ -3133,12 +2968,6 @@ msgstr "是否為訂閱"
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_clear_wizard_form
 msgid "It is recommended to backup the database before clearing"
 msgstr "建議在清除前先備份資料庫"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Jinja2 Template"
-msgstr "Jinja2 範本"
 
 #. module: odoo_ha_addon
 #: model:ir.ui.menu,name:odoo_ha_addon.model_label_menu
@@ -3319,12 +3148,6 @@ msgstr "載入裝置資訊中..."
 
 #. module: odoo_ha_addon
 #. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Loading entities..."
-msgstr "載入實體中..."
-
-#. module: odoo_ha_addon
-#. odoo-javascript
 #: code:addons/odoo_ha_addon/static/src/components/ha_instance_systray/ha_instance_systray.xml:0
 #: code:addons/odoo_ha_addon/static/src/components/instance_selector/instance_selector.xml:0
 msgid "Loading instances..."
@@ -3431,12 +3254,6 @@ msgstr "訊息"
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_area_view_form
 msgid "Metadata"
 msgstr "中繼資料"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Minutes"
-msgstr "分鐘"
 
 #. module: odoo_ha_addon
 #. odoo-python
@@ -3632,39 +3449,9 @@ msgstr "無連線"
 
 #. module: odoo_ha_addon
 #. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_entity.py:0
-msgid "No Scenes Selected"
-msgstr "未選擇場景"
-
-#. module: odoo_ha_addon
-#. odoo-python
 #: code:addons/odoo_ha_addon/controllers/controllers.py:0
 msgid "No active HA instance available"
 msgstr "沒有可用的活躍 HA 實例"
-
-#. module: odoo_ha_addon
-#. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
-msgid "No blueprint selected."
-msgstr "未選擇藍圖。"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_selector.xml:0
-msgid "No blueprints available. Click \"Refresh\" to load from Home Assistant."
-msgstr "無可用的藍圖。點擊「重新整理」從 Home Assistant 載入。"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_selector.xml:0
-msgid "No blueprints match your search."
-msgstr "沒有符合搜尋的藍圖。"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "No configurable inputs for this Blueprint."
-msgstr "此藍圖無可設定的輸入。"
 
 #. module: odoo_ha_addon
 #. odoo-javascript
@@ -3867,12 +3654,6 @@ msgstr "選填備註或說明..."
 
 #. module: odoo_ha_addon
 #. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Or specify area/device target in advanced mode"
-msgstr "或在進階模式中指定區域/裝置目標"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
 #: code:addons/odoo_ha_addon/static/src/components/entity_controller/controllers/fan_controller.xml:0
 msgid "Oscillate"
 msgstr "擺動"
@@ -3946,22 +3727,10 @@ msgid ""
 msgstr "請在上方建立/選擇一個 Home Assistant 連線以顯示設定選項。"
 
 #. module: odoo_ha_addon
-#. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
-msgid "Please enter a name."
-msgstr "請輸入名稱。"
-
-#. module: odoo_ha_addon
 #. odoo-javascript
 #: code:addons/odoo_ha_addon/static/src/components/glances_block/glances_block.xml:0
 msgid "Please make sure Home Assistant has Glances integration installed"
 msgstr "請確認 Home Assistant 已安裝 Glances 整合"
-
-#. module: odoo_ha_addon
-#. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
-msgid "Please select a Blueprint template."
-msgstr "請選擇藍圖範本。"
 
 #. module: odoo_ha_addon
 #. odoo-python
@@ -4067,36 +3836,6 @@ msgstr "註冊表同步失敗"
 #: code:addons/odoo_ha_addon/models/ha_instance.py:0
 msgid "Registry Synced"
 msgstr "註冊表已同步"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__related_automation_count
-msgid "Related Automation Count"
-msgstr "相關自動化數量"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__related_automation_ids
-msgid "Related Automations"
-msgstr "相關自動化"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__related_scene_count
-msgid "Related Scene Count"
-msgstr "相關場景數量"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__related_scene_ids
-msgid "Related Scenes"
-msgstr "相關場景"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__related_script_count
-msgid "Related Script Count"
-msgstr "相關腳本數量"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__related_script_ids
-msgid "Related Scripts"
-msgstr "相關腳本"
 
 #. module: odoo_ha_addon
 #. odoo-javascript
@@ -4234,22 +3973,6 @@ msgid "Scene Activated"
 msgstr "場景已啟用"
 
 #. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__scene_count
-msgid "Scene Count (deprecated)"
-msgstr "場景數量（已棄用）"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__scene_entity_ids
-#: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_form
-msgid "Scene Entities"
-msgstr "場景實體"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__scene_entity_count
-msgid "Scene Entity Count"
-msgstr "場景實體數量"
-
-#. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_form
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_list
 msgid "Scene ID"
@@ -4266,17 +3989,6 @@ msgid "Scene Search"
 msgstr "搜尋場景"
 
 #. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity__scene_source
-msgid "Scene Source"
-msgstr "場景來源"
-
-#. module: odoo_ha_addon
-#. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_entity.py:0
-msgid "Scene Synced"
-msgstr "場景已同步"
-
-#. module: odoo_ha_addon
 #: model:ir.actions.act_window,name:odoo_ha_addon.ha_scene_action
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_scene_view_list
@@ -4288,11 +4000,6 @@ msgstr "場景"
 #: code:addons/odoo_ha_addon/static/src/components/related_entity_dialog/related_entity_dialog.xml:0
 msgid "Scenes ("
 msgstr "場景（"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__scene_ids
-msgid "Scenes (deprecated)"
-msgstr "場景（已棄用）"
 
 #. module: odoo_ha_addon
 #: model:ir.model.fields,help:odoo_ha_addon.field_ha_device__related_scene_ids
@@ -4317,11 +4024,6 @@ msgstr "腳本 \"%s\" 已啟動。"
 #: code:addons/odoo_ha_addon/models/ha_entity.py:0
 msgid "Script \"%s\" has been toggled."
 msgstr "腳本 \"%s\" 已切換。"
-
-#. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__script_count
-msgid "Script Count (deprecated)"
-msgstr "腳本數量（已棄用）"
 
 #. module: odoo_ha_addon
 #. odoo-python
@@ -4371,11 +4073,6 @@ msgid "Scripts ("
 msgstr "腳本（"
 
 #. module: odoo_ha_addon
-#: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__script_ids
-msgid "Scripts (deprecated)"
-msgstr "腳本（已棄用）"
-
-#. module: odoo_ha_addon
 #: model:ir.model.fields,help:odoo_ha_addon.field_ha_device__related_script_ids
 msgid "Scripts that reference this device's entities"
 msgstr "參考此裝置實體的腳本"
@@ -4384,18 +4081,6 @@ msgstr "參考此裝置實體的腳本"
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_search
 msgid "Search HA Instances"
 msgstr "搜尋 HA 連線"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_selector.xml:0
-msgid "Search blueprints..."
-msgstr "搜尋藍圖..."
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Seconds"
-msgstr "秒"
 
 #. module: odoo_ha_addon
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_device__access_token
@@ -4447,18 +4132,6 @@ msgstr "選擇要共享的使用者..."
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity_share_wizard__user_types_display
 msgid "Selected User Types"
 msgstr "已選擇的用戶類型"
-
-#. module: odoo_ha_addon
-#. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
-msgid "Selected blueprint not found. Please refresh the list."
-msgstr "找不到選定的藍圖。請重新整理列表。"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Selector type \""
-msgstr "選擇器類型 \""
 
 #. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_history_view_search
@@ -4762,12 +4435,6 @@ msgstr "訂閱 ID"
 
 #. module: odoo_ha_addon
 #. odoo-python
-#: code:addons/odoo_ha_addon/models/ha_blueprint_wizard.py:0
-msgid "Success"
-msgstr "成功"
-
-#. module: odoo_ha_addon
-#. odoo-python
 #: code:addons/odoo_ha_addon/wizard/ha_instance_clear_wizard.py:0
 msgid ""
 "Successfully cleared all data for instance '%s'\n"
@@ -4829,11 +4496,6 @@ msgid "Switched to instance: "
 msgstr "已切換到實例："
 
 #. module: odoo_ha_addon
-#: model:ir.actions.server,name:odoo_ha_addon.cron_device_related_items_sync_ir_actions_server
-msgid "Sync Device Related Items (Automations/Scripts/Scenes)"
-msgstr "同步裝置相關項目（自動化/腳本/場景）"
-
-#. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.odoo_ha_addon_settings_view
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_form
 msgid "Sync Entities"
@@ -4864,11 +4526,6 @@ msgstr "同步操作"
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_form
 msgid "Sync Registry"
 msgstr "同步註冊表"
-
-#. module: odoo_ha_addon
-#: model:ir.actions.server,name:odoo_ha_addon.action_server_batch_sync_scenes
-msgid "Sync Scenes to HA"
-msgstr "同步場景至 HA"
 
 #. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.view_ha_instance_form
@@ -5024,12 +4681,6 @@ msgstr "標籤幫助您分類和組織實體群組以便更好地管理。"
 #: model:ir.model.fields,field_description:odoo_ha_addon.field_ha_entity_share_wizard__target_name
 msgid "Target"
 msgstr "目標"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Target Entity"
-msgstr "目標實體"
 
 #. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_device_view_form
@@ -5283,12 +4934,6 @@ msgstr "手動觸發此自動化"
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_automation_view_form
 msgid "Triggered At"
 msgstr "觸發時間"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "Triggers - Enter as JSON array"
-msgstr "觸發器 - 以 JSON 陣列輸入"
 
 #. module: odoo_ha_addon
 #. odoo-javascript
@@ -5672,30 +5317,6 @@ msgstr "您沒有權限修改以下欄位：%s"
 
 #. module: odoo_ha_addon
 #. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "[{\"condition\": \"state\", \"entity_id\": \"sensor.example\", \"state\": \"on\"}]"
-msgstr "[{\"condition\": \"state\", \"entity_id\": \"sensor.example\", \"state\": \"on\"}]"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "[{\"platform\": \"state\", \"entity_id\": \"binary_sensor.motion\"}]"
-msgstr "[{\"platform\": \"state\", \"entity_id\": \"binary_sensor.motion\"}]"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "[{\"service\": \"light.turn_on\", \"target\": {\"entity_id\": \"light.example\"}}]"
-msgstr "[{\"service\": \"light.turn_on\", \"target\": {\"entity_id\": \"light.example\"}}]"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_selector.xml:0
-msgid "blueprint(s) available"
-msgstr "個可用藍圖"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
 #: code:addons/odoo_ha_addon/static/src/actions/area_dashboard/area_dashboard.xml:0
 #: code:addons/odoo_ha_addon/static/src/actions/dashboard/dashboard.xml:0
 #: code:addons/odoo_ha_addon/static/src/actions/glances_device_dashboard/glances_device_dashboard.xml:0
@@ -5801,12 +5422,6 @@ msgid "instance_id is required"
 msgstr "instance_id 為必填"
 
 #. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "mdi:lightbulb"
-msgstr "mdi:lightbulb"
-
-#. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_label_view_form
 msgid "mdi:tag"
 msgstr "mdi:tag"
@@ -5827,18 +5442,6 @@ msgstr "位使用者）"
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_script_view_form
 msgid "{\"input_name\": \"value\"}"
 msgstr "{\"input_name\": \"value\"}"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "{\"key\": \"value\"}"
-msgstr "{\"key\": \"value\"}"
-
-#. module: odoo_ha_addon
-#. odoo-javascript
-#: code:addons/odoo_ha_addon/static/src/components/blueprint_wizard/blueprint_inputs.xml:0
-msgid "{{ states('sensor.example') }}"
-msgstr "{{ states('sensor.example') }}"
 
 #. module: odoo_ha_addon
 #. odoo-python

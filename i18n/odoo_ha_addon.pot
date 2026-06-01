@@ -37,7 +37,9 @@ msgstr ""
 
 #. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_entity_group_view_form
-msgid "If no users are specified, all users with instance access can view this group"
+msgid ""
+"If no users are specified, all users with instance access can view this "
+"group"
 msgstr ""
 
 #. module: odoo_ha_addon
@@ -62,7 +64,10 @@ msgstr ""
 
 #. module: odoo_ha_addon
 #: model_terms:ir.ui.view,arch_db:odoo_ha_addon.ha_instance_view_form
-msgid "The fingerprint is a unique identifier calculated based on the API URL. When the URL changes, a detection is triggered to remind you whether old data needs to be cleared."
+msgid ""
+"The fingerprint is a unique identifier calculated based on the API URL. When"
+" the URL changes, a detection is triggered to remind you whether old data "
+"needs to be cleared."
 msgstr ""
 
 #. module: odoo_ha_addon
