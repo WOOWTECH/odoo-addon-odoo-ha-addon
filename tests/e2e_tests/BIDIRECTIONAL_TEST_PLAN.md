@@ -28,7 +28,7 @@ Direction C: HA Core → Odoo Backend + Portal (verify propagation)
 
 ## 測試範圍
 
-### 可控制域 (Controllable Domains) - 12 個
+### 可控制域 (Controllable Domains) - 14 個
 
 | Domain | 測試動作 | 測試實體 (Odoo ID) |
 |--------|----------|-------------------|
@@ -42,23 +42,23 @@ Direction C: HA Core → Odoo Backend + Portal (verify propagation)
 | scene | turn_on (activate) | scene.qi_ci_wo (41) |
 | script | turn_on (run) | script.ai (113) |
 | button | press | button.smart_wired_gateway_pro_shi_bie (83) |
-| select | select_option | (needs available entity) |
-| media_player | toggle | (needs available entity) |
+| input_select | select_option | input_select.bidir_test_select (1706) |
+| cover | close_cover | cover.bidir_test_cover (1710) — template helper |
+| fan | toggle | fan.bidir_test_fan (1709) — template helper |
+| number | set_value | number.bidir_test_number_entity (1711) — template helper |
 
-### 唯讀域 (Read-only Domains) - 2 個
+### 唯讀域 (Read-only Domains) - 3 個
 
 | Domain | 測試項目 | 測試實體 |
 |--------|---------|---------|
 | sensor | 顯示狀態值 | sensor.backup_backup_manager_state (30) |
 | binary_sensor | 顯示狀態 + 圖示 | binary_sensor.iphone_focus (119) |
+| media_player | unavailable 顯示 | media_player.ke_ting_de_dian_shi (348) |
 
-### 不可測試域 (Unavailable) - 3 個
+### 不可測試域 (Unavailable) - 0 個
 
-| Domain | 原因 |
-|--------|------|
-| cover | HA 無此類實體 |
-| fan | HA 無此類實體 |
-| number | 所有實體 unavailable |
+所有域已透過建立 HA Helper/Template 實體解決。media_player 因 Template 不支援
+此 domain，且所有硬體實體 (Chromecast) 離線，改以 read-only 驗證 unavailable 顯示。
 
 ## 測試方法
 

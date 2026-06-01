@@ -110,8 +110,8 @@ TEST_ENTITIES = [
         ha_entity_id="input_number.efwghweiogehqhjgqiwoh",
         actions=[
             {"name": "set_value", "service": "set_value",
-             "service_data": {"value": 42.0},
-             "verify": lambda before, after: after == "42.0"},
+             "service_data": {"value": 50.0},  # overridden per direction
+             "verify": lambda before, after: True},  # verified via _get_expected_value
         ],
     ),
     TestEntity(
@@ -175,36 +175,54 @@ TEST_ENTITIES = [
         read_only=True,
         actions=[],
     ),
-    # Unavailable domains
+    # Template / Helper entities for previously-skipped domains
     TestEntity(
         domain="cover",
-        odoo_id=0,
-        ha_entity_id="",
-        skip_reason="No cover entities available in HA",
+        odoo_id=1710,
+        ha_entity_id="cover.bidir_test_cover",
+        actions=[
+            {"name": "close_cover", "service": "close_cover", "service_data": {},
+             "verify": lambda before, after: after == "closed"},
+        ],
     ),
     TestEntity(
         domain="fan",
-        odoo_id=0,
-        ha_entity_id="",
-        skip_reason="No fan entities available in HA",
+        odoo_id=1709,
+        ha_entity_id="fan.bidir_test_fan",
+        actions=[
+            {"name": "toggle", "service": "toggle", "service_data": {},
+             "verify": lambda before, after: before != after},
+        ],
     ),
     TestEntity(
         domain="number",
-        odoo_id=353,
-        ha_entity_id="number.wled_speed_2",
-        skip_reason="All number entities unavailable (device offline)",
+        odoo_id=1711,
+        ha_entity_id="number.bidir_test_number_entity",
+        actions=[
+            {"name": "set_value", "service": "set_value",
+             "service_data": {"value": 50.0},  # overridden per direction
+             "verify": lambda before, after: True},  # verified via _get_expected_value
+        ],
     ),
     TestEntity(
-        domain="select",
-        odoo_id=355,
-        ha_entity_id="select.wled_live_override_2",
-        skip_reason="All select entities unavailable (device offline)",
+        domain="input_select",
+        odoo_id=1706,
+        ha_entity_id="input_select.bidir_test_select",
+        actions=[
+            {"name": "select_option", "service": "select_option",
+             "service_data": {"option": "Option A"},  # overridden per direction
+             "verify": lambda before, after: True},  # verified via _get_expected_value
+        ],
     ),
+    # media_player: all hardware entities unavailable (Chromecast offline),
+    # template integration does not support media_player domain.
+    # Test as read-only to verify unavailable state display.
     TestEntity(
         domain="media_player",
         odoo_id=348,
         ha_entity_id="media_player.ke_ting_de_dian_shi",
-        skip_reason="All media_player entities unavailable (device offline)",
+        read_only=True,
+        actions=[],
     ),
 ]
 
@@ -449,6 +467,38 @@ class BidirectionalTestRunner:
                           data.get("error", "unknown")))
         return "unknown"
 
+    # Per-direction dynamic values to ensure each direction produces unique changes
+    _DIRECTION_VALUES = {
+        "number": {"A": 25.0, "B": 50.0, "C": 75.0},
+        "input_number": {"A": 25.0, "B": 50.0, "C": 75.0},
+        "input_select": {"A": "Option A", "B": "Option B", "C": "Option C"},
+        "select": {"A": "Option A", "B": "Option B", "C": "Option C"},
+    }
+
+    def _make_dynamic_service_data(self, entity: TestEntity, action: dict,
+                                   direction: str) -> dict:
+        """Create service_data with per-direction dynamic values."""
+        service_data = dict(action["service_data"])
+
+        if entity.domain == "input_text" and "value" in service_data:
+            service_data["value"] = f"test_{direction}_{int(time.time())}"
+        elif entity.domain in self._DIRECTION_VALUES:
+            values = self._DIRECTION_VALUES[entity.domain]
+            if "value" in service_data:
+                service_data["value"] = values[direction]
+            elif "option" in service_data:
+                service_data["option"] = values[direction]
+
+        return service_data
+
+    def _get_expected_value(self, entity: TestEntity, action: dict,
+                            direction: str) -> Optional[str]:
+        """Return expected state after service call, or None for default verify."""
+        if entity.domain in self._DIRECTION_VALUES:
+            values = self._DIRECTION_VALUES[entity.domain]
+            return str(values[direction])
+        return None
+
     def test_direction_a(self, entity: TestEntity, action: dict) -> TestResult:
         """Direction A: Backend → HA → Backend (verify round-trip)."""
         start = time.time()
@@ -457,10 +507,8 @@ class BidirectionalTestRunner:
         # Read before state
         before = self.read_backend_state(entity)
 
-        # Update dynamic service_data for input_text
-        service_data = dict(action["service_data"])
-        if entity.domain == "input_text" and "value" in service_data:
-            service_data["value"] = f"test_A_{int(time.time())}"
+        # Update dynamic service_data per direction
+        service_data = self._make_dynamic_service_data(entity, action, "A")
 
         # Call service via backend
         result = self.admin_rpc.call_service(
@@ -486,9 +534,13 @@ class BidirectionalTestRunner:
         after = self.read_backend_state(entity)
         duration = int((time.time() - start) * 1000)
 
-        # Verify
+        # Verify — use dynamic verify for domains with per-direction expected values
         verify_fn = action.get("verify", lambda b, a: b != a)
-        passed = verify_fn(before, after)
+        expected = self._get_expected_value(entity, action, "A")
+        if expected is not None:
+            passed = after == expected
+        else:
+            passed = verify_fn(before, after)
 
         return TestResult(
             domain=entity.domain,
@@ -509,10 +561,8 @@ class BidirectionalTestRunner:
         # Read before state via portal
         before = self.read_portal_state(entity)
 
-        # Update dynamic service_data
-        service_data = dict(action["service_data"])
-        if entity.domain == "input_text" and "value" in service_data:
-            service_data["value"] = f"test_B_{int(time.time())}"
+        # Update dynamic service_data per direction
+        service_data = self._make_dynamic_service_data(entity, action, "B")
 
         # Call service via portal
         result = self.portal_client.call_service(
@@ -540,9 +590,13 @@ class BidirectionalTestRunner:
         after = self.read_portal_state(entity)
         duration = int((time.time() - start) * 1000)
 
-        # Verify
+        # Verify — use dynamic verify for domains with per-direction expected values
         verify_fn = action.get("verify", lambda b, a: b != a)
-        passed = verify_fn(before, after)
+        expected = self._get_expected_value(entity, action, "B")
+        if expected is not None:
+            passed = after == expected
+        else:
+            passed = verify_fn(before, after)
 
         return TestResult(
             domain=entity.domain,
@@ -560,10 +614,8 @@ class BidirectionalTestRunner:
         start = time.time()
         action_name = action["name"]
 
-        # Update dynamic service_data
-        service_data = dict(action["service_data"])
-        if entity.domain == "input_text" and "value" in service_data:
-            service_data["value"] = f"test_C_{int(time.time())}"
+        # Update dynamic service_data per direction
+        service_data = self._make_dynamic_service_data(entity, action, "C")
 
         # Call service via backend
         result = self.admin_rpc.call_service(

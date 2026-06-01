@@ -1,69 +1,69 @@
 {
-  "timestamp": "2026-06-01T02:33:15.102023+00:00",
-  "total": 41,
-  "passed": 39,
+  "timestamp": "2026-06-01T03:06:24.863022+00:00",
+  "total": 49,
+  "passed": 47,
   "failed": 2,
-  "skipped": 5,
+  "skipped": 1,
   "results": [
     {
       "domain": "switch",
       "direction": "A",
       "action": "toggle",
       "success": false,
-      "message": "State unchanged: off",
-      "before": "off",
-      "after": "off",
-      "duration_ms": 5382
+      "message": "State unchanged: on",
+      "before": "on",
+      "after": "on",
+      "duration_ms": 5987
     },
     {
       "domain": "switch",
       "direction": "B",
       "action": "toggle",
       "success": false,
-      "message": "State unchanged: off",
-      "before": "off",
-      "after": "off",
-      "duration_ms": 5656
+      "message": "State unchanged: on",
+      "before": "on",
+      "after": "on",
+      "duration_ms": 5662
     },
     {
       "domain": "switch",
       "direction": "C",
       "action": "toggle",
       "success": true,
-      "message": "Backend=off, Portal=off — consistent",
-      "before": "off",
-      "after": "off",
-      "duration_ms": 5691
+      "message": "Backend=on, Portal=on — consistent",
+      "before": "on",
+      "after": "on",
+      "duration_ms": 5688
     },
     {
       "domain": "light",
       "direction": "A",
       "action": "toggle",
       "success": true,
-      "message": "State: on → off",
-      "before": "on",
-      "after": "off",
-      "duration_ms": 5992
+      "message": "State: off → on",
+      "before": "off",
+      "after": "on",
+      "duration_ms": 5973
     },
     {
       "domain": "light",
       "direction": "B",
       "action": "toggle",
       "success": true,
-      "message": "State: off → on",
-      "before": "off",
-      "after": "on",
-      "duration_ms": 5968
+      "message": "State: on → off",
+      "before": "on",
+      "after": "off",
+      "duration_ms": 5667
     },
     {
       "domain": "light",
       "direction": "C",
       "action": "toggle",
       "success": true,
-      "message": "Backend=off, Portal=off — consistent",
-      "before": "off",
-      "after": "off",
-      "duration_ms": 6005
+      "message": "Backend=on, Portal=on — consistent",
+      "before": "on",
+      "after": "on",
+      "duration_ms": 6008
     },
     {
       "domain": "climate",
@@ -73,7 +73,7 @@
       "message": "State: cool → cool",
       "before": "cool",
       "after": "cool",
-      "duration_ms": 5665
+      "duration_ms": 5972
     },
     {
       "domain": "climate",
@@ -83,7 +83,7 @@
       "message": "State: cool → cool",
       "before": "cool",
       "after": "cool",
-      "duration_ms": 6571
+      "duration_ms": 5658
     },
     {
       "domain": "climate",
@@ -93,7 +93,7 @@
       "message": "Backend=cool, Portal=cool — consistent",
       "before": "cool",
       "after": "cool",
-      "duration_ms": 5706
+      "duration_ms": 5989
     },
     {
       "domain": "input_boolean",
@@ -103,7 +103,7 @@
       "message": "State: off → on",
       "before": "off",
       "after": "on",
-      "duration_ms": 5675
+      "duration_ms": 5797
     },
     {
       "domain": "input_boolean",
@@ -113,7 +113,7 @@
       "message": "State: on → off",
       "before": "on",
       "after": "off",
-      "duration_ms": 5674
+      "duration_ms": 5374
     },
     {
       "domain": "input_boolean",
@@ -123,147 +123,147 @@
       "message": "Backend=on, Portal=on — consistent",
       "before": "on",
       "after": "on",
-      "duration_ms": 5691
+      "duration_ms": 5387
     },
     {
       "domain": "input_number",
       "direction": "A",
       "action": "set_value",
       "success": true,
-      "message": "State: 42.0 → 42.0",
+      "message": "State: 42.0 → 25.0",
       "before": "42.0",
-      "after": "42.0",
-      "duration_ms": 5681
+      "after": "25.0",
+      "duration_ms": 5688
     },
     {
       "domain": "input_number",
       "direction": "B",
       "action": "set_value",
       "success": true,
-      "message": "State: 42.0 → 42.0",
-      "before": "42.0",
-      "after": "42.0",
-      "duration_ms": 5782
+      "message": "State: 25.0 → 50.0",
+      "before": "25.0",
+      "after": "50.0",
+      "duration_ms": 5662
     },
     {
       "domain": "input_number",
       "direction": "C",
       "action": "set_value",
       "success": true,
-      "message": "Backend=42.0, Portal=42.0 — consistent",
-      "before": "42.0",
-      "after": "42.0",
-      "duration_ms": 5686
+      "message": "Backend=75.0, Portal=75.0 — consistent",
+      "before": "75.0",
+      "after": "75.0",
+      "duration_ms": 5987
     },
     {
       "domain": "input_text",
       "direction": "A",
       "action": "set_value",
       "success": true,
-      "message": "State: test_C_1780280843 → test_A_1780281108",
-      "before": "test_C_1780280843",
-      "after": "test_A_1780281108",
+      "message": "State: test_C_1780281120 → test_A_1780283027",
+      "before": "test_C_1780281120",
+      "after": "test_A_1780283027",
+      "duration_ms": 5673
+    },
+    {
+      "domain": "input_text",
+      "direction": "B",
+      "action": "set_value",
+      "success": true,
+      "message": "State: test_A_1780283027 → test_B_1780283033",
+      "before": "test_A_1780283027",
+      "after": "test_B_1780283033",
+      "duration_ms": 5664
+    },
+    {
+      "domain": "input_text",
+      "direction": "C",
+      "action": "set_value",
+      "success": true,
+      "message": "Backend=test_B_1780283033, Portal=test_B_1780283033 — consistent",
+      "before": "test_B_1780283033",
+      "after": "test_B_1780283033",
+      "duration_ms": 5994
+    },
+    {
+      "domain": "automation",
+      "direction": "A",
+      "action": "toggle",
+      "success": true,
+      "message": "State: off → on",
+      "before": "off",
+      "after": "on",
+      "duration_ms": 5677
+    },
+    {
+      "domain": "automation",
+      "direction": "B",
+      "action": "toggle",
+      "success": true,
+      "message": "State: on → off",
+      "before": "on",
+      "after": "off",
+      "duration_ms": 5660
+    },
+    {
+      "domain": "automation",
+      "direction": "C",
+      "action": "toggle",
+      "success": true,
+      "message": "Backend=on, Portal=on — consistent",
+      "before": "on",
+      "after": "on",
+      "duration_ms": 5678
+    },
+    {
+      "domain": "scene",
+      "direction": "A",
+      "action": "activate",
+      "success": true,
+      "message": "State: 2026-06-01T02:32:34.924376+00:00 → 2026-06-01T03:04:22.873519+00:00",
+      "before": "2026-06-01T02:32:34.924376+00:00",
+      "after": "2026-06-01T03:04:22.873519+00:00",
+      "duration_ms": 5988
+    },
+    {
+      "domain": "scene",
+      "direction": "B",
+      "action": "activate",
+      "success": true,
+      "message": "State: 2026-06-01T03:04:22.873519+00:00 → 2026-06-01T03:04:28.933065+00:00",
+      "before": "2026-06-01T03:04:22.873519+00:00",
+      "after": "2026-06-01T03:04:28.933065+00:00",
+      "duration_ms": 5983
+    },
+    {
+      "domain": "scene",
+      "direction": "C",
+      "action": "activate",
+      "success": true,
+      "message": "Backend=2026-06-01T03:04:34.715185+00:00, Portal=2026-06-01T03:04:34.715185+00:00 — consistent",
+      "before": "2026-06-01T03:04:34.715185+00:00",
+      "after": "2026-06-01T03:04:34.715185+00:00",
       "duration_ms": 5687
     },
     {
-      "domain": "input_text",
-      "direction": "B",
-      "action": "set_value",
-      "success": true,
-      "message": "State: test_A_1780281108 → test_B_1780281114",
-      "before": "test_A_1780281108",
-      "after": "test_B_1780281114",
-      "duration_ms": 5664
-    },
-    {
-      "domain": "input_text",
-      "direction": "C",
-      "action": "set_value",
-      "success": true,
-      "message": "Backend=test_C_1780281120, Portal=test_C_1780281120 — consistent",
-      "before": "test_C_1780281120",
-      "after": "test_C_1780281120",
-      "duration_ms": 5381
-    },
-    {
-      "domain": "automation",
+      "domain": "script",
       "direction": "A",
-      "action": "toggle",
+      "action": "run",
+      "success": true,
+      "message": "State: off → on",
+      "before": "off",
+      "after": "on",
+      "duration_ms": 5669
+    },
+    {
+      "domain": "script",
+      "direction": "B",
+      "action": "run",
       "success": true,
       "message": "State: on → off",
       "before": "on",
       "after": "off",
-      "duration_ms": 5665
-    },
-    {
-      "domain": "automation",
-      "direction": "B",
-      "action": "toggle",
-      "success": true,
-      "message": "State: off → on",
-      "before": "off",
-      "after": "on",
-      "duration_ms": 5979
-    },
-    {
-      "domain": "automation",
-      "direction": "C",
-      "action": "toggle",
-      "success": true,
-      "message": "Backend=off, Portal=off — consistent",
-      "before": "off",
-      "after": "off",
-      "duration_ms": 5697
-    },
-    {
-      "domain": "scene",
-      "direction": "A",
-      "action": "activate",
-      "success": true,
-      "message": "State: 2026-06-01T02:28:01.276388+00:00 → 2026-06-01T02:32:23.340495+00:00",
-      "before": "2026-06-01T02:28:01.276388+00:00",
-      "after": "2026-06-01T02:32:23.340495+00:00",
-      "duration_ms": 5694
-    },
-    {
-      "domain": "scene",
-      "direction": "B",
-      "action": "activate",
-      "success": true,
-      "message": "State: 2026-06-01T02:32:23.340495+00:00 → 2026-06-01T02:32:29.126172+00:00",
-      "before": "2026-06-01T02:32:23.340495+00:00",
-      "after": "2026-06-01T02:32:29.126172+00:00",
-      "duration_ms": 5664
-    },
-    {
-      "domain": "scene",
-      "direction": "C",
-      "action": "activate",
-      "success": true,
-      "message": "Backend=2026-06-01T02:32:34.924376+00:00, Portal=2026-06-01T02:32:34.924376+00:00 — consistent",
-      "before": "2026-06-01T02:32:34.924376+00:00",
-      "after": "2026-06-01T02:32:34.924376+00:00",
-      "duration_ms": 5986
-    },
-    {
-      "domain": "script",
-      "direction": "A",
-      "action": "run",
-      "success": true,
-      "message": "State: off → on",
-      "before": "off",
-      "after": "on",
-      "duration_ms": 5675
-    },
-    {
-      "domain": "script",
-      "direction": "B",
-      "action": "run",
-      "success": true,
-      "message": "State: on → on",
-      "before": "on",
-      "after": "on",
-      "duration_ms": 5684
+      "duration_ms": 5968
     },
     {
       "domain": "script",
@@ -273,37 +273,37 @@
       "message": "Backend=on, Portal=on — consistent",
       "before": "on",
       "after": "on",
-      "duration_ms": 5992
+      "duration_ms": 5702
     },
     {
       "domain": "button",
       "direction": "A",
       "action": "press",
       "success": true,
-      "message": "State: 2026-06-01T02:28:36.689963+00:00 → 2026-06-01T02:32:58.004868+00:00",
-      "before": "2026-06-01T02:28:36.689963+00:00",
-      "after": "2026-06-01T02:32:58.004868+00:00",
-      "duration_ms": 5669
+      "message": "State: 2026-06-01T02:33:09.674883+00:00 → 2026-06-01T03:04:57.721515+00:00",
+      "before": "2026-06-01T02:33:09.674883+00:00",
+      "after": "2026-06-01T03:04:57.721515+00:00",
+      "duration_ms": 5673
     },
     {
       "domain": "button",
       "direction": "B",
       "action": "press",
       "success": true,
-      "message": "State: 2026-06-01T02:32:58.004868+00:00 → 2026-06-01T02:33:03.953976+00:00",
-      "before": "2026-06-01T02:32:58.004868+00:00",
-      "after": "2026-06-01T02:33:03.953976+00:00",
-      "duration_ms": 5969
+      "message": "State: 2026-06-01T03:04:57.721515+00:00 → 2026-06-01T03:04:57.721515+00:00",
+      "before": "2026-06-01T03:04:57.721515+00:00",
+      "after": "2026-06-01T03:04:57.721515+00:00",
+      "duration_ms": 5373
     },
     {
       "domain": "button",
       "direction": "C",
       "action": "press",
       "success": true,
-      "message": "Backend=2026-06-01T02:33:09.674883+00:00, Portal=2026-06-01T02:33:09.674883+00:00 — consistent",
-      "before": "2026-06-01T02:33:09.674883+00:00",
-      "after": "2026-06-01T02:33:09.674883+00:00",
-      "duration_ms": 5697
+      "message": "Backend=2026-06-01T03:05:08.937412+00:00, Portal=2026-06-01T03:05:08.937412+00:00 — consistent",
+      "before": "2026-06-01T03:05:08.937412+00:00",
+      "after": "2026-06-01T03:05:08.937412+00:00",
+      "duration_ms": 6911
     },
     {
       "domain": "sensor",
@@ -367,50 +367,130 @@
     },
     {
       "domain": "cover",
-      "direction": "—",
-      "action": "skip",
+      "direction": "A",
+      "action": "close_cover",
       "success": true,
-      "message": "No cover entities available in HA",
-      "before": "",
-      "after": "",
-      "duration_ms": 0
+      "message": "State: open → closed",
+      "before": "open",
+      "after": "closed",
+      "duration_ms": 5675
+    },
+    {
+      "domain": "cover",
+      "direction": "B",
+      "action": "close_cover",
+      "success": true,
+      "message": "State: closed → closed",
+      "before": "closed",
+      "after": "closed",
+      "duration_ms": 5963
+    },
+    {
+      "domain": "cover",
+      "direction": "C",
+      "action": "close_cover",
+      "success": true,
+      "message": "Backend=closed, Portal=closed — consistent",
+      "before": "closed",
+      "after": "closed",
+      "duration_ms": 5788
     },
     {
       "domain": "fan",
-      "direction": "—",
-      "action": "skip",
+      "direction": "A",
+      "action": "toggle",
       "success": true,
-      "message": "No fan entities available in HA",
-      "before": "",
-      "after": "",
-      "duration_ms": 0
+      "message": "State: on → off",
+      "before": "on",
+      "after": "off",
+      "duration_ms": 5683
+    },
+    {
+      "domain": "fan",
+      "direction": "B",
+      "action": "toggle",
+      "success": true,
+      "message": "State: off → on",
+      "before": "off",
+      "after": "on",
+      "duration_ms": 5656
+    },
+    {
+      "domain": "fan",
+      "direction": "C",
+      "action": "toggle",
+      "success": true,
+      "message": "Backend=off, Portal=off — consistent",
+      "before": "off",
+      "after": "off",
+      "duration_ms": 5689
     },
     {
       "domain": "number",
-      "direction": "—",
-      "action": "skip",
+      "direction": "A",
+      "action": "set_value",
       "success": true,
-      "message": "All number entities unavailable (device offline)",
-      "before": "",
-      "after": "",
-      "duration_ms": 0
+      "message": "State: 33.0 → 25.0",
+      "before": "33.0",
+      "after": "25.0",
+      "duration_ms": 5667
     },
     {
-      "domain": "select",
-      "direction": "—",
-      "action": "skip",
+      "domain": "number",
+      "direction": "B",
+      "action": "set_value",
       "success": true,
-      "message": "All select entities unavailable (device offline)",
-      "before": "",
-      "after": "",
-      "duration_ms": 0
+      "message": "State: 25.0 → 50.0",
+      "before": "25.0",
+      "after": "50.0",
+      "duration_ms": 5660
+    },
+    {
+      "domain": "number",
+      "direction": "C",
+      "action": "set_value",
+      "success": true,
+      "message": "Backend=75.0, Portal=75.0 — consistent",
+      "before": "75.0",
+      "after": "75.0",
+      "duration_ms": 5717
+    },
+    {
+      "domain": "input_select",
+      "direction": "A",
+      "action": "select_option",
+      "success": true,
+      "message": "State: Option A → Option A",
+      "before": "Option A",
+      "after": "Option A",
+      "duration_ms": 5970
+    },
+    {
+      "domain": "input_select",
+      "direction": "B",
+      "action": "select_option",
+      "success": true,
+      "message": "State: Option A → Option B",
+      "before": "Option A",
+      "after": "Option B",
+      "duration_ms": 5971
+    },
+    {
+      "domain": "input_select",
+      "direction": "C",
+      "action": "select_option",
+      "success": true,
+      "message": "Backend=Option C, Portal=Option C — consistent",
+      "before": "Option C",
+      "after": "Option C",
+      "duration_ms": 5985
     },
     {
       "domain": "media_player",
       "direction": "—",
       "action": "skip",
       "success": true,
-      "message": "All media_player entities unavailable (device offline)",
+      "message": "Entity unavailable (device offline)",
       "before": "",
       "after": "",
       "duration_ms": 0

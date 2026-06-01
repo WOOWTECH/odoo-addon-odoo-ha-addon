@@ -89,7 +89,7 @@ PORTAL_CONTROL_SERVICES = {
     'number': ['set_value'],
     'input_text': ['set_value'],
     'text': ['set_value'],
-    'input_select': ['select_option', 'select_next', 'select_previous'],
+    'input_select': ['select_option', 'select_next', 'select_previous', 'select_first', 'select_last'],
     'select': ['select_option', 'select_first', 'select_last', 'select_next', 'select_previous'],
     'input_datetime': ['set_datetime'],
     'date': ['set_value'],
