@@ -12,7 +12,7 @@
                 t-att-minlength="state.attributes?.min || 0"
                 t-att-maxlength="state.attributes?.max || 255"
                 t-att-pattern="state.attributes?.pattern || ''"
-                t-on-keydown="(ev) => { if(ev.key === 'Enter') this.onSetValue(ev.target.value); }"
+                t-on-keydown="(ev) => ev.key === 'Enter' &amp;&amp; this.onSetValue(ev.target.value)"
             />
             <button class="btn btn-primary btn-sm"
                 t-on-click.stop="(ev) => this.onSetValue(ev.target.closest('.text-controller').querySelector('input').value)"
