@@ -1,0 +1,419 @@
+{
+  "timestamp": "2026-06-01T02:33:15.102023+00:00",
+  "total": 41,
+  "passed": 39,
+  "failed": 2,
+  "skipped": 5,
+  "results": [
+    {
+      "domain": "switch",
+      "direction": "A",
+      "action": "toggle",
+      "success": false,
+      "message": "State unchanged: off",
+      "before": "off",
+      "after": "off",
+      "duration_ms": 5382
+    },
+    {
+      "domain": "switch",
+      "direction": "B",
+      "action": "toggle",
+      "success": false,
+      "message": "State unchanged: off",
+      "before": "off",
+      "after": "off",
+      "duration_ms": 5656
+    },
+    {
+      "domain": "switch",
+      "direction": "C",
+      "action": "toggle",
+      "success": true,
+      "message": "Backend=off, Portal=off — consistent",
+      "before": "off",
+      "after": "off",
+      "duration_ms": 5691
+    },
+    {
+      "domain": "light",
+      "direction": "A",
+      "action": "toggle",
+      "success": true,
+      "message": "State: on → off",
+      "before": "on",
+      "after": "off",
+      "duration_ms": 5992
+    },
+    {
+      "domain": "light",
+      "direction": "B",
+      "action": "toggle",
+      "success": true,
+      "message": "State: off → on",
+      "before": "off",
+      "after": "on",
+      "duration_ms": 5968
+    },
+    {
+      "domain": "light",
+      "direction": "C",
+      "action": "toggle",
+      "success": true,
+      "message": "Backend=off, Portal=off — consistent",
+      "before": "off",
+      "after": "off",
+      "duration_ms": 6005
+    },
+    {
+      "domain": "climate",
+      "direction": "A",
+      "action": "set_hvac_mode",
+      "success": true,
+      "message": "State: cool → cool",
+      "before": "cool",
+      "after": "cool",
+      "duration_ms": 5665
+    },
+    {
+      "domain": "climate",
+      "direction": "B",
+      "action": "set_hvac_mode",
+      "success": true,
+      "message": "State: cool → cool",
+      "before": "cool",
+      "after": "cool",
+      "duration_ms": 6571
+    },
+    {
+      "domain": "climate",
+      "direction": "C",
+      "action": "set_hvac_mode",
+      "success": true,
+      "message": "Backend=cool, Portal=cool — consistent",
+      "before": "cool",
+      "after": "cool",
+      "duration_ms": 5706
+    },
+    {
+      "domain": "input_boolean",
+      "direction": "A",
+      "action": "toggle",
+      "success": true,
+      "message": "State: off → on",
+      "before": "off",
+      "after": "on",
+      "duration_ms": 5675
+    },
+    {
+      "domain": "input_boolean",
+      "direction": "B",
+      "action": "toggle",
+      "success": true,
+      "message": "State: on → off",
+      "before": "on",
+      "after": "off",
+      "duration_ms": 5674
+    },
+    {
+      "domain": "input_boolean",
+      "direction": "C",
+      "action": "toggle",
+      "success": true,
+      "message": "Backend=on, Portal=on — consistent",
+      "before": "on",
+      "after": "on",
+      "duration_ms": 5691
+    },
+    {
+      "domain": "input_number",
+      "direction": "A",
+      "action": "set_value",
+      "success": true,
+      "message": "State: 42.0 → 42.0",
+      "before": "42.0",
+      "after": "42.0",
+      "duration_ms": 5681
+    },
+    {
+      "domain": "input_number",
+      "direction": "B",
+      "action": "set_value",
+      "success": true,
+      "message": "State: 42.0 → 42.0",
+      "before": "42.0",
+      "after": "42.0",
+      "duration_ms": 5782
+    },
+    {
+      "domain": "input_number",
+      "direction": "C",
+      "action": "set_value",
+      "success": true,
+      "message": "Backend=42.0, Portal=42.0 — consistent",
+      "before": "42.0",
+      "after": "42.0",
+      "duration_ms": 5686
+    },
+    {
+      "domain": "input_text",
+      "direction": "A",
+      "action": "set_value",
+      "success": true,
+      "message": "State: test_C_1780280843 → test_A_1780281108",
+      "before": "test_C_1780280843",
+      "after": "test_A_1780281108",
+      "duration_ms": 5687
+    },
+    {
+      "domain": "input_text",
+      "direction": "B",
+      "action": "set_value",
+      "success": true,
+      "message": "State: test_A_1780281108 → test_B_1780281114",
+      "before": "test_A_1780281108",
+      "after": "test_B_1780281114",
+      "duration_ms": 5664
+    },
+    {
+      "domain": "input_text",
+      "direction": "C",
+      "action": "set_value",
+      "success": true,
+      "message": "Backend=test_C_1780281120, Portal=test_C_1780281120 — consistent",
+      "before": "test_C_1780281120",
+      "after": "test_C_1780281120",
+      "duration_ms": 5381
+    },
+    {
+      "domain": "automation",
+      "direction": "A",
+      "action": "toggle",
+      "success": true,
+      "message": "State: on → off",
+      "before": "on",
+      "after": "off",
+      "duration_ms": 5665
+    },
+    {
+      "domain": "automation",
+      "direction": "B",
+      "action": "toggle",
+      "success": true,
+      "message": "State: off → on",
+      "before": "off",
+      "after": "on",
+      "duration_ms": 5979
+    },
+    {
+      "domain": "automation",
+      "direction": "C",
+      "action": "toggle",
+      "success": true,
+      "message": "Backend=off, Portal=off — consistent",
+      "before": "off",
+      "after": "off",
+      "duration_ms": 5697
+    },
+    {
+      "domain": "scene",
+      "direction": "A",
+      "action": "activate",
+      "success": true,
+      "message": "State: 2026-06-01T02:28:01.276388+00:00 → 2026-06-01T02:32:23.340495+00:00",
+      "before": "2026-06-01T02:28:01.276388+00:00",
+      "after": "2026-06-01T02:32:23.340495+00:00",
+      "duration_ms": 5694
+    },
+    {
+      "domain": "scene",
+      "direction": "B",
+      "action": "activate",
+      "success": true,
+      "message": "State: 2026-06-01T02:32:23.340495+00:00 → 2026-06-01T02:32:29.126172+00:00",
+      "before": "2026-06-01T02:32:23.340495+00:00",
+      "after": "2026-06-01T02:32:29.126172+00:00",
+      "duration_ms": 5664
+    },
+    {
+      "domain": "scene",
+      "direction": "C",
+      "action": "activate",
+      "success": true,
+      "message": "Backend=2026-06-01T02:32:34.924376+00:00, Portal=2026-06-01T02:32:34.924376+00:00 — consistent",
+      "before": "2026-06-01T02:32:34.924376+00:00",
+      "after": "2026-06-01T02:32:34.924376+00:00",
+      "duration_ms": 5986
+    },
+    {
+      "domain": "script",
+      "direction": "A",
+      "action": "run",
+      "success": true,
+      "message": "State: off → on",
+      "before": "off",
+      "after": "on",
+      "duration_ms": 5675
+    },
+    {
+      "domain": "script",
+      "direction": "B",
+      "action": "run",
+      "success": true,
+      "message": "State: on → on",
+      "before": "on",
+      "after": "on",
+      "duration_ms": 5684
+    },
+    {
+      "domain": "script",
+      "direction": "C",
+      "action": "run",
+      "success": true,
+      "message": "Backend=on, Portal=on — consistent",
+      "before": "on",
+      "after": "on",
+      "duration_ms": 5992
+    },
+    {
+      "domain": "button",
+      "direction": "A",
+      "action": "press",
+      "success": true,
+      "message": "State: 2026-06-01T02:28:36.689963+00:00 → 2026-06-01T02:32:58.004868+00:00",
+      "before": "2026-06-01T02:28:36.689963+00:00",
+      "after": "2026-06-01T02:32:58.004868+00:00",
+      "duration_ms": 5669
+    },
+    {
+      "domain": "button",
+      "direction": "B",
+      "action": "press",
+      "success": true,
+      "message": "State: 2026-06-01T02:32:58.004868+00:00 → 2026-06-01T02:33:03.953976+00:00",
+      "before": "2026-06-01T02:32:58.004868+00:00",
+      "after": "2026-06-01T02:33:03.953976+00:00",
+      "duration_ms": 5969
+    },
+    {
+      "domain": "button",
+      "direction": "C",
+      "action": "press",
+      "success": true,
+      "message": "Backend=2026-06-01T02:33:09.674883+00:00, Portal=2026-06-01T02:33:09.674883+00:00 — consistent",
+      "before": "2026-06-01T02:33:09.674883+00:00",
+      "after": "2026-06-01T02:33:09.674883+00:00",
+      "duration_ms": 5697
+    },
+    {
+      "domain": "sensor",
+      "direction": "A",
+      "action": "read_state",
+      "success": true,
+      "message": "Backend state: idle",
+      "before": "",
+      "after": "idle",
+      "duration_ms": 0
+    },
+    {
+      "domain": "sensor",
+      "direction": "B",
+      "action": "read_state",
+      "success": true,
+      "message": "Portal state: idle",
+      "before": "",
+      "after": "idle",
+      "duration_ms": 0
+    },
+    {
+      "domain": "sensor",
+      "direction": "C",
+      "action": "state_consistency",
+      "success": true,
+      "message": "Backend=idle, Portal=idle — consistent",
+      "before": "idle",
+      "after": "idle",
+      "duration_ms": 0
+    },
+    {
+      "domain": "binary_sensor",
+      "direction": "A",
+      "action": "read_state",
+      "success": true,
+      "message": "Backend state: off",
+      "before": "",
+      "after": "off",
+      "duration_ms": 0
+    },
+    {
+      "domain": "binary_sensor",
+      "direction": "B",
+      "action": "read_state",
+      "success": true,
+      "message": "Portal state: off",
+      "before": "",
+      "after": "off",
+      "duration_ms": 0
+    },
+    {
+      "domain": "binary_sensor",
+      "direction": "C",
+      "action": "state_consistency",
+      "success": true,
+      "message": "Backend=off, Portal=off — consistent",
+      "before": "off",
+      "after": "off",
+      "duration_ms": 0
+    },
+    {
+      "domain": "cover",
+      "direction": "—",
+      "action": "skip",
+      "success": true,
+      "message": "No cover entities available in HA",
+      "before": "",
+      "after": "",
+      "duration_ms": 0
+    },
+    {
+      "domain": "fan",
+      "direction": "—",
+      "action": "skip",
+      "success": true,
+      "message": "No fan entities available in HA",
+      "before": "",
+      "after": "",
+      "duration_ms": 0
+    },
+    {
+      "domain": "number",
+      "direction": "—",
+      "action": "skip",
+      "success": true,
+      "message": "All number entities unavailable (device offline)",
+      "before": "",
+      "after": "",
+      "duration_ms": 0
+    },
+    {
+      "domain": "select",
+      "direction": "—",
+      "action": "skip",
+      "success": true,
+      "message": "All select entities unavailable (device offline)",
+      "before": "",
+      "after": "",
+      "duration_ms": 0
+    },
+    {
+      "domain": "media_player",
+      "direction": "—",
+      "action": "skip",
+      "success": true,
+      "message": "All media_player entities unavailable (device offline)",
+      "before": "",
+      "after": "",
+      "duration_ms": 0
+    }
+  ]
+}
