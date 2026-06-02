@@ -54,8 +54,10 @@ class HAEntityHistory(models.Model):
         """
         伺服器端降採樣歷史資料，大幅減少傳輸到前端的資料量。
 
-        - Numeric entities：時間桶平均值（每個 entity 最多 max_points 點）
-        - Non-numeric entities：只保留狀態變化點
+        使用 temp table 避免在每個 SQL 查詢中傳遞數萬個 record ID。
+
+        - Numeric entities：per-entity 時間桶平均值（每個 entity 最多 max_points 點）
+        - Non-numeric entities：只保留狀態變化點（每個 entity 最多 max_points 點）
 
         Args:
             search_domain: Odoo search domain（來自 Search View 的篩選條件）
@@ -67,8 +69,7 @@ class HAEntityHistory(models.Model):
         """
         NUMERIC_DOMAINS = {'sensor', 'input_number', 'number', 'counter'}
 
-        # 1. 先用 ORM search 取得符合條件的 record IDs（尊重 access rules + instance filter mixin）
-        #    加入 domain 過濾
+        # 1. ORM search（尊重 access rules + instance filter mixin）
         domain_filter = [('domain', 'in', supported_domains)]
         full_domain = search_domain + domain_filter
         record_ids = self.search(full_domain).ids
@@ -76,123 +77,133 @@ class HAEntityHistory(models.Model):
         if not record_ids:
             return []
 
-        # 2. 查詢這些記錄的 entity 分佈
-        self.env.cr.execute("""
-            SELECT DISTINCT entity_id, domain
-            FROM ha_entity_history
-            WHERE id = ANY(%s)
-        """, [record_ids])
-        entity_domains = {row[0]: row[1] for row in self.env.cr.fetchall()}
+        # 2. 建立 temp table 存放符合條件的 record IDs（避免每次傳遞 34K+ IDs）
+        cr = self.env.cr
+        cr.execute("CREATE TEMP TABLE IF NOT EXISTS _ds_ids (id INTEGER PRIMARY KEY)")
+        cr.execute("TRUNCATE _ds_ids")
+        # 批次插入使用 unnest，比逐筆插入快
+        cr.execute("INSERT INTO _ds_ids SELECT unnest(%s::int[])", [record_ids])
+
+        # 3. 查詢 entity 分佈
+        cr.execute("""
+            SELECT DISTINCT h.entity_id, h.domain
+            FROM ha_entity_history h
+            INNER JOIN _ds_ids t ON t.id = h.id
+        """)
+        entity_domains = {row[0]: row[1] for row in cr.fetchall()}
 
         numeric_entity_ids = [eid for eid, d in entity_domains.items() if d in NUMERIC_DOMAINS]
         non_numeric_entity_ids = [eid for eid, d in entity_domains.items() if d not in NUMERIC_DOMAINS]
 
         results = []
 
-        # 3. Numeric entities：時間桶聚合
+        # 4. Numeric entities：per-entity 時間桶聚合
         if numeric_entity_ids:
-            results.extend(self._downsample_numeric(record_ids, numeric_entity_ids, max_points))
+            results.extend(self._downsample_numeric(numeric_entity_ids, max_points))
 
-        # 4. Non-numeric entities：狀態變化點
+        # 5. Non-numeric entities：狀態變化點
         if non_numeric_entity_ids:
-            results.extend(self._downsample_non_numeric(record_ids, non_numeric_entity_ids, max_points))
+            results.extend(self._downsample_non_numeric(non_numeric_entity_ids, max_points))
 
         return results
 
-    def _downsample_numeric(self, record_ids, entity_ids, max_points):
-        """Numeric entities 的時間桶聚合降採樣"""
-        # 先取得時間範圍以計算桶大小
-        self.env.cr.execute("""
-            SELECT MIN(last_changed), MAX(last_changed)
-            FROM ha_entity_history
-            WHERE id = ANY(%s) AND entity_id = ANY(%s)
-        """, [record_ids, entity_ids])
-        row = self.env.cr.fetchone()
-        if not row or not row[0] or not row[1]:
-            return []
+    def _downsample_numeric(self, entity_ids, max_points):
+        """Numeric entities 的 per-entity 時間桶聚合降採樣（使用 _ds_ids temp table）"""
+        cr = self.env.cr
 
-        min_time, max_time = row[0], row[1]
-        time_range = (max_time - min_time).total_seconds()
-
-        # 計算時間桶間隔（秒）
-        bucket_seconds = max(time_range / max_points, 1)
-
-        # 使用 SQL 做時間桶聚合
-        self.env.cr.execute("""
+        # Per-entity 時間桶：每個 entity 獨立計算桶大小，確保每個 entity 最多 max_points 點
+        cr.execute("""
+            WITH entity_ranges AS (
+                SELECT
+                    h.entity_id,
+                    MIN(h.last_changed) AS min_t,
+                    MAX(h.last_changed) AS max_t,
+                    GREATEST(
+                        EXTRACT(EPOCH FROM MAX(h.last_changed) - MIN(h.last_changed)) / %(max_pts)s,
+                        1
+                    ) AS bucket_sec
+                FROM ha_entity_history h
+                INNER JOIN _ds_ids t ON t.id = h.id
+                WHERE h.entity_id = ANY(%(eids)s)
+                GROUP BY h.entity_id
+            )
             SELECT
-                h.entity_id,
                 e.name AS entity_name,
                 e.entity_id AS entity_id_string,
                 h.domain,
                 to_timestamp(
-                    floor(extract(epoch FROM h.last_changed) / %(bucket)s) * %(bucket)s
+                    floor(extract(epoch FROM h.last_changed) / er.bucket_sec) * er.bucket_sec
                 ) AS bucket_time,
                 AVG(h.num_state) AS avg_num_state,
-                -- 取該桶中最後一筆的 entity_state 作為代表
                 (array_agg(h.entity_state ORDER BY h.last_changed DESC))[1] AS entity_state
             FROM ha_entity_history h
-            JOIN ha_entity e ON e.id = h.entity_id
-            WHERE h.id = ANY(%(ids)s) AND h.entity_id = ANY(%(eids)s)
-            GROUP BY h.entity_id, e.name, e.entity_id, h.domain,
-                     floor(extract(epoch FROM h.last_changed) / %(bucket)s)
-            ORDER BY h.entity_id, bucket_time
-        """, {'ids': record_ids, 'eids': entity_ids, 'bucket': bucket_seconds})
+            INNER JOIN _ds_ids t ON t.id = h.id
+            INNER JOIN ha_entity e ON e.id = h.entity_id
+            INNER JOIN entity_ranges er ON er.entity_id = h.entity_id
+            WHERE h.entity_id = ANY(%(eids)s)
+            GROUP BY h.entity_id, e.name, e.entity_id, h.domain, er.bucket_sec,
+                     floor(extract(epoch FROM h.last_changed) / er.bucket_sec)
+            ORDER BY e.entity_id, bucket_time
+        """, {'eids': entity_ids, 'max_pts': max_points})
 
         results = []
-        for row in self.env.cr.fetchall():
+        for row in cr.fetchall():
             results.append({
-                'entity_name': row[1] or '',
-                'entity_id_string': row[2] or '',
-                'domain': row[3] or '',
-                'last_changed': fields.Datetime.to_string(row[4]) if row[4] else False,
-                'num_state': round(row[5], 2) if row[5] is not None else 0,
-                'entity_state': row[6] or '',
+                'entity_name': row[0] or '',
+                'entity_id_string': row[1] or '',
+                'domain': row[2] or '',
+                'last_changed': fields.Datetime.to_string(row[3]) if row[3] else False,
+                'num_state': round(row[4], 2) if row[4] is not None else 0,
+                'entity_state': row[5] or '',
             })
         return results
 
-    def _downsample_non_numeric(self, record_ids, entity_ids, max_points):
-        """Non-numeric entities：只保留狀態變化點"""
-        # 使用 LAG() window function 偵測狀態變化
-        self.env.cr.execute("""
+    def _downsample_non_numeric(self, entity_ids, max_points):
+        """Non-numeric entities：只保留狀態變化點（使用 _ds_ids temp table）"""
+        cr = self.env.cr
+
+        # LAG() 偵測狀態變化 + ROW_NUMBER() 限制每個 entity 最多 max_points
+        cr.execute("""
             SELECT entity_name, entity_id_string, domain, last_changed,
                    num_state, entity_state
             FROM (
                 SELECT
-                    e.name AS entity_name,
-                    e.entity_id AS entity_id_string,
-                    h.domain,
-                    h.last_changed,
-                    h.num_state,
-                    h.entity_state,
-                    LAG(h.entity_state) OVER (
-                        PARTITION BY h.entity_id ORDER BY h.last_changed
-                    ) AS prev_state,
+                    sub.*,
                     ROW_NUMBER() OVER (
-                        PARTITION BY h.entity_id ORDER BY h.last_changed
-                    ) AS rn
-                FROM ha_entity_history h
-                JOIN ha_entity e ON e.id = h.entity_id
-                WHERE h.id = ANY(%(ids)s) AND h.entity_id = ANY(%(eids)s)
-            ) sub
-            WHERE entity_state != prev_state OR prev_state IS NULL
+                        PARTITION BY sub.entity_id_string ORDER BY sub.last_changed
+                    ) AS change_rn
+                FROM (
+                    SELECT
+                        e.name AS entity_name,
+                        e.entity_id AS entity_id_string,
+                        h.domain,
+                        h.last_changed,
+                        h.num_state,
+                        h.entity_state,
+                        LAG(h.entity_state) OVER (
+                            PARTITION BY h.entity_id ORDER BY h.last_changed
+                        ) AS prev_state
+                    FROM ha_entity_history h
+                    INNER JOIN _ds_ids t ON t.id = h.id
+                    INNER JOIN ha_entity e ON e.id = h.entity_id
+                    WHERE h.entity_id = ANY(%(eids)s)
+                ) sub
+                WHERE sub.entity_state != sub.prev_state OR sub.prev_state IS NULL
+            ) changes
+            WHERE change_rn <= %(max_pts)s
             ORDER BY entity_id_string, last_changed
-        """, {'ids': record_ids, 'eids': entity_ids})
+        """, {'eids': entity_ids, 'max_pts': max_points})
 
         results = []
-        entity_counts = {}
-        for row in self.env.cr.fetchall():
-            eid = row[1]
-            entity_counts[eid] = entity_counts.get(eid, 0) + 1
-            # 每個 entity 上限 max_points
-            if entity_counts[eid] <= max_points:
-                results.append({
-                    'entity_name': row[0] or '',
-                    'entity_id_string': row[1] or '',
-                    'domain': row[2] or '',
-                    'last_changed': fields.Datetime.to_string(row[3]) if row[3] else False,
-                    'num_state': row[4] if row[4] is not None else 0,
-                    'entity_state': row[5] or '',
-                })
+        for row in cr.fetchall():
+            results.append({
+                'entity_name': row[0] or '',
+                'entity_id_string': row[1] or '',
+                'domain': row[2] or '',
+                'last_changed': fields.Datetime.to_string(row[3]) if row[3] else False,
+                'num_state': row[4] if row[4] is not None else 0,
+                'entity_state': row[5] or '',
+            })
         return results
 
     def create_history_records(self, history_data):
