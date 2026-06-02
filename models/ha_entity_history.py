@@ -18,7 +18,7 @@ class HAEntityHistory(models.Model):
 
     domain = fields.Char(string='Domain', required=True)
     entity_state = fields.Char(string='Entity State')
-    last_changed = fields.Datetime(string='Last Changed', copy=False)
+    last_changed = fields.Datetime(string='Last Changed', copy=False, index=True)
     last_updated = fields.Datetime(string='Last Updated', copy=False)
     attributes = fields.Json(string='Attributes')
 
@@ -35,7 +35,7 @@ class HAEntityHistory(models.Model):
         index=True,
         help='The Home Assistant instance (inherited from entity)'
     )
-    entity_id = fields.Many2one('ha.entity', string='Entity', required=True, ondelete='cascade')
+    entity_id = fields.Many2one('ha.entity', string='Entity', required=True, ondelete='cascade', index=True)
     entity_id_string = fields.Char(string='Entity ID', related='entity_id.entity_id', readonly=True)
     entity_name = fields.Char(string='Entity Name', related='entity_id.name', readonly=True)
 
@@ -48,6 +48,152 @@ class HAEntityHistory(models.Model):
             except (ValueError, TypeError):
                 # 如果 entity_state 不是數字，則設置為 0 或其他默認值
                 record.num_state = -1
+
+    @api.model
+    def get_downsampled_history(self, search_domain, supported_domains, max_points=500):
+        """
+        伺服器端降採樣歷史資料，大幅減少傳輸到前端的資料量。
+
+        - Numeric entities：時間桶平均值（每個 entity 最多 max_points 點）
+        - Non-numeric entities：只保留狀態變化點
+
+        Args:
+            search_domain: Odoo search domain（來自 Search View 的篩選條件）
+            supported_domains: 支援的 domain 列表（如 ['sensor', 'switch', ...]）
+            max_points: 每個 entity 的最大資料點數（預設 500）
+
+        Returns:
+            list[dict]: 降採樣後的歷史記錄
+        """
+        NUMERIC_DOMAINS = {'sensor', 'input_number', 'number', 'counter'}
+
+        # 1. 先用 ORM search 取得符合條件的 record IDs（尊重 access rules + instance filter mixin）
+        #    加入 domain 過濾
+        domain_filter = [('domain', 'in', supported_domains)]
+        full_domain = search_domain + domain_filter
+        record_ids = self.search(full_domain).ids
+
+        if not record_ids:
+            return []
+
+        # 2. 查詢這些記錄的 entity 分佈
+        self.env.cr.execute("""
+            SELECT DISTINCT entity_id, domain
+            FROM ha_entity_history
+            WHERE id = ANY(%s)
+        """, [record_ids])
+        entity_domains = {row[0]: row[1] for row in self.env.cr.fetchall()}
+
+        numeric_entity_ids = [eid for eid, d in entity_domains.items() if d in NUMERIC_DOMAINS]
+        non_numeric_entity_ids = [eid for eid, d in entity_domains.items() if d not in NUMERIC_DOMAINS]
+
+        results = []
+
+        # 3. Numeric entities：時間桶聚合
+        if numeric_entity_ids:
+            results.extend(self._downsample_numeric(record_ids, numeric_entity_ids, max_points))
+
+        # 4. Non-numeric entities：狀態變化點
+        if non_numeric_entity_ids:
+            results.extend(self._downsample_non_numeric(record_ids, non_numeric_entity_ids, max_points))
+
+        return results
+
+    def _downsample_numeric(self, record_ids, entity_ids, max_points):
+        """Numeric entities 的時間桶聚合降採樣"""
+        # 先取得時間範圍以計算桶大小
+        self.env.cr.execute("""
+            SELECT MIN(last_changed), MAX(last_changed)
+            FROM ha_entity_history
+            WHERE id = ANY(%s) AND entity_id = ANY(%s)
+        """, [record_ids, entity_ids])
+        row = self.env.cr.fetchone()
+        if not row or not row[0] or not row[1]:
+            return []
+
+        min_time, max_time = row[0], row[1]
+        time_range = (max_time - min_time).total_seconds()
+
+        # 計算時間桶間隔（秒）
+        bucket_seconds = max(time_range / max_points, 1)
+
+        # 使用 SQL 做時間桶聚合
+        self.env.cr.execute("""
+            SELECT
+                h.entity_id,
+                e.name AS entity_name,
+                e.entity_id AS entity_id_string,
+                h.domain,
+                to_timestamp(
+                    floor(extract(epoch FROM h.last_changed) / %(bucket)s) * %(bucket)s
+                ) AS bucket_time,
+                AVG(h.num_state) AS avg_num_state,
+                -- 取該桶中最後一筆的 entity_state 作為代表
+                (array_agg(h.entity_state ORDER BY h.last_changed DESC))[1] AS entity_state
+            FROM ha_entity_history h
+            JOIN ha_entity e ON e.id = h.entity_id
+            WHERE h.id = ANY(%(ids)s) AND h.entity_id = ANY(%(eids)s)
+            GROUP BY h.entity_id, e.name, e.entity_id, h.domain,
+                     floor(extract(epoch FROM h.last_changed) / %(bucket)s)
+            ORDER BY h.entity_id, bucket_time
+        """, {'ids': record_ids, 'eids': entity_ids, 'bucket': bucket_seconds})
+
+        results = []
+        for row in self.env.cr.fetchall():
+            results.append({
+                'entity_name': row[1] or '',
+                'entity_id_string': row[2] or '',
+                'domain': row[3] or '',
+                'last_changed': fields.Datetime.to_string(row[4]) if row[4] else False,
+                'num_state': round(row[5], 2) if row[5] is not None else 0,
+                'entity_state': row[6] or '',
+            })
+        return results
+
+    def _downsample_non_numeric(self, record_ids, entity_ids, max_points):
+        """Non-numeric entities：只保留狀態變化點"""
+        # 使用 LAG() window function 偵測狀態變化
+        self.env.cr.execute("""
+            SELECT entity_name, entity_id_string, domain, last_changed,
+                   num_state, entity_state
+            FROM (
+                SELECT
+                    e.name AS entity_name,
+                    e.entity_id AS entity_id_string,
+                    h.domain,
+                    h.last_changed,
+                    h.num_state,
+                    h.entity_state,
+                    LAG(h.entity_state) OVER (
+                        PARTITION BY h.entity_id ORDER BY h.last_changed
+                    ) AS prev_state,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY h.entity_id ORDER BY h.last_changed
+                    ) AS rn
+                FROM ha_entity_history h
+                JOIN ha_entity e ON e.id = h.entity_id
+                WHERE h.id = ANY(%(ids)s) AND h.entity_id = ANY(%(eids)s)
+            ) sub
+            WHERE entity_state != prev_state OR prev_state IS NULL
+            ORDER BY entity_id_string, last_changed
+        """, {'ids': record_ids, 'eids': entity_ids})
+
+        results = []
+        entity_counts = {}
+        for row in self.env.cr.fetchall():
+            eid = row[1]
+            entity_counts[eid] = entity_counts.get(eid, 0) + 1
+            # 每個 entity 上限 max_points
+            if entity_counts[eid] <= max_points:
+                results.append({
+                    'entity_name': row[0] or '',
+                    'entity_id_string': row[1] or '',
+                    'domain': row[2] or '',
+                    'last_changed': fields.Datetime.to_string(row[3]) if row[3] else False,
+                    'num_state': row[4] if row[4] is not None else 0,
+                    'entity_state': row[5] or '',
+                })
+        return results
 
     def create_history_records(self, history_data):
         """

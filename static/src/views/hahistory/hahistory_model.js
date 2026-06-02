@@ -9,9 +9,10 @@ export class HaHistoryModel {
     this.resModel = resModel;
     this.haDataService = haDataService;
 
-    const { domains, limit } = archInfo;
+    const { domains, limit, maxPointsPerEntity } = archInfo;
     this.domains = domains;
     this.limit = limit;
+    this.maxPointsPerEntity = maxPointsPerEntity || 500;
 
     this.keepLast = new KeepLast();
 
@@ -24,29 +25,19 @@ export class HaHistoryModel {
    */
   async loadHistory(domain) {
     const taskFun = async () => {
-      // 不再強制過濾實例，讓用戶透過 Search View 的 "Current Instance" filter 自己選擇
-      debug("webSearchRead HaHistory", {
-        domain: domain
+      debug("get_downsampled_history HaHistory", {
+        domain: domain,
+        supported_domains: this.domains,
+        max_points: this.maxPointsPerEntity,
       });
 
-      const result = await this.orm.webSearchRead(this.resModel, domain, {
-        limit: this.limit,
-        specification: {
-          entity_name: {},
-          entity_id_string: {},
-          entity_state: {}, // 使用 entity_state 而非保留欄位 state
-          num_state: {},
-          domain: {},
-          last_updated: {},
-          last_changed: {},
-        },
-      });
-      const { records, ...others } = result;
-      const filteredRecords = records.filter((record) =>
-        this.domains.some((elt) => elt === record["domain"])
+      const records = await this.orm.call(
+        this.resModel,
+        "get_downsampled_history",
+        [domain, this.domains, this.maxPointsPerEntity]
       );
 
-      this.records = filteredRecords;
+      this.records = records;
     };
     return this.keepLast.add(taskFun());
   }

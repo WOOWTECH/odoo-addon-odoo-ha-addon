@@ -1,18 +1,21 @@
 /** @odoo-module */
 
 /**
- * <hahistory domain="input_number" limit="5000"/> 的 props parser
+ * <hahistory domain="sensor,switch,..." limit="5000" max_points_per_entity="500"/> 的 props parser
  *
- * limit: 預設 5000 筆，確保能載入多個實體的歷史記錄
- *        （每個實體每天約 100-500 筆記錄，5000 筆可涵蓋約 10-50 個實體）
+ * limit: fallback 上限（用於非降採樣模式）
+ * max_points_per_entity: 每個 entity 伺服器端降採樣最大點數（預設 500）
  */
 export class HaHistoryArchParser {
   parse(xmlDoc) {
     const domains = (xmlDoc.getAttribute("domain") || "").split(",");
     const limit = parseInt(xmlDoc.getAttribute("limit"), 10) || 5000;
+    const maxPointsPerEntity =
+      parseInt(xmlDoc.getAttribute("max_points_per_entity"), 10) || 500;
     return {
       domains,
       limit,
+      maxPointsPerEntity,
     };
   }
 }
