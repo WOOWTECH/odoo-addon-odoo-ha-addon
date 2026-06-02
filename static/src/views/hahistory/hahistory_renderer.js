@@ -30,6 +30,8 @@ const BINARY_DOMAINS = new Set([
   "switch",
   "light",
   "input_boolean",
+  "automation",
+  "script",
 ]);
 
 const CATEGORICAL_DOMAINS = new Set([
@@ -1014,6 +1016,9 @@ const DOMAIN_TITLES = {
   lock: "Locks",
   media_player: "Media Players",
   vacuum: "Vacuums",
+  automation: "Automations",
+  script: "Scripts",
+  scene: "Scenes",
 };
 
 /**
