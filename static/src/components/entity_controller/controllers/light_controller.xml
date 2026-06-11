@@ -64,6 +64,50 @@
                     </div>
                 </div>
             </t>
+
+            <!-- RGB Color picker (only when light is on and supports rgb/hs/xy color modes) -->
+            <t t-if="isOn and state.attributes?.supported_color_modes and this.supportsRgbColor">
+                <div class="rgb-color-control mt-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-paint-brush text-muted"/>
+                        <label class="form-label mb-0 small text-muted" string="Color">Color</label>
+                        <input
+                            type="color"
+                            class="form-control form-control-color"
+                            t-att-value="currentRgbHex"
+                            t-on-change.stop="(ev) => this.onSetRgbColor(ev.target.value)"
+                            t-att-disabled="state.isLoading"
+                            title="Choose light color"
+                        />
+                        <span class="slider-value-badge" t-if="state.attributes?.rgb_color">
+                            RGB(<t t-esc="state.attributes.rgb_color[0]"/>,<t t-esc="state.attributes.rgb_color[1]"/>,<t t-esc="state.attributes.rgb_color[2]"/>)
+                        </span>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Effect dropdown (only when light has effect_list) -->
+            <t t-if="isOn and state.attributes?.effect_list?.length > 0">
+                <div class="effect-control mt-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-magic text-muted"/>
+                        <label class="form-label mb-0 small text-muted" string="Effect">Effect</label>
+                        <select
+                            class="form-select form-select-sm"
+                            t-att-value="state.attributes?.effect || ''"
+                            t-on-change.stop="(ev) => this.onSetEffect(ev.target.value)"
+                            t-att-disabled="state.isLoading"
+                        >
+                            <option value="" disabled="" string="Select effect">Select effect</option>
+                            <t t-foreach="state.attributes.effect_list" t-as="effect" t-key="effect">
+                                <option t-att-value="effect" t-att-selected="state.attributes?.effect === effect">
+                                    <t t-esc="effect"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                </div>
+            </t>
         </div>
     </t>
 </templates>

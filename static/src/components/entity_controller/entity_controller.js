@@ -35,6 +35,7 @@ export class EntityController extends Component {
       brightness: null,
       colorTemp: null,
       coverPosition: null,
+      coverTiltPosition: null,
     });
   }
 
@@ -74,6 +75,28 @@ export class EntityController extends Component {
     return this.sliderValues.coverPosition !== null
       ? this.sliderValues.coverPosition
       : (this.state.attributes?.current_position || 0);
+  }
+
+  get currentCoverTiltPosition() {
+    return this.sliderValues.coverTiltPosition !== null
+      ? this.sliderValues.coverTiltPosition
+      : (this.state.attributes?.current_tilt_position || 0);
+  }
+
+  // Check if light supports RGB-compatible color modes
+  get supportsRgbColor() {
+    const modes = this.state.attributes?.supported_color_modes || [];
+    return modes.some((m) => ['rgb', 'rgbw', 'rgbww', 'hs', 'xy'].includes(m));
+  }
+
+  // Convert current rgb_color attribute to hex string for <input type="color">
+  get currentRgbHex() {
+    const rgb = this.state.attributes?.rgb_color;
+    if (rgb && rgb.length >= 3) {
+      const toHex = (v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0');
+      return `#${toHex(rgb[0])}${toHex(rgb[1])}${toHex(rgb[2])}`;
+    }
+    return '#ffffff';
   }
 
   // Domain-specific action wrappers (called from templates)
@@ -120,6 +143,19 @@ export class EntityController extends Component {
     } catch (error) {
       this.sliderValues.colorTemp = null;
     }
+  }
+
+  // RGB color control - converts hex color to [r, g, b] array
+  async onSetRgbColor(hexColor) {
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    await this.actions.setRgbColor({ rgb_color: [r, g, b] });
+  }
+
+  // Effect control
+  async onSetEffect(effect) {
+    await this.actions.setEffect({ effect });
   }
 
   async onSetTemperature(temp) {
@@ -185,6 +221,37 @@ export class EntityController extends Component {
     }
   }
 
+  // Cover tilt actions
+  async onOpenCoverTilt() {
+    await this.actions.openCoverTilt();
+  }
+
+  async onCloseCoverTilt() {
+    await this.actions.closeCoverTilt();
+  }
+
+  async onStopCoverTilt() {
+    await this.actions.stopCoverTilt();
+  }
+
+  onCoverTiltPositionInput(position) {
+    this.sliderValues.coverTiltPosition = parseInt(position);
+  }
+
+  async onSetCoverTiltPosition(position) {
+    const finalValue = parseInt(position);
+    this.sliderValues.coverTiltPosition = finalValue;
+
+    try {
+      await this.actions.setCoverTiltPosition(finalValue);
+      setTimeout(() => {
+        this.sliderValues.coverTiltPosition = null;
+      }, 1000);
+    } catch (error) {
+      this.sliderValues.coverTiltPosition = null;
+    }
+  }
+
   // Fan domain actions
   onPercentageInput(percentage) {
     // Update temporary value for immediate visual feedback
@@ -229,6 +296,12 @@ export class EntityController extends Component {
   async onSetFanMode(fanMode) {
     await this.actions.setFanMode(fanMode);
   }
+
+  async onSetSwingMode(swingMode) {
+    await this.actions.setSwingMode(swingMode);
+  }
+
+  // Climate preset mode is handled by onSetPresetMode (shared with fan domain)
 
   // Phase 1: Button / Lock / Humidifier actions
   async onPress() {
@@ -299,6 +372,25 @@ export class EntityController extends Component {
 
   async onSelectSource(source) {
     await this.actions.selectSource(source);
+  }
+
+  async onSelectSoundMode(soundMode) {
+    await this.actions.selectSoundMode(soundMode);
+  }
+
+  async onShuffleSet(shuffle) {
+    await this.actions.shuffleSet(shuffle);
+  }
+
+  async onRepeatSet(repeat) {
+    await this.actions.repeatSet(repeat);
+  }
+
+  // Cycle repeat mode: off -> all -> one -> off
+  async onRepeatCycle() {
+    const current = this.state.attributes?.repeat || 'off';
+    const next = current === 'off' ? 'all' : current === 'all' ? 'one' : 'off';
+    await this.actions.repeatSet(next);
   }
 
   // Vacuum actions

@@ -35,8 +35,8 @@
                             class="form-control text-center"
                             style="width: 80px;"
                             step="0.5"
-                            min="16"
-                            max="30"
+                            t-att-min="state.attributes?.min_temp || 7"
+                            t-att-max="state.attributes?.max_temp || 35"
                             t-att-value="state.attributes.temperature"
                             t-on-change.stop="(ev) => this.onSetTemperature(parseFloat(ev.target.value))"
                             t-att-disabled="state.isLoading"
@@ -89,6 +89,52 @@
                                     'btn-outline-secondary': state.attributes?.fan_mode !== mode
                                 }"
                                 t-on-click.stop="() => this.onSetFanMode(mode)"
+                                t-att-disabled="state.isLoading"
+                            >
+                                <t t-esc="mode"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Swing Mode -->
+            <t t-if="state.attributes?.swing_modes?.length > 0">
+                <div class="swing-mode-control mt-3">
+                    <label class="form-label">Swing</label>
+                    <div class="btn-group" role="group">
+                        <t t-foreach="state.attributes.swing_modes" t-as="mode" t-key="mode">
+                            <button
+                                type="button"
+                                class="btn btn-sm"
+                                t-att-class="{
+                                    'btn-info': state.attributes?.swing_mode === mode,
+                                    'btn-outline-secondary': state.attributes?.swing_mode !== mode
+                                }"
+                                t-on-click.stop="() => this.onSetSwingMode(mode)"
+                                t-att-disabled="state.isLoading"
+                            >
+                                <t t-esc="mode"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Preset Mode -->
+            <t t-if="state.attributes?.preset_modes?.length > 0">
+                <div class="preset-mode-control mt-3">
+                    <label class="form-label">Preset</label>
+                    <div class="btn-group" role="group">
+                        <t t-foreach="state.attributes.preset_modes" t-as="mode" t-key="mode">
+                            <button
+                                type="button"
+                                class="btn btn-sm"
+                                t-att-class="{
+                                    'btn-warning': state.attributes?.preset_mode === mode,
+                                    'btn-outline-secondary': state.attributes?.preset_mode !== mode
+                                }"
+                                t-on-click.stop="() => this.onSetPresetMode(mode)"
                                 t-att-disabled="state.isLoading"
                             >
                                 <t t-esc="mode"/>

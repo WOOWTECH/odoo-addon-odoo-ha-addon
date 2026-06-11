@@ -37,6 +37,45 @@
                     </div>
                 </div>
             </t>
+
+            <!-- Tilt controls (only when entity supports tilt) -->
+            <t t-if="state.attributes?.current_tilt_position !== undefined">
+                <div class="tilt-control mt-3">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="text-muted small"><i class="fa fa-sliders me-1"/>Tilt</span>
+                    </div>
+                    <div class="btn-group mb-2" role="group">
+                        <button class="btn btn-outline-success btn-sm" t-on-click.stop="() => this.onOpenCoverTilt()" t-att-disabled="state.isLoading" title="Open Tilt">
+                            <i class="fa fa-arrow-up"/>
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" t-on-click.stop="() => this.onStopCoverTilt()" t-att-disabled="state.isLoading" title="Stop Tilt">
+                            <i class="fa fa-stop"/>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" t-on-click.stop="() => this.onCloseCoverTilt()" t-att-disabled="state.isLoading" title="Close Tilt">
+                            <i class="fa fa-arrow-down"/>
+                        </button>
+                    </div>
+                    <div class="tilt-position-control entity-value-slider">
+                        <div class="slider-track-container d-flex align-items-center gap-2">
+                            <i class="fa fa-sliders text-muted"/>
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                step="1"
+                                t-att-value="currentCoverTiltPosition"
+                                t-att-style="'--slider-progress: ' + currentCoverTiltPosition + '%'"
+                                t-on-input.stop="(ev) => this.onCoverTiltPositionInput(ev.target.value)"
+                                t-on-change.stop="(ev) => this.onSetCoverTiltPosition(ev.target.value)"
+                                t-att-disabled="state.isLoading"
+                            />
+                            <span class="slider-value-badge">
+                                <t t-esc="currentCoverTiltPosition"/>%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </t>
         </div>
     </t>
 </templates>

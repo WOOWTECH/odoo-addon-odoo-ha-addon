@@ -202,6 +202,50 @@
                     </div>
                 </div>
             </t>
+
+            <!-- RGB Color picker (only when light is on and supports rgb/hs/xy color modes) -->
+            <t t-if="isOn and attributes.supported_color_modes and this.supportsRgbColor">
+                <div class="rgb-color-control mt-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-paint-brush text-muted"/>
+                        <label class="form-label mb-0 small text-muted" string="Color">Color</label>
+                        <input
+                            type="color"
+                            class="form-control form-control-color"
+                            t-att-value="currentRgbHex"
+                            t-on-change.stop="(ev) => this.onSetRgbColor(ev.target.value)"
+                            t-att-disabled="isLoading"
+                            title="Choose light color"
+                        />
+                        <span class="slider-value-badge" t-if="attributes.rgb_color">
+                            RGB(<t t-esc="attributes.rgb_color[0]"/>,<t t-esc="attributes.rgb_color[1]"/>,<t t-esc="attributes.rgb_color[2]"/>)
+                        </span>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Effect dropdown (only when light has effect_list) -->
+            <t t-if="isOn and attributes.effect_list?.length > 0">
+                <div class="effect-control mt-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-magic text-muted"/>
+                        <label class="form-label mb-0 small text-muted" string="Effect">Effect</label>
+                        <select
+                            class="form-select form-select-sm"
+                            t-att-value="attributes.effect || ''"
+                            t-on-change.stop="(ev) => this.onSetEffect(ev.target.value)"
+                            t-att-disabled="isLoading"
+                        >
+                            <option value="" disabled="" string="Select effect">Select effect</option>
+                            <t t-foreach="attributes.effect_list" t-as="effect" t-key="effect">
+                                <option t-att-value="effect" t-att-selected="attributes.effect === effect">
+                                    <t t-esc="effect"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                </div>
+            </t>
         </div>
     </t>
 
@@ -344,8 +388,8 @@
                             class="form-control text-center"
                             style="width: 80px;"
                             step="0.5"
-                            min="16"
-                            max="30"
+                            t-att-min="attributes.min_temp || 7"
+                            t-att-max="attributes.max_temp || 35"
                             t-att-value="attributes.temperature"
                             t-on-change.stop="(ev) => this.onSetTemperature(ev.target.value)"
                             t-att-disabled="isLoading"
@@ -406,6 +450,52 @@
                     </div>
                 </div>
             </t>
+
+            <!-- Swing Mode -->
+            <t t-if="attributes.swing_modes?.length > 0">
+                <div class="swing-mode-control mt-3">
+                    <label class="form-label">擺動模式</label>
+                    <div class="btn-group" role="group">
+                        <t t-foreach="attributes.swing_modes" t-as="mode" t-key="mode">
+                            <button
+                                type="button"
+                                class="btn btn-sm"
+                                t-att-class="{
+                                    'btn-info': attributes.swing_mode === mode,
+                                    'btn-light': attributes.swing_mode !== mode
+                                }"
+                                t-on-click.stop="() => this.onSetSwingMode(mode)"
+                                t-att-disabled="isLoading"
+                            >
+                                <t t-esc="mode"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Preset Mode -->
+            <t t-if="attributes.preset_modes?.length > 0">
+                <div class="preset-mode-control mt-3">
+                    <label class="form-label">預設模式</label>
+                    <div class="btn-group" role="group">
+                        <t t-foreach="attributes.preset_modes" t-as="mode" t-key="mode">
+                            <button
+                                type="button"
+                                class="btn btn-sm"
+                                t-att-class="{
+                                    'btn-warning': attributes.preset_mode === mode,
+                                    'btn-light': attributes.preset_mode !== mode
+                                }"
+                                t-on-click.stop="() => this.onSetPresetMode(mode)"
+                                t-att-disabled="isLoading"
+                            >
+                                <t t-esc="mode"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+            </t>
         </div>
     </t>
 
@@ -443,6 +533,45 @@
                         <span class="slider-value-badge">
                             <t t-esc="currentCoverPosition"/>%
                         </span>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Tilt controls (only when entity supports tilt) -->
+            <t t-if="attributes.current_tilt_position !== undefined">
+                <div class="tilt-control mt-3">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="text-muted small"><i class="fa fa-sliders me-1"/>傾斜</span>
+                    </div>
+                    <div class="btn-group mb-2" role="group">
+                        <button class="btn btn-outline-success btn-sm" t-on-click.stop="() => this.onOpenCoverTilt()" t-att-disabled="isLoading" title="開啟傾斜">
+                            <i class="fa fa-arrow-up"/>
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" t-on-click.stop="() => this.onStopCoverTilt()" t-att-disabled="isLoading" title="停止傾斜">
+                            <i class="fa fa-stop"/>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" t-on-click.stop="() => this.onCloseCoverTilt()" t-att-disabled="isLoading" title="關閉傾斜">
+                            <i class="fa fa-arrow-down"/>
+                        </button>
+                    </div>
+                    <div class="tilt-position-control portal-value-slider">
+                        <div class="slider-track-container d-flex align-items-center gap-2">
+                            <i class="fa fa-sliders text-muted"/>
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                step="1"
+                                t-att-value="currentCoverTiltPosition"
+                                t-att-style="'--slider-progress: ' + currentCoverTiltPosition + '%'"
+                                t-on-input.stop="(ev) => this.onCoverTiltPositionInput(ev.target.value)"
+                                t-on-change.stop="(ev) => this.onSetCoverTiltPosition(ev.target.value)"
+                                t-att-disabled="isLoading"
+                            />
+                            <span class="slider-value-badge">
+                                <t t-esc="currentCoverTiltPosition"/>%
+                            </span>
+                        </div>
                     </div>
                 </div>
             </t>
@@ -806,7 +935,7 @@
                 </t>
 
                 <t t-if="attributes.source_list?.length > 0">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2 mb-3">
                         <i class="fa fa-plug text-muted"/>
                         <select class="form-select form-select-sm"
                             t-att-value="attributes.source || ''"
@@ -819,6 +948,57 @@
                                 </option>
                             </t>
                         </select>
+                    </div>
+                </t>
+
+                <!-- Sound Mode -->
+                <t t-if="attributes.sound_mode_list?.length > 0">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fa fa-music text-muted"/>
+                        <select class="form-select form-select-sm"
+                            t-att-value="attributes.sound_mode || ''"
+                            t-on-change.stop="(ev) => this.onSelectSoundMode(ev.target.value)"
+                            t-att-disabled="isLoading">
+                            <option value="" disabled="">選擇音效模式</option>
+                            <t t-foreach="attributes.sound_mode_list" t-as="mode" t-key="mode">
+                                <option t-att-value="mode" t-att-selected="attributes.sound_mode === mode">
+                                    <t t-esc="mode"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                </t>
+
+                <!-- Shuffle + Repeat -->
+                <t t-if="attributes.shuffle !== undefined or attributes.repeat !== undefined">
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Shuffle Toggle -->
+                        <t t-if="attributes.shuffle !== undefined">
+                            <button class="btn btn-sm"
+                                t-att-class="{'btn-info': attributes.shuffle, 'btn-light': !attributes.shuffle}"
+                                t-on-click.stop="() => this.onShuffleSet(!attributes.shuffle)"
+                                t-att-disabled="isLoading"
+                                title="隨機播放">
+                                <i class="fa fa-random"/>
+                            </button>
+                        </t>
+
+                        <!-- Repeat Mode Cycle: off -> all -> one -> off -->
+                        <t t-if="attributes.repeat !== undefined">
+                            <button class="btn btn-sm"
+                                t-att-class="{
+                                    'btn-info': attributes.repeat !== 'off',
+                                    'btn-light': attributes.repeat === 'off'
+                                }"
+                                t-on-click.stop="() => this.onRepeatCycle()"
+                                t-att-disabled="isLoading"
+                                t-att-title="'重複: ' + (attributes.repeat || 'off')">
+                                <i class="fa fa-repeat"/>
+                                <t t-if="attributes.repeat === 'one'">
+                                    <span class="ms-1 small">1</span>
+                                </t>
+                            </button>
+                        </t>
                     </div>
                 </t>
             </t>

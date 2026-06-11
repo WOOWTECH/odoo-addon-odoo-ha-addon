@@ -77,7 +77,7 @@
 
                 <!-- Source Select -->
                 <t t-if="state.attributes?.source_list?.length > 0">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2 mb-3">
                         <i class="fa fa-plug text-muted"/>
                         <select class="form-select form-select-sm"
                             t-att-value="state.attributes.source || ''"
@@ -90,6 +90,57 @@
                                 </option>
                             </t>
                         </select>
+                    </div>
+                </t>
+
+                <!-- Sound Mode Select -->
+                <t t-if="state.attributes?.sound_mode_list?.length > 0">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fa fa-music text-muted"/>
+                        <select class="form-select form-select-sm"
+                            t-att-value="state.attributes.sound_mode || ''"
+                            t-on-change.stop="(ev) => this.onSelectSoundMode(ev.target.value)"
+                            t-att-disabled="state.isLoading">
+                            <option value="" disabled="">Select Sound Mode</option>
+                            <t t-foreach="state.attributes.sound_mode_list" t-as="mode" t-key="mode">
+                                <option t-att-value="mode" t-att-selected="state.attributes.sound_mode === mode">
+                                    <t t-esc="mode"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                </t>
+
+                <!-- Shuffle + Repeat -->
+                <t t-if="state.attributes?.shuffle !== undefined or state.attributes?.repeat !== undefined">
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Shuffle Toggle -->
+                        <t t-if="state.attributes?.shuffle !== undefined">
+                            <button class="btn btn-sm"
+                                t-att-class="{'btn-info': state.attributes.shuffle, 'btn-outline-secondary': !state.attributes.shuffle}"
+                                t-on-click.stop="() => this.onShuffleSet(!state.attributes.shuffle)"
+                                t-att-disabled="state.isLoading"
+                                title="Shuffle">
+                                <i class="fa fa-random"/>
+                            </button>
+                        </t>
+
+                        <!-- Repeat Mode Cycle: off -> all -> one -> off -->
+                        <t t-if="state.attributes?.repeat !== undefined">
+                            <button class="btn btn-sm"
+                                t-att-class="{
+                                    'btn-info': state.attributes.repeat !== 'off',
+                                    'btn-outline-secondary': state.attributes.repeat === 'off'
+                                }"
+                                t-on-click.stop="() => this.onRepeatCycle()"
+                                t-att-disabled="state.isLoading"
+                                t-att-title="'Repeat: ' + (state.attributes.repeat || 'off')">
+                                <i class="fa fa-repeat"/>
+                                <t t-if="state.attributes.repeat === 'one'">
+                                    <span class="ms-1 small">1</span>
+                                </t>
+                            </button>
+                        </t>
                     </div>
                 </t>
             </t>

@@ -54,6 +54,18 @@ export const DOMAIN_CONFIGS = {
                 service: "turn_on",
                 buildParams: (colorTempKelvin) => ({ color_temp_kelvin: parseInt(colorTempKelvin) }),
             },
+            setRgbColor: {
+                service: "turn_on",
+                buildParams: (data) => ({ rgb_color: data.rgb_color }),
+            },
+            setHsColor: {
+                service: "turn_on",
+                buildParams: (data) => ({ hs_color: data.hs_color }),
+            },
+            setEffect: {
+                service: "turn_on",
+                buildParams: (data) => ({ effect: data.effect }),
+            },
         },
     },
 
@@ -71,6 +83,14 @@ export const DOMAIN_CONFIGS = {
             setFanMode: {
                 service: "set_fan_mode",
                 buildParams: (fanMode) => ({ fan_mode: fanMode }),
+            },
+            setSwingMode: {
+                service: "set_swing_mode",
+                buildParams: (swingMode) => ({ swing_mode: swingMode }),
+            },
+            setPresetMode: {
+                service: "set_preset_mode",
+                buildParams: (presetMode) => ({ preset_mode: presetMode }),
             },
         },
     },
@@ -134,6 +154,19 @@ export const DOMAIN_CONFIGS = {
             setCoverPosition: {
                 service: "set_cover_position",
                 buildParams: (position) => ({ position: parseInt(position) }),
+            },
+            setCoverTiltPosition: {
+                service: "set_cover_tilt_position",
+                buildParams: (tiltPosition) => ({ tilt_position: parseInt(tiltPosition) }),
+            },
+            openCoverTilt: {
+                service: "open_cover_tilt",
+            },
+            closeCoverTilt: {
+                service: "close_cover_tilt",
+            },
+            stopCoverTilt: {
+                service: "stop_cover_tilt",
             },
         },
     },
@@ -448,6 +481,18 @@ export const DOMAIN_CONFIGS = {
             selectSource: {
                 service: "select_source",
                 buildParams: (source) => ({ source }),
+            },
+            selectSoundMode: {
+                service: "select_sound_mode",
+                buildParams: (soundMode) => ({ sound_mode: soundMode }),
+            },
+            shuffleSet: {
+                service: "shuffle_set",
+                buildParams: (shuffle) => ({ shuffle }),
+            },
+            repeatSet: {
+                service: "repeat_set",
+                buildParams: (repeat) => ({ repeat }),
             },
         },
     },
