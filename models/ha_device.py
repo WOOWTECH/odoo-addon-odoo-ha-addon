@@ -447,6 +447,26 @@ class HADevice(models.Model):
                     _logger.error(f"Error processing device {device_data.get('id')}: {e}")
 
             _logger.info(f"Device sync (instance {instance_id}): {created_count} created, {updated_count} updated")
+
+            # === 清理孤立設備 ===
+            try:
+                ha_device_ids = {d.get('id') for d in result if d.get('id')}
+                odoo_devices = self.sudo().search([
+                    ('ha_instance_id', '=', instance_id)
+                ])
+                orphaned = odoo_devices.filtered(lambda d: d.device_id not in ha_device_ids)
+                if orphaned:
+                    orphan_count = len(orphaned)
+                    orphan_ids = orphaned.mapped('device_id')
+                    _logger.warning(
+                        f"Found {orphan_count} orphaned devices in Odoo "
+                        f"(not in HA instance {instance_id}): {orphan_ids[:10]}..."
+                    )
+                    orphaned.with_context(from_ha_sync=True).unlink()
+                    _logger.info(f"Cleaned up {orphan_count} orphaned devices")
+            except Exception as e:
+                _logger.error(f"Failed to clean up orphaned devices: {e}")
+
             _logger.info("=== sync_devices_from_ha completed ===")
 
             return {'created': created_count, 'updated': updated_count}

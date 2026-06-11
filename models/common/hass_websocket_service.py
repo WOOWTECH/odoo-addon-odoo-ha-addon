@@ -2631,6 +2631,8 @@ class HassWebSocketService:
                 }
 
                 if entity:
+                    # 去重：在寫入前先記錄舊的 state 值
+                    old_state_value = entity.entity_state
                     # 更新現有實體
                     entity.write({
                         'entity_state': entity_values['entity_state'],
@@ -2639,6 +2641,7 @@ class HassWebSocketService:
                     })
                     self._logger.debug(f"Updated entity: {entity_id} (instance {self.instance_id})")
                 else:
+                    old_state_value = False
                     # 建立新實體
                     entity = env['ha.entity'].create(entity_values)
                     is_new = True
@@ -2646,14 +2649,22 @@ class HassWebSocketService:
 
                 # 如果啟用歷史記錄，則建立歷史記錄
                 if entity.enable_record:
-                    env['ha.entity.history'].create({
-                        'entity_id': entity.id,
-                        'domain': entity_values['domain'],
-                        'entity_state': entity_values['entity_state'],
-                        'last_changed': entity_values['last_changed'],
-                        'last_updated': entity_values['last_changed'],
-                        'attributes': entity_values['attributes']
-                    })
+                    # 去重：只有當 state 實際變更時才建立歷史記錄
+                    new_state_value = new_state_data.get('state', '')
+                    if old_state_value != new_state_value or old_state_value is False:
+                        env['ha.entity.history'].create({
+                            'entity_id': entity.id,
+                            'domain': entity_values['domain'],
+                            'entity_state': entity_values['entity_state'],
+                            'last_changed': entity_values['last_changed'],
+                            'last_updated': entity_values['last_changed'],
+                            'attributes': entity_values['attributes']
+                        })
+                    else:
+                        self._logger.debug(
+                            f"Skipping history record for {entity_id}: "
+                            f"state unchanged ('{old_state_value}')"
+                        )
 
                 # 🔔 通知前端：實體狀態變更（Phase 2: 附加 instance_id）
                 try:

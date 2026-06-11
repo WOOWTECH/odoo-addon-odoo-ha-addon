@@ -554,6 +554,25 @@ class HAEntity(models.Model):
             except Exception as e:
                 _logger.warning(f"Failed to update last_sync_date: {e}")
 
+            # === 清理孤立實體 ===
+            try:
+                ha_entity_ids = {e.get('entity_id') for e in entity_states if e.get('entity_id')}
+                odoo_entities = self.env['ha.entity'].sudo().search([
+                    ('ha_instance_id', '=', instance_id)
+                ])
+                orphaned = odoo_entities.filtered(lambda e: e.entity_id not in ha_entity_ids)
+                if orphaned:
+                    orphan_count = len(orphaned)
+                    orphan_ids = orphaned.mapped('entity_id')
+                    _logger.warning(
+                        f"Found {orphan_count} orphaned entities in Odoo "
+                        f"(not in HA instance {instance_id}): {orphan_ids[:10]}..."
+                    )
+                    orphaned.with_context(from_ha_sync=True).unlink()
+                    _logger.info(f"Cleaned up {orphan_count} orphaned entities")
+            except Exception as e:
+                _logger.error(f"Failed to clean up orphaned entities: {e}")
+
             _logger.info("=== sync_entity_states_from_ha completed successfully ===")
 
         except Exception as e:
