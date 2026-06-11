@@ -32,6 +32,8 @@ PORTAL_ENTITY_FIELDS = [
     'entity_state',
     'last_changed',
     'area_id',
+    'display_area_id',
+    'device_id',
     'domain',
     'attributes',
 ]
@@ -267,6 +269,16 @@ class HAPortalController(CustomerPortal):
             data['area_id'] = {
                 'id': data['area_id'][0],
                 'name': data['area_id'][1],
+            }
+        if data.get('display_area_id') and isinstance(data['display_area_id'], tuple):
+            data['display_area_id'] = {
+                'id': data['display_area_id'][0],
+                'name': data['display_area_id'][1],
+            }
+        if data.get('device_id') and isinstance(data['device_id'], tuple):
+            data['device_id'] = {
+                'id': data['device_id'][0],
+                'name': data['device_id'][1],
             }
         if data.get('last_changed'):
             data['last_changed'] = data['last_changed'].isoformat()

@@ -303,10 +303,17 @@
                                 <span class="badge rounded-pill text-bg-info"><t t-out="entity.domain"/></span>
                             </div>
                             <!-- Area -->
-                            <t t-if="entity.area_id">
+                            <t t-if="entity.display_area_id">
                                 <div class="d-flex flex-column gap-1">
                                     <span class="text-muted small">Area</span>
-                                    <span><t t-out="entity.area_id.name"/></span>
+                                    <span><i class="fa fa-map-marker me-1"/><t t-out="entity.display_area_id.name"/></span>
+                                </div>
+                            </t>
+                            <!-- Device -->
+                            <t t-if="entity.device_id">
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="text-muted small">Device</span>
+                                    <span><i class="fa fa-microchip me-1"/><t t-out="entity.device_id.name"/></span>
                                 </div>
                             </t>
                             <!-- Last Changed -->
@@ -388,7 +395,8 @@
                                             'entity_state': entity.entity_state,
                                             'last_changed': str(entity.last_changed) if entity.last_changed else None,
                                             'attributes': sanitize_attrs(entity.attributes),
-                                            'area_name': entity.area_id.name if entity.area_id else None,
+                                            'area_name': entity.display_area_id.name if entity.display_area_id else None,
+                                            'device_name': entity.device_id.name if entity.device_id else None,
                                         },
                                         'stateUrl': '/my/ha/%d/entity/%d/state' % (instance.id, entity.id),
                                     })"/>

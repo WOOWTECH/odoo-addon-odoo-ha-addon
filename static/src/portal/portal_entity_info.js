@@ -85,6 +85,10 @@ export class PortalEntityInfo extends Component {
         return this.props.entity.area_name || null;
     }
 
+    get device() {
+        return this.props.entity.device_name || null;
+    }
+
     get hasAttributes() {
         return this.state.attributes && Object.keys(this.state.attributes).length > 0;
     }

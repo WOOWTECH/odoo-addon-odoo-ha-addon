@@ -78,6 +78,18 @@
                             <span class="text-muted">未指派</span>
                         </t>
                     </dd>
+
+                    <!-- Device -->
+                    <dt class="col-sm-4 col-md-3">裝置</dt>
+                    <dd class="col-sm-8 col-md-9">
+                        <t t-if="device">
+                            <i class="fa fa-microchip mr-1"/>
+                            <t t-esc="device"/>
+                        </t>
+                        <t t-else="">
+                            <span class="text-muted">無</span>
+                        </t>
+                    </dd>
                 </dl>
             </div>
         </div>
