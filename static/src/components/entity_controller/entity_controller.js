@@ -328,6 +328,19 @@ export class EntityController extends Component {
     await this.actions.setMode(mode);
   }
 
+  // Number increment/decrement helpers (parseFloat not available in OWL templates)
+  async onDecrementValue() {
+    const current = parseFloat(this.state.entityState) || 0;
+    const step = this.state.attributes?.step || 1;
+    await this.actions.setValue(current - step);
+  }
+
+  async onIncrementValue() {
+    const current = parseFloat(this.state.entityState) || 0;
+    const step = this.state.attributes?.step || 1;
+    await this.actions.setValue(current + step);
+  }
+
   // Phase 2: Number / Text / Select / Datetime actions
   async onSetValue(value) {
     await this.actions.setValue(value);

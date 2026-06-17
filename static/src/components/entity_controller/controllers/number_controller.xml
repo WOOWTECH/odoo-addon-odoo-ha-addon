@@ -15,7 +15,7 @@
                 <t t-set="maxVal" t-value="state.attributes?.max || 100"/>
                 <t t-set="stepVal" t-value="state.attributes?.step || 1"/>
                 <button class="btn btn-outline-secondary btn-sm"
-                    t-on-click.stop="() => this.onSetValue(parseFloat(state.entityState) - (state.attributes?.step || 1))"
+                    t-on-click.stop="() => this.onDecrementValue()"
                     t-att-disabled="state.isLoading">
                     <i class="fa fa-minus"/>
                 </button>
@@ -30,7 +30,7 @@
                     t-att-disabled="state.isLoading"
                 />
                 <button class="btn btn-outline-secondary btn-sm"
-                    t-on-click.stop="() => this.onSetValue(parseFloat(state.entityState) + (state.attributes?.step || 1))"
+                    t-on-click.stop="() => this.onIncrementValue()"
                     t-att-disabled="state.isLoading">
                     <i class="fa fa-plus"/>
                 </button>
