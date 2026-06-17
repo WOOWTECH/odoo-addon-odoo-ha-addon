@@ -151,13 +151,9 @@
                 <field name="entity_id"/>
                 <filter name="active" string="Active" domain="[('active', '=', True)]"/>
                 <separator/>
-                <filter name="compliant" string="Compliant" domain="[('compliance_status', '=', 'compliant')]"/>
-                <filter name="non_compliant" string="Non-Compliant" domain="[('compliance_status', '=', 'non_compliant')]"/>
-                <filter name="no_data" string="No Data" domain="[('compliance_status', '=', 'no_data')]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_by_feature" string="WELL Feature" context="{'group_by': 'well_feature'}"/>
                     <filter name="group_by_type" string="Parameter Type" context="{'group_by': 'parameter_type'}"/>
-                    <filter name="group_by_status" string="Status" context="{'group_by': 'compliance_status'}"/>
                     <filter name="group_by_instance" string="HA Instance" context="{'group_by': 'instance_id'}"/>
                 </group>
             </search>
