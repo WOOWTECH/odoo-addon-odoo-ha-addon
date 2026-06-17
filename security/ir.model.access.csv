@@ -22,5 +22,3 @@ access_ha_entity_share_manager,HA Entity Share (Manager),odoo_ha_addon.model_ha_
 access_ha_entity_share_user,HA Entity Share (User Read-Only),odoo_ha_addon.model_ha_entity_share,odoo_ha_addon.group_ha_user,1,0,0,0
 access_ha_entity_share_portal,HA Entity Share (Portal),odoo_ha_addon.model_ha_entity_share,base.group_portal,1,0,0,0
 access_ha_entity_share_wizard_manager,HA Entity Share Wizard (Manager Only),odoo_ha_addon.model_ha_entity_share_wizard,odoo_ha_addon.group_ha_manager,1,1,1,1
-access_ha_well_threshold_admin,ha.well.threshold admin,model_ha_well_threshold,base.group_system,1,1,1,1
-access_ha_well_threshold_user,ha.well.threshold user,model_ha_well_threshold,base.group_user,1,0,0,0
