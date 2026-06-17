@@ -14,6 +14,7 @@
             <menuitem name="History" id="odoo_ha_addon.model_entity_history_menu" action="odoo_ha_addon.entity_history_action" sequence="5"/>
             <menuitem name="Entity Group" id="odoo_ha_addon.model_entity_group_menu" action="odoo_ha_addon.ha_entity_group_action" sequence="10"/>
         </menuitem>
+        <menuitem name="WELL IEQ Monitor" id="odoo_ha_addon.well_ieq_top_menu" action="odoo_ha_addon.ha_well_threshold_action" sequence="5"/>
         <menuitem name="Configuration" id="odoo_ha_addon.configuration_top_menu" sequence="6">
             <menuitem name="Entity Tag" id="odoo_ha_addon.config_entity_tag_menu" action="odoo_ha_addon.ha_entity_tag_action" sequence="1"/>
             <menuitem name="Entity Group Tag" id="odoo_ha_addon.config_entity_group_tag_menu" action="odoo_ha_addon.ha_entity_group_tag_action" sequence="2"/>

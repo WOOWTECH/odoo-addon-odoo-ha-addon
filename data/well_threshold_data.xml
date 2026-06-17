@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- ============================================
+             WELL v2 Default IEQ Thresholds
+             ============================================
+             These are preset thresholds based on the WELL Building
+             Standard v2 for Indoor Environmental Quality (IEQ).
+        -->
+
+        <!-- A01 - Air Quality: CO2 -->
+        <record id="well_threshold_co2" model="ha.well.threshold">
+            <field name="name">CO2 Level</field>
+            <field name="well_feature">A01</field>
+            <field name="parameter_type">co2</field>
+            <field name="max_value">800</field>
+            <field name="unit">ppm</field>
+        </record>
+
+        <!-- A01 - Air Quality: PM2.5 -->
+        <record id="well_threshold_pm25" model="ha.well.threshold">
+            <field name="name">PM2.5 Level</field>
+            <field name="well_feature">A01</field>
+            <field name="parameter_type">pm25</field>
+            <field name="max_value">15</field>
+            <field name="unit">&#x03BC;g/m&#x00B3;</field>
+        </record>
+
+        <!-- A05 - Enhanced Air Quality: VOC -->
+        <record id="well_threshold_voc" model="ha.well.threshold">
+            <field name="name">VOC Level</field>
+            <field name="well_feature">A05</field>
+            <field name="parameter_type">voc</field>
+            <field name="max_value">500</field>
+            <field name="unit">&#x03BC;g/m&#x00B3;</field>
+        </record>
+
+        <!-- T01 - Thermal Performance: Temperature -->
+        <record id="well_threshold_temperature" model="ha.well.threshold">
+            <field name="name">Temperature</field>
+            <field name="well_feature">T01</field>
+            <field name="parameter_type">temperature</field>
+            <field name="min_value">20</field>
+            <field name="max_value">26</field>
+            <field name="unit">&#x00B0;C</field>
+        </record>
+
+        <!-- T01 - Thermal Performance: Humidity -->
+        <record id="well_threshold_humidity" model="ha.well.threshold">
+            <field name="name">Humidity</field>
+            <field name="well_feature">T01</field>
+            <field name="parameter_type">humidity</field>
+            <field name="min_value">30</field>
+            <field name="max_value">60</field>
+            <field name="unit">%</field>
+        </record>
+
+        <!-- L01 - Light Exposure: Illuminance -->
+        <record id="well_threshold_illuminance" model="ha.well.threshold">
+            <field name="name">Illuminance</field>
+            <field name="well_feature">L01</field>
+            <field name="parameter_type">illuminance</field>
+            <field name="min_value">300</field>
+            <field name="unit">lux</field>
+        </record>
+
+        <!-- S01 - Sound Mapping: Noise -->
+        <record id="well_threshold_noise" model="ha.well.threshold">
+            <field name="name">Noise Level</field>
+            <field name="well_feature">S01</field>
+            <field name="parameter_type">noise</field>
+            <field name="max_value">50</field>
+            <field name="unit">dB</field>
+        </record>
+    </data>
+</odoo>

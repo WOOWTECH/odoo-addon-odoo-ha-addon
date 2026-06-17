@@ -14,6 +14,7 @@
         'data/dashboard_data.xml',
         'data/websocket_cron.xml',
         'data/cron.xml',  # Entity share expiry notifications
+        'data/well_threshold_data.xml',  # WELL v2 IEQ default thresholds
         # 先定義所有 actions（除了 ha_instance）
         'views/ha_instance_dashboard_action.xml',  # ha_instance_dashboard_action (NEW: 入口頁)
         'views/dashboard_views.xml',  # ha_info_dashboard
@@ -29,6 +30,8 @@
         'views/ha_label_views.xml',  # ha_label_action
         'views/ha_config_action.xml',  # ha_settings_action
         'views/res_config_settings.xml',
+        # WELL IEQ Monitor
+        'views/ha_well_threshold_views.xml',  # ha_well_threshold_action
         # ha_instance 定義 action_ha_instance（引用 entity_action）
         'views/ha_instance_views.xml',
         # 選單載入（引用上面所有的 actions，包含 action_ha_instance）
