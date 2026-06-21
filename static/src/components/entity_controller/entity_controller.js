@@ -332,17 +332,31 @@ export class EntityController extends Component {
   async onDecrementValue() {
     const current = parseFloat(this.state.entityState) || 0;
     const step = this.state.attributes?.step || 1;
-    await this.actions.setValue(current - step);
+    const min = this.state.attributes?.min;
+    const newVal = current - step;
+    await this.actions.setValue(min != null ? Math.max(min, newVal) : newVal);
   }
 
   async onIncrementValue() {
     const current = parseFloat(this.state.entityState) || 0;
     const step = this.state.attributes?.step || 1;
-    await this.actions.setValue(current + step);
+    const max = this.state.attributes?.max;
+    const newVal = current + step;
+    await this.actions.setValue(max != null ? Math.min(max, newVal) : newVal);
   }
 
   // Phase 2: Number / Text / Select / Datetime actions
   async onSetValue(value) {
+    // Clamp to min/max for number-like domains
+    if (this.domain === 'input_number' || this.domain === 'number') {
+      let numVal = parseFloat(value);
+      const min = this.state.attributes?.min;
+      const max = this.state.attributes?.max;
+      if (min != null) numVal = Math.max(min, numVal);
+      if (max != null) numVal = Math.min(max, numVal);
+      await this.actions.setValue(numVal);
+      return;
+    }
     await this.actions.setValue(value);
   }
 

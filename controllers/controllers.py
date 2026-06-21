@@ -1237,6 +1237,27 @@ class AwesomeDashboard(http.Controller):
                     'error': 'entity_id is required in service_data'
                 })
 
+            # Validate and clamp input_number/number values against HA min/max
+            if domain in ('input_number', 'number') and service == 'set_value' and 'value' in service_data:
+                entity = request.env['ha.entity'].sudo().search(
+                    [('entity_id', '=', service_data['entity_id'])], limit=1)
+                if entity and entity.attributes:
+                    import json
+                    attrs = entity.attributes if isinstance(entity.attributes, dict) else json.loads(entity.attributes_str or '{}')
+                    ha_min = attrs.get('min')
+                    ha_max = attrs.get('max')
+                    raw_val = float(service_data['value'])
+                    clamped = raw_val
+                    if ha_min is not None:
+                        clamped = max(float(ha_min), clamped)
+                    if ha_max is not None:
+                        clamped = min(float(ha_max), clamped)
+                    if clamped != raw_val:
+                        _logger.warning(
+                            f"Clamped {service_data['entity_id']} value {raw_val} to {clamped} "
+                            f"(range {ha_min}-{ha_max})")
+                    service_data['value'] = clamped
+
             # Call WebSocket API (Phase 3: 傳入 instance_id)
             result = self._call_websocket_api(
                 message_type='call_service',
