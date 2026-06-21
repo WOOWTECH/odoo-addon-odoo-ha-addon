@@ -16,6 +16,8 @@
                 <field name="entity_state"/>
                 <field name="last_changed"/>
                 <field name="enable_record"/>
+                <field name="name"/>
+                <field name="attributes_str"/>
                 <templates>
                     <t t-name="card">
                         <!-- <p><t t-esc="record.entity_id.raw_value"/></p> -->

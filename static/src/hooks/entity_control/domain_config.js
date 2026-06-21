@@ -401,7 +401,31 @@ export const DOMAIN_CONFIGS = {
         actions: {
             setDatetime: {
                 service: "set_datetime",
-                buildParams: (datetime) => ({ datetime }),
+                buildParams: (value, stateRef) => {
+                    // Smart format detection based on attributes or value format
+                    if (stateRef && stateRef.attributes) {
+                        const hasDate = stateRef.attributes.has_date;
+                        const hasTime = stateRef.attributes.has_time;
+                        if (hasDate && !hasTime) {
+                            return { date: value };
+                        }
+                        if (!hasDate && hasTime) {
+                            // Ensure HH:MM:SS format
+                            const t = value.includes(":") ? value : value;
+                            return { time: t.split(":").length === 2 ? t + ":00" : t };
+                        }
+                    }
+                    // datetime: convert "2026-06-21T16:53" to "2026-06-21 16:53:00"
+                    let dt = value.replace("T", " ");
+                    if (dt.includes(" ") && dt.split(":").length === 2) {
+                        dt += ":00";
+                    }
+                    // If value looks like date-only (no space/T), send as date
+                    if (!value.includes("T") && !value.includes(" ") && !value.includes(":")) {
+                        return { date: value };
+                    }
+                    return { datetime: dt };
+                },
             },
         },
     },
@@ -748,3 +772,4 @@ export function domainSupportsAction(domain, action) {
 export function getSupportedDomains() {
     return Object.keys(DOMAIN_CONFIGS);
 }
+

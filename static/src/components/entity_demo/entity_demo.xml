@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="odoo_ha_addon.EntityDemo">
-        <div class="entity-demo-widget">
+        <div class="entity-demo-widget" t-ref="root">
             <!-- Entity Info Header -->
             <div class="entity-info mb-2">
                 <h6 class="mb-1">

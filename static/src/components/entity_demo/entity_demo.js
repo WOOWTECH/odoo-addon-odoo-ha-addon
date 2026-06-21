@@ -3,7 +3,7 @@
 import { registry } from "@web/core/registry";
 import { _t } from "@web/core/l10n/translation";
 import { standardWidgetProps } from "@web/views/widgets/standard_widget_props";
-import { Component } from "@odoo/owl";
+import { Component, useRef, onMounted, onWillUnmount } from "@odoo/owl";
 import { EntityController } from "../entity_controller/entity_controller";
 
 /**
@@ -22,7 +22,6 @@ export class EntityDemo extends Component {
     const recordData = this.props.record.data;
 
     // Parse attributes from attributes_str if attributes field is not available
-    // This happens in form views where only attributes_str (Text field) is defined
     let attributes = recordData.attributes;
     if (!attributes && recordData.attributes_str) {
       try {
@@ -37,6 +36,27 @@ export class EntityDemo extends Component {
       ...recordData,
       attributes: attributes || {},
     };
+
+    // Use native DOM to stop click propagation to kanban card.
+    // OWL t-on-click.stop is not sufficient because Odoo kanban uses
+    // event delegation / global click handlers that bypass OWL propagation.
+    this.rootRef = useRef("root");
+    this._onClickCapture = (ev) => {
+      // Stop the click from reaching the kanban record openRecord handler
+      ev.stopPropagation();
+    };
+
+    onMounted(() => {
+      if (this.rootRef.el) {
+        this.rootRef.el.addEventListener("click", this._onClickCapture, true);
+      }
+    });
+
+    onWillUnmount(() => {
+      if (this.rootRef.el) {
+        this.rootRef.el.removeEventListener("click", this._onClickCapture, true);
+      }
+    });
   }
 }
 

@@ -6,9 +6,10 @@
             <i class="fa fa-calendar fa-lg text-muted"/>
             <t t-if="state.attributes?.has_date and state.attributes?.has_time">
                 <input type="datetime-local" class="form-control"
-                    t-att-value="state.entityState"
+                    t-att-value="state.entityState ? state.entityState.replace(' ', 'T') : ''"
                     t-att-disabled="state.isLoading"
                     t-on-change.stop="(ev) => this.onSetDatetime(ev.target.value)"
+                    t-on-click.stop=""
                 />
             </t>
             <t t-elif="state.attributes?.has_date">
@@ -16,6 +17,7 @@
                     t-att-value="state.entityState"
                     t-att-disabled="state.isLoading"
                     t-on-change.stop="(ev) => this.onSetDatetime(ev.target.value)"
+                    t-on-click.stop=""
                 />
             </t>
             <t t-elif="state.attributes?.has_time">
@@ -23,15 +25,21 @@
                     t-att-value="state.entityState"
                     t-att-disabled="state.isLoading"
                     t-on-change.stop="(ev) => this.onSetDatetime(ev.target.value)"
+                    t-on-click.stop=""
                 />
             </t>
             <t t-else="">
-                <input type="datetime-local" class="form-control"
-                    t-att-value="state.entityState"
+                <!-- Fallback: show both date and time inputs when attributes unknown -->
+                <input type="date" class="form-control"
+                    t-att-value="state.entityState ? state.entityState.split(' ')[0].split('T')[0] : ''"
                     t-att-disabled="state.isLoading"
                     t-on-change.stop="(ev) => this.onSetDatetime(ev.target.value)"
+                    t-on-click.stop=""
                 />
             </t>
+            <span class="text-muted small ms-1">
+                <t t-esc="state.entityState || 'Not set'"/>
+            </span>
         </div>
     </t>
 </templates>

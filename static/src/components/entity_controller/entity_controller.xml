@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
     <!-- Main EntityController Template -->
     <t t-name="odoo_ha_addon.EntityController">
-        <div class="entity-controller">
+        <div class="entity-controller" t-on-click.stop="">
             <!-- Error State -->
             <t t-if="state.error">
                 <div class="alert alert-danger alert-sm mb-2" role="alert">
