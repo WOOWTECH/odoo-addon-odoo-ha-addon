@@ -408,9 +408,13 @@ class HAInstance(models.Model):
         Returns:
             recordset: 可存取的 HA 實例列表
         """
-        if user_id is None:
+        if user_id is None or user_id == self.env.uid:
             user = self.env.user
         else:
+            # Only HA managers (or system code) may evaluate the instance
+            # visibility of another user.
+            if not (self.env.su or self.env.user.has_group('odoo_ha_addon.group_ha_manager')):
+                raise AccessError(_("You are not allowed to list another user's HA instances."))
             user = self.env['res.users'].browse(user_id)
 
         # 查找條件：實例必須啟用 (active=True)

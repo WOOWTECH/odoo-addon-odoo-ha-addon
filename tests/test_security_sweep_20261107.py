@@ -7,6 +7,8 @@ Every class documents the finding fingerprint it covers.  Home Assistant is
 never contacted: the WebSocket client and the thread manager are mocked.
 """
 import inspect
+import json
+import re
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
@@ -186,10 +188,27 @@ class TestSweepRealtimeBusRecipients(_HAFixtureMixin, TransactionCase):
         method = getattr(model, '_' + name, None) or getattr(model, name)
         return method(*args, **kwargs)
 
+    @staticmethod
+    def _messages_by_partner(sent):
+        result = {}
+        for target, notification_type, message in sent:
+            if isinstance(target, tuple):
+                target = target[0]
+            if getattr(target, '_name', None) == 'res.partner':
+                result.setdefault(target.id, []).append((notification_type, message))
+        return result
+
     def test_state_change_only_reaches_authorised_users(self):
+        attributes = {
+            'friendly_name': 'Sweep Light A',
+            'access_token': 'cam-secret-token',
+            'latitude': 25.03, 'longitude': 121.56,
+            'entity_picture': '/api/camera_proxy/light.sweep_a?token=cam-secret-token&w=1',
+        }
         partners, sent = self._capture(lambda: self._notify(
             'notify_entity_state_change', 'light.sweep_a',
-            {'state': 'off'}, {'state': 'on', 'attributes': {'secret': 1}},
+            {'state': 'off', 'attributes': dict(attributes)},
+            {'state': 'on', 'attributes': dict(attributes), 'context': {'user_id': 'ha-admin'}},
             ha_instance_id=self.inst_a.id,
         ))
         self.assertTrue(sent)
@@ -198,6 +217,53 @@ class TestSweepRealtimeBusRecipients(_HAFixtureMixin, TransactionCase):
             self.assertIn(user.partner_id, partners, "%s is authorised" % user.login)
         for user in (self.ha_user2, self.internal, self.portal_none, self.portal_expired):
             self.assertNotIn(user.partner_id, partners, "%s must not receive the state" % user.login)
+
+        by_partner = self._messages_by_partner(sent)
+        # internal HA users authorised through groups keep the full HA state
+        for user in (self.manager, self.ha_user):
+            [(_t, message)] = by_partner[user.partner_id.id]
+            self.assertEqual(message['new_state']['attributes']['access_token'], 'cam-secret-token')
+            self.assertEqual(message['new_state']['attributes']['latitude'], 25.03)
+        # share-only recipients get the portal attribute policy
+        for user in (self.portal_share, self.portal_device):
+            [(_t, message)] = by_partner[user.partner_id.id]
+            self.assertEqual(message['entity_id'], 'light.sweep_a')
+            self.assertEqual(message['new_state']['state'], 'on')
+            for state_key in ('old_state', 'new_state'):
+                attrs = message[state_key]['attributes']
+                self.assertEqual(attrs['friendly_name'], 'Sweep Light A')
+                for key in ('access_token', 'latitude', 'longitude'):
+                    self.assertNotIn(key, attrs, "%s leaked to %s" % (key, user.login))
+                self.assertNotIn('cam-secret-token', attrs['entity_picture'])
+                self.assertIn('w=1', attrs['entity_picture'])
+            self.assertNotIn('context', message['new_state'])
+
+    def test_group_member_without_ha_user_group_gets_nothing(self):
+        former = self._make_user('sweep_former_ha_user', ['base.group_user'])
+        self.group_g.sudo().write({'user_ids': [(4, former.id)]})
+        partners, _sent = self._capture(lambda: self._notify(
+            'notify_entity_state_change', 'light.sweep_a', {}, {'state': 'on'},
+            ha_instance_id=self.inst_a.id,
+        ))
+        self.assertIn(self.ha_user.partner_id, partners)
+        self.assertNotIn(former.partner_id, partners)
+        partners, _sent = self._capture(lambda: self._notify(
+            'notify_ha_websocket_status', 'connected', 'ok', ha_instance_id=self.inst_a.id,
+        ))
+        self.assertNotIn(former.partner_id, partners)
+
+    def test_instance_status_for_share_only_recipients_is_minimal(self):
+        _partners, sent = self._capture(lambda: self._notify(
+            'notify_ha_websocket_status', 'error', 'cannot reach http://10.0.0.5:8123',
+            ha_instance_id=self.inst_a.id, instance_name='Sweep Instance A',
+        ))
+        by_partner = self._messages_by_partner(sent)
+        [(_t, full)] = by_partner[self.manager.partner_id.id]
+        self.assertEqual(full['message'], 'cannot reach http://10.0.0.5:8123')
+        [(_t, minimal)] = by_partner[self.portal_share.partner_id.id]
+        self.assertEqual(minimal['status'], 'error')
+        self.assertNotIn('message', minimal)
+        self.assertNotIn('instance_name', minimal)
 
     def test_public_group_reaches_all_ha_users_only(self):
         self.env['ha.entity.group'].sudo().create({
@@ -455,10 +521,20 @@ class _ControllerCase(_HAFixtureMixin, HttpCase):
                     {'entity_id': 'light.sweep_a', 'state': 'on', 'attributes': {}},
                     {'entity_id': 'switch.sweep_b', 'state': 'on', 'attributes': {'secret': 'x'}},
                 ]}
+            if message_type == 'search/related':
+                return {'success': True, 'data': self.related_data}
             return {'success': True, 'data': {'context': {}}}
 
+        def call_websocket_api_sync(message_type, payload=None, timeout=15):
+            self.ws_calls.append((message_type, payload))
+            if message_type == 'config/area_registry/list':
+                return [{'area_id': 'rv_area', 'name': 'Forged area'}]
+            return []
+
+        self.related_data = {}
         client = MagicMock()
         client.call_websocket_api.side_effect = call_websocket_api
+        client.call_websocket_api_sync.side_effect = call_websocket_api_sync
         patch.object(websocket_client, 'get_websocket_client', return_value=client).start()
 
         self.restart = patch.object(
@@ -683,3 +759,147 @@ class TestSweepPortalCallService(_ControllerCase):
             result = self._portal_call('light', 'turn_on', {})
             self.assertFalse(result['success'])
         self.assertEqual(self._service_calls(), [])
+
+
+    def test_ha_user_cannot_install_updates(self):
+        update = self.env['ha.entity'].sudo().create({
+            'name': 'Sweep Update U', 'entity_id': 'update.sweep_u', 'domain': 'update',
+            'entity_state': 'on', 'ha_instance_id': self.inst_a.id,
+        })
+        self.group_g.sudo().write({'entity_ids': [(4, update.id)]})
+        self.env.registry.clear_cache()
+        self.ha_user.sudo().write({'current_ha_instance_id': self.inst_a.id})
+        self.authenticate('sweep_ha_user', PASSWORD)
+        for service in ('install', 'skip'):
+            result = self._rpc('/odoo_ha_addon/call_service', domain='update', service=service,
+                               service_data={'entity_id': 'update.sweep_u'},
+                               ha_instance_id=self.inst_a.id)
+            self.assertFalse(result['success'], result)
+        self.assertEqual(self._service_calls(), [])
+        self.authenticate('sweep_manager', PASSWORD)
+        result = self._rpc('/odoo_ha_addon/call_service', domain='update', service='install',
+                           service_data={'entity_id': 'update.sweep_u'},
+                           ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'], result)
+        self.assertEqual(len(self._service_calls()), 1)
+
+
+# ---------------------------------------------------------------------------
+# eefe41281f6e / hardening 4f22a544827d: HA registry sync helpers and other
+# model methods must not be reachable through /web/dataset/call_kw
+# ---------------------------------------------------------------------------
+@tagged('post_install', '-at_install', 'ha_sweep')
+class TestSweepRegistryHelpersNotRpc(_ControllerCase):
+
+    def _call_kw(self, model, method, args, kwargs=None):
+        response = self.url_open(
+            '/web/dataset/call_kw/%s/%s' % (model, method),
+            data=json.dumps({'jsonrpc': '2.0', 'method': 'call', 'id': 1, 'params': {
+                'model': model, 'method': method, 'args': args, 'kwargs': kwargs or {},
+            }}),
+            headers={'Content-Type': 'application/json'},
+        )
+        self.assertEqual(response.status_code, 200)
+        return response.json()
+
+    def _registry_calls(self):
+        inst = self.inst_a.id
+        return [
+            ('ha.device', 'sync_device_from_ha_data',
+             [{'id': 'rv_dev', 'name': 'Forged device', 'area_id': 'rv_area',
+               'configuration_url': 'https://evil.example'}, inst]),
+            ('ha.device', 'sync_device_from_ha_data',
+             [{'id': 'sweep_dev_d', 'name': 'Overwritten', 'configuration_url': 'https://evil.example'}, inst]),
+            ('ha.area', 'sync_area_from_ha_data', [{'area_id': 'rv_area', 'name': 'Forged area'}, inst]),
+            ('ha.area', 'sync_area_from_ha_event', ['create', 'rv_area', inst]),
+            ('ha.label', 'sync_label_from_ha_data', [{'label_id': 'rv_label', 'name': 'Forged label'}, inst]),
+            ('ha.label', 'get_or_create_labels', [['rv_label'], inst]),
+        ]
+
+    def _assert_nothing_forged(self):
+        self.assertFalse(self.env['ha.device'].sudo().search([('device_id', '=', 'rv_dev')]))
+        self.assertFalse(self.env['ha.area'].sudo().search([('area_id', '=', 'rv_area')]))
+        self.assertFalse(self.env['ha.label'].sudo().search([('label_id', '=', 'rv_label')]))
+        self.device_d.invalidate_recordset()
+        self.assertEqual(self.device_d.name, 'Sweep Device D')
+        self.assertFalse(self.device_d.configuration_url)
+        self.assertFalse([t for t, _p in self.ws_calls if t == 'config/area_registry/list'])
+
+    def test_registry_sync_helpers_not_callable(self):
+        for login in ('sweep_portal_none', 'sweep_ha_user', 'sweep_internal', 'sweep_manager'):
+            self.authenticate(login, PASSWORD)
+            for model, method, args in self._registry_calls():
+                with self.subTest(login=login, method=method):
+                    response = self._call_kw(model, method, args)
+                    self.assertIn('error', response, response)
+                    self.assertNotIn('result', response)
+        self._assert_nothing_forged()
+
+    def test_internal_registry_sync_still_works(self):
+        # the WebSocket service / manual sync path uses the private helpers
+        action, device = self.env['ha.device'].sudo()._sync_device_from_ha_data(
+            {'id': 'sweep_dev_new', 'name': 'New Device', 'area_id': 'sweep_area_new'}, self.inst_a.id)
+        self.assertEqual(action, 'created')
+        self.assertEqual(device.area_id.area_id, 'sweep_area_new')
+        action, _area = self.env['ha.area'].sudo()._sync_area_from_ha_data(
+            {'area_id': 'sweep_area_new', 'name': 'Kitchen'}, self.inst_a.id)
+        self.assertEqual(action, 'updated')
+        self.assertEqual(device.area_id.name, 'Kitchen')
+        action, label = self.env['ha.label'].sudo()._sync_label_from_ha_data(
+            {'label_id': 'sweep_label', 'name': 'Sweep'}, self.inst_a.id)
+        self.assertEqual(action, 'created')
+        self.assertEqual(self.env['ha.label']._get_or_create_labels(['sweep_label'], self.inst_a.id), label)
+
+    def test_accessible_instances_of_other_user(self):
+        self.authenticate('sweep_ha_user', PASSWORD)
+        response = self._call_kw('ha.instance', 'get_accessible_instances', [],
+                                 {'user_id': self.manager.id})
+        self.assertIn('error', response, response)
+        self.assertNotIn('result', response)
+        for login in ('sweep_ha_user', 'sweep_manager'):
+            self.authenticate(login, PASSWORD)
+            response = self._call_kw('ha.instance', 'get_accessible_instances', [],
+                                     {'user_id': self.ha_user.id})
+            self.assertNotIn('error', response, response)
+            # the method returns a recordset, serialised as "ha.instance(1, 2)"
+            ids = [int(i) for i in re.findall(r'\d+', str(response['result']))]
+            self.assertIn(self.inst_a.id, ids, response)
+            self.assertNotIn(self.inst_b.id, ids, response)
+
+    def test_entity_related_filters_hidden_records(self):
+        hidden = self.env['ha.entity'].sudo().create({
+            'name': 'Sweep Hidden Automation', 'entity_id': 'automation.sweep_hidden',
+            'domain': 'automation', 'ha_instance_id': self.inst_a.id,
+        })
+        self.related_data = {
+            'automation': ['automation.sweep_hidden'],
+            'script': ['script.sweep_c'],
+        }
+        self.ha_user.sudo().write({'current_ha_instance_id': self.inst_a.id})
+        self.authenticate('sweep_ha_user', PASSWORD)
+        result = self._rpc('/odoo_ha_addon/entity_related', entity_id='light.sweep_a',
+                           ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'], result)
+        self.assertEqual(result['data']['automations'], [])
+        self.assertEqual([s['entity_id'] for s in result['data']['scripts']], ['script.sweep_c'])
+        self.authenticate('sweep_manager', PASSWORD)
+        result = self._rpc('/odoo_ha_addon/entity_related', entity_id='light.sweep_a',
+                           ha_instance_id=self.inst_a.id)
+        self.assertEqual([a['id'] for a in result['data']['automations']], [hidden.id])
+
+
+@tagged('post_install', '-at_install', 'ha_sweep')
+class TestSweepEntitySideMembershipCache(_HAFixtureMixin, TransactionCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._setup_ha_fixture()
+
+    def test_entity_side_revoke_applies_immediately(self):
+        Entity = self.env['ha.entity'].with_user(self.ha_user)
+        self.assertIn(self.light_a, Entity.search([('ha_instance_id', '=', self.inst_a.id)]))
+        self.light_a.sudo().write({'group_ids': [(3, self.group_g.id)]})
+        self.assertNotIn(self.light_a, Entity.search([('ha_instance_id', '=', self.inst_a.id)]))
+        self.switch_b.sudo().write({'group_ids': [(4, self.group_g.id)]})
+        self.assertIn(self.switch_b, Entity.search([('ha_instance_id', '=', self.inst_a.id)]))

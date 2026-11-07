@@ -71,6 +71,8 @@ MANAGER_ONLY_DOMAINS = frozenset({
     'python_script', 'rest_command', 'pyscript', 'recorder', 'logger',
     'system_log', 'persistent_notification', 'notify', 'backup', 'cloud',
     'frontend', 'conversation', 'zone', 'mqtt',
+    # firmware / core updates are an administrative action
+    'update',
 })
 
 # HA target selectors. HA merges these with entity_id, so forwarding them

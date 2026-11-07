@@ -19,6 +19,10 @@ from odoo import http, _
 from odoo.http import request
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
 from odoo.osv.expression import AND
+from odoo.addons.odoo_ha_addon.models.common.attribute_policy import (
+    SENSITIVE_ATTRIBUTE_KEYS,
+    sanitize_attributes,
+)
 from odoo.addons.odoo_ha_addon.models.common.service_policy import (
     CONTROL_SERVICES,
     ENTITY_REFERENCE_KEYS,
@@ -45,23 +49,15 @@ PORTAL_ENTITY_FIELDS = [
     'attributes',
 ]
 
-# Attribute keys that should be stripped from portal responses
-# These may contain sensitive network/auth info from Home Assistant
-PORTAL_SENSITIVE_ATTRIBUTE_KEYS = {
-    'access_token', 'token', 'api_key', 'password', 'secret',
-    'ip_address', 'mac_address', 'network_key', 'host',
-    'latitude', 'longitude', 'gps_accuracy',
-}
+# Attribute keys that should be stripped from portal responses.
+# The policy lives in models/common/attribute_policy.py so the realtime bus
+# applies the same rules to share-only recipients.
+PORTAL_SENSITIVE_ATTRIBUTE_KEYS = SENSITIVE_ATTRIBUTE_KEYS
 
 
 def _sanitize_portal_attributes(attributes):
     """Strip sensitive keys from HA entity attributes for portal display."""
-    if not attributes or not isinstance(attributes, dict):
-        return attributes or {}
-    return {
-        k: v for k, v in attributes.items()
-        if k.lower() not in PORTAL_SENSITIVE_ATTRIBUTE_KEYS
-    }
+    return sanitize_attributes(attributes)
 
 
 # Field whitelist for portal entity group access

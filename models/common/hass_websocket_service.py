@@ -1210,7 +1210,7 @@ class HassWebSocketService:
         """
         Sync method: Create or update label from HA to Odoo (executed in background thread)
 
-        Uses ha.label.sync_label_from_ha_data unified method
+        Uses ha.label._sync_label_from_ha_data unified method
 
         Args:
             label_data: Complete label data from HA
@@ -1222,7 +1222,7 @@ class HassWebSocketService:
 
             with db.db_connect(self.db_name).cursor() as cr:
                 env = api.Environment(cr, 1, {})
-                action, label = env['ha.label'].sync_label_from_ha_data(
+                action, label = env['ha.label']._sync_label_from_ha_data(
                     label_data, self.instance_id
                 )
                 cr.commit()
@@ -1474,7 +1474,7 @@ class HassWebSocketService:
 
                 # 處理 labels
                 if ha_labels:
-                    label_records = env['ha.label'].get_or_create_labels(
+                    label_records = env['ha.label']._get_or_create_labels(
                         ha_labels, self.instance_id
                     )
                     if set(entity.label_ids.ids) != set(label_records.ids):
@@ -1650,8 +1650,8 @@ class HassWebSocketService:
                     )
                     return
 
-                # 使用 ha.label 的 get_or_create_labels 取得對應的 label records
-                labels = env['ha.label'].get_or_create_labels(
+                # 使用 ha.label 的 _get_or_create_labels 取得對應的 label records
+                labels = env['ha.label']._get_or_create_labels(
                     ha_label_ids,
                     self.instance_id
                 )
@@ -1744,7 +1744,7 @@ class HassWebSocketService:
         """
         Batch sync all labels from HA to Odoo (executed in background thread)
 
-        Uses ha.label.sync_label_from_ha_data unified method
+        Uses ha.label._sync_label_from_ha_data unified method
 
         Args:
             labels_data: List of label data from HA
@@ -1764,7 +1764,7 @@ class HassWebSocketService:
                     try:
                         cr.execute(f"SAVEPOINT {savepoint}")
 
-                        action, _ = env['ha.label'].sync_label_from_ha_data(
+                        action, _ = env['ha.label']._sync_label_from_ha_data(
                             label_data, self.instance_id
                         )
                         if action == 'created':
@@ -1874,7 +1874,7 @@ class HassWebSocketService:
         """
         Batch sync all devices from HA to Odoo (executed in background thread)
 
-        Uses ha.device.sync_device_from_ha_data unified method
+        Uses ha.device._sync_device_from_ha_data unified method
         Uses Savepoint to ensure partial success: single device failure doesn't affect others
 
         Args:
@@ -1896,7 +1896,7 @@ class HassWebSocketService:
                     try:
                         cr.execute(f"SAVEPOINT {savepoint}")
 
-                        action, _ = env['ha.device'].sync_device_from_ha_data(
+                        action, _ = env['ha.device']._sync_device_from_ha_data(
                             device_data, self.instance_id
                         )
                         if action == 'created':
@@ -1930,7 +1930,7 @@ class HassWebSocketService:
         """
         批次同步所有 areas 從 HA 到 Odoo（在背景執行緒中執行）
 
-        使用 ha.area.sync_area_from_ha_data 統一方法
+        使用 ha.area._sync_area_from_ha_data 統一方法
         使用 Savepoint 確保部分成功：單一 area 失敗不影響其他 areas
 
         Args:
@@ -1952,7 +1952,7 @@ class HassWebSocketService:
                     try:
                         cr.execute(f"SAVEPOINT {savepoint}")
 
-                        action, _ = env['ha.area'].sync_area_from_ha_data(
+                        action, _ = env['ha.area']._sync_area_from_ha_data(
                             area_data, self.instance_id
                         )
                         if action == 'created':
@@ -2258,7 +2258,7 @@ class HassWebSocketService:
         """
         同步方法：從 HA 建立或更新 Area 到 Odoo（在背景執行緒中執行）
 
-        使用 ha.area.sync_area_from_ha_data 統一方法
+        使用 ha.area._sync_area_from_ha_data 統一方法
 
         Args:
             area_data: HA 回傳的完整 area 資料
@@ -2270,7 +2270,7 @@ class HassWebSocketService:
 
             with db.db_connect(self.db_name).cursor() as cr:
                 env = api.Environment(cr, 1, {})
-                action, area = env['ha.area'].sync_area_from_ha_data(
+                action, area = env['ha.area']._sync_area_from_ha_data(
                     area_data, self.instance_id
                 )
                 cr.commit()
@@ -2535,7 +2535,7 @@ class HassWebSocketService:
         """
         Sync method: Create or update device from HA to Odoo (executed in background thread)
 
-        Uses ha.device.sync_device_from_ha_data unified method
+        Uses ha.device._sync_device_from_ha_data unified method
 
         Args:
             device_data: Complete device data from HA
@@ -2547,7 +2547,7 @@ class HassWebSocketService:
 
             with db.db_connect(self.db_name).cursor() as cr:
                 env = api.Environment(cr, 1, {})
-                action, device = env['ha.device'].sync_device_from_ha_data(
+                action, device = env['ha.device']._sync_device_from_ha_data(
                     device_data, self.instance_id
                 )
                 cr.commit()

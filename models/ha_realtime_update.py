@@ -1,5 +1,6 @@
 from odoo import models, api, fields, SUPERUSER_ID
 from odoo.osv import expression
+from odoo.addons.odoo_ha_addon.models.common.attribute_policy import sanitize_state
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -45,14 +46,17 @@ class HaRealtimeUpdate(models.Model):
         Users authorised through ha.entity.group membership.
 
         A group without user_ids is "public": every HA User may use it, so all
-        group_ha_user members are returned in that case.
+        group_ha_user members are returned in that case.  Members listed in
+        user_ids only count while they still belong to group_ha_user (the
+        ha.entity record rules only apply to that group).
         """
         users = self.env['res.users'].sudo().browse()
         if not entity_groups:
             return users
+        ha_users = self._ha_users_in_groups('odoo_ha_addon.group_ha_user')
         if any(not group.user_ids for group in entity_groups):
-            users |= self._ha_users_in_groups('odoo_ha_addon.group_ha_user')
-        users |= entity_groups.mapped('user_ids')
+            users |= ha_users
+        users |= entity_groups.mapped('user_ids') & ha_users
         return users
 
     @api.model
@@ -63,29 +67,32 @@ class HaRealtimeUpdate(models.Model):
         return shares.mapped('user_id')
 
     @api.model
-    def _get_entity_recipients(self, entity_id, ha_instance_id=None):
+    def _get_entity_recipient_sets(self, entity_id, ha_instance_id=None):
         """
-        Users allowed to receive realtime payloads about one HA entity.
+        Users allowed to receive realtime payloads about one HA entity, split
+        in two sets:
 
-        - group_ha_manager members
-        - users of active ha.entity.group(s) containing the entity
-          (public group => all group_ha_user members)
-        - users holding a non-expired ha.entity.share on the entity,
-          on a group containing it, or on its device
+        - ``full``: group_ha_manager members and users of active
+          ha.entity.group(s) containing the entity (public group => all
+          group_ha_user members); they see the entity through the ORM anyway;
+        - ``restricted``: other users holding a non-expired ha.entity.share on
+          the entity, on a group containing it, or on its device; they get the
+          same sanitized attributes as the portal API.
         """
-        users = self._ha_users_in_groups('odoo_ha_addon.group_ha_manager')
+        full = self._ha_users_in_groups('odoo_ha_addon.group_ha_manager')
+        restricted = self.env['res.users'].sudo().browse()
         Entity = self.env['ha.entity'].sudo().with_context(active_test=False)
         domain = [('entity_id', '=', entity_id)]
         if ha_instance_id:
             domain.append(('ha_instance_id', '=', ha_instance_id))
         entities = Entity.search(domain)
         if not entities:
-            return users
+            return full, restricted
 
         groups = self.env['ha.entity.group'].sudo().search([
             ('entity_ids', 'in', entities.ids),
         ])
-        users |= self._ha_users_from_entity_groups(groups)
+        full |= self._ha_users_from_entity_groups(groups)
 
         share_domains = [[('entity_id', 'in', entities.ids)]]
         if groups:
@@ -93,8 +100,28 @@ class HaRealtimeUpdate(models.Model):
         devices = entities.mapped('device_id')
         if devices:
             share_domains.append([('device_id', 'in', devices.ids)])
-        users |= self._ha_users_from_shares(expression.OR(share_domains))
-        return users
+        restricted = self._ha_users_from_shares(expression.OR(share_domains)) - full
+        return full, restricted
+
+    @api.model
+    def _get_entity_recipients(self, entity_id, ha_instance_id=None):
+        """All users allowed to receive realtime payloads about one entity."""
+        full, restricted = self._get_entity_recipient_sets(entity_id, ha_instance_id)
+        return full | restricted
+
+    @api.model
+    def _get_instance_recipient_sets(self, ha_instance_id=None):
+        """(full, restricted) recipients of instance-level notifications."""
+        full = self._ha_users_in_groups('odoo_ha_addon.group_ha_manager')
+        restricted = self.env['res.users'].sudo().browse()
+        if not ha_instance_id:
+            return full, restricted
+        groups = self.env['ha.entity.group'].sudo().search([
+            ('ha_instance_id', '=', ha_instance_id),
+        ])
+        full |= self._ha_users_from_entity_groups(groups)
+        restricted = self._ha_users_from_shares([('ha_instance_id', '=', ha_instance_id)]) - full
+        return full, restricted
 
     @api.model
     def _get_instance_recipients(self, ha_instance_id=None):
@@ -104,15 +131,8 @@ class HaRealtimeUpdate(models.Model):
         groups on that instance (public group => all HA Users) and users with
         a non-expired share on that instance.
         """
-        users = self._ha_users_in_groups('odoo_ha_addon.group_ha_manager')
-        if not ha_instance_id:
-            return users
-        groups = self.env['ha.entity.group'].sudo().search([
-            ('ha_instance_id', '=', ha_instance_id),
-        ])
-        users |= self._ha_users_from_entity_groups(groups)
-        users |= self._ha_users_from_shares([('ha_instance_id', '=', ha_instance_id)])
-        return users
+        full, restricted = self._get_instance_recipient_sets(ha_instance_id)
+        return full | restricted
 
     @api.model
     def _send_to_users(self, users, notification_type, message):
@@ -149,9 +169,16 @@ class HaRealtimeUpdate(models.Model):
                 'timestamp': new_state.get('last_changed') if new_state else None,
                 'ha_instance_id': ha_instance_id  # 新增：實例 ID
             }
-            self._send_to_users(
-                self._get_entity_recipients(entity_id, ha_instance_id),
-                'ha_state_changed', message)
+            full, restricted = self._get_entity_recipient_sets(entity_id, ha_instance_id)
+            self._send_to_users(full, 'ha_state_changed', message)
+            if restricted:
+                # Share-only recipients get the same attribute policy as the
+                # portal API (no tokens, credentials or GPS coordinates).
+                self._send_to_users(restricted, 'ha_state_changed', dict(
+                    message,
+                    old_state=sanitize_state(old_state),
+                    new_state=sanitize_state(new_state),
+                ))
             _logger.debug(f"Broadcast state change: {entity_id} (instance: {ha_instance_id})")
         except Exception as e:
             _logger.error(f"Failed to broadcast state change: {e}")
@@ -175,9 +202,16 @@ class HaRealtimeUpdate(models.Model):
                 'ha_instance_id': ha_instance_id,  # 新增：實例 ID
                 'instance_name': instance_name      # 新增：實例名稱
             }
-            self._send_to_users(
-                self._get_instance_recipients(ha_instance_id),
-                'ha_websocket_status', payload)
+            full, restricted = self._get_instance_recipient_sets(ha_instance_id)
+            self._send_to_users(full, 'ha_websocket_status', payload)
+            if restricted:
+                # Share-only recipients only need the connection status, not
+                # the internal message / instance name.
+                self._send_to_users(restricted, 'ha_websocket_status', {
+                    'status': status,
+                    'timestamp': payload['timestamp'],
+                    'ha_instance_id': ha_instance_id,
+                })
             instance_info = f" ({instance_name or ha_instance_id})" if ha_instance_id else ""
             _logger.info(f"Broadcast WebSocket status{instance_info}: {status} - {message}")
         except Exception as e:

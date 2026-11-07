@@ -20,8 +20,9 @@ Following Point of Sale module pattern, the addon implements a dedicated group-b
 - Read entity history for authorized entities
 - Read areas from authorized instances
 - Read authorized entity groups and group tags (read-only; only HA Managers can create/modify/delete them, because group membership is the authorization source)
-- Call Home Assistant services only on entities visible through their entity groups, within the domain/service whitelist (no `homeassistant`, `hassio`, `shell_command`, `script`, `automation`, ...); target selectors (`area_id`, `device_id`, `floor_id`, `label_id`, `target`) are dropped
-- Receive realtime bus notifications only for entities/instances they are authorized for
+- Call Home Assistant services only on entities visible through their entity groups, within the domain/service whitelist (no `homeassistant`, `hassio`, `shell_command`, `script`, `automation`, `update`, ...); target selectors (`area_id`, `device_id`, `floor_id`, `label_id`, `target`) are dropped
+- Receive realtime bus notifications only for entities/instances they are authorized for (entity-group members must still be in `group_ha_user`); users who only hold an `ha.entity.share` get the portal attribute policy on the bus too (no `access_token`, `token`, GPS coordinates, ... and no token in `entity_picture`)
+- HA registry sync helpers (`_sync_device_from_ha_data`, `_sync_area_from_ha_data`, `_sync_label_from_ha_data`, `_sync_area_from_ha_event`, `_get_or_create_labels`) are private and cannot be called through RPC
 - Cannot modify instances, entities, or areas (read-only)
 
 **Assignment**: Must be explicitly granted to users who need HA access

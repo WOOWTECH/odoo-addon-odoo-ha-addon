@@ -253,6 +253,10 @@ class HAEntity(models.Model):
         name_changed = 'name' in vals
         label_ids_changed = 'label_ids' in vals
         result = super().write(vals)
+        if 'group_ids' in vals:
+            # Entity-group membership drives the HA User ir.rules; drop the
+            # cached rule domains so a grant/revoke applies immediately.
+            self.env.registry.clear_cache()
 
         # 若是從 HA 同步過來的，不再回傳給 HA（防止循環）
         if not self.env.context.get('from_ha_sync'):
@@ -716,7 +720,7 @@ class HAEntity(models.Model):
 
                 # 更新 label_ids
                 if ha_labels:
-                    label_records = env['ha.label'].get_or_create_labels(ha_labels, instance_id)
+                    label_records = env['ha.label']._get_or_create_labels(ha_labels, instance_id)
                     current_label_ids = set(entity.label_ids.ids)
                     new_label_ids = set(label_records.ids)
                     if current_label_ids != new_label_ids:

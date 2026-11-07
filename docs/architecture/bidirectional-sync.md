@@ -48,7 +48,7 @@ graph TB
         M -->|area_registry_updated| N[_handle_area_registry_updated]
         M -->|entity_registry_updated| O[_handle_entity_registry_updated]
 
-        N --> P[呼叫 ha.area.sync_area_from_ha_data]
+        N --> P[呼叫 ha.area._sync_area_from_ha_data]
         O --> Q[呼叫 ha.entity.write]
 
         P --> R[with_context from_ha_sync=True]
@@ -92,13 +92,13 @@ sequenceDiagram
     Note over OdooArea: 跳過反向同步 ✓
 
     HA->>WSService: area_registry_updated event
-    WSService->>OdooArea: sync_area_from_ha_data<br/>(from_ha_sync=True)
+    WSService->>OdooArea: _sync_area_from_ha_data<br/>(from_ha_sync=True)
     OdooArea->>OdooArea: 檢查 from_ha_sync=True
     Note over OdooArea: 跳過 HA 同步 ✓
 
     Note over User,WSService: 情境 2: HA → Odoo（事件同步）
     HA->>WSService: area_registry_updated event
-    WSService->>OdooArea: sync_area_from_ha_data<br/>(from_ha_sync=True)
+    WSService->>OdooArea: _sync_area_from_ha_data<br/>(from_ha_sync=True)
     OdooArea->>OdooArea: 檢查 from_ha_sync=True
     Note over OdooArea: 跳過 HA 同步 ✓
     Note over OdooArea,WSService: 不會觸發反向同步
@@ -130,7 +130,7 @@ sequenceDiagram
 
 5. HA 發送 area_registry_updated 事件
 6. WebSocket 收到事件
-7. 調用 sync_area_from_ha_data (from_ha_sync=True)
+7. 調用 _sync_area_from_ha_data (from_ha_sync=True)
    → from_ha_sync=True，跳過 Odoo→HA 同步 ✓
 
 情境 2: HA 端變更
@@ -138,7 +138,7 @@ sequenceDiagram
 1. HA 中 Area 被更新
 2. HA 發送 area_registry_updated 事件
 3. WebSocket 收到事件
-4. 調用 sync_area_from_ha_data (from_ha_sync=True)
+4. 調用 _sync_area_from_ha_data (from_ha_sync=True)
 5. ha.area.write() 檢查 from_ha_sync
    → from_ha_sync=True，跳過 Odoo→HA 同步 ✓
 ```
@@ -193,7 +193,7 @@ def _sync_area_create_or_update_from_ha(self, area_data):
         env = api.Environment(cr, 1, {})
 
         # 使用 from_ha_sync 標記，防止觸發 Odoo→HA 同步
-        action, area = env['ha.area'].sync_area_from_ha_data(
+        action, area = env['ha.area']._sync_area_from_ha_data(
             area_data, self.instance_id
         )
         cr.commit()
@@ -408,7 +408,7 @@ sequenceDiagram
         HA-->>WSService: 返回所有 areas
         WSService->>WSService: 找到目標 area_id 的資料
 
-        WSService->>OdooArea: sync_area_from_ha_data(area_data, instance_id)
+        WSService->>OdooArea: _sync_area_from_ha_data(area_data, instance_id)
         OdooArea->>OdooArea: search or create with from_ha_sync=True
         Note over OdooArea: 使用統一方法建立/更新
     end
@@ -433,7 +433,7 @@ sequenceDiagram
    - 若 500ms 內同一 area_id 有新事件，取消舊任務
    - 等待 500ms 後，執行實際同步
 4. **查詢完整資料**：調用 `config/area_registry/list` 取得 HA 所有 areas，找到目標 area
-5. **同步到 Odoo**：調用 `sync_area_from_ha_data` 統一方法，建立或更新 Odoo 記錄
+5. **同步到 Odoo**：調用 `_sync_area_from_ha_data` 統一方法，建立或更新 Odoo 記錄
 
 ### Entity Registry 事件處理
 
@@ -587,7 +587,7 @@ sequenceDiagram
 
     WSService->>OdooArea: _batch_sync_areas_from_ha(areas_data)
     loop 每個 area
-        OdooArea->>OdooArea: sync_area_from_ha_data<br/>(from_ha_sync=True)
+        OdooArea->>OdooArea: _sync_area_from_ha_data<br/>(from_ha_sync=True)
         Note over OdooArea: 建立或更新 Odoo 記錄
     end
 
@@ -641,13 +641,13 @@ sequenceDiagram
 
 ## 統一同步方法
 
-### sync_area_from_ha_data
+### _sync_area_from_ha_data
 
 這是 HA → Odoo 同步的**唯一入口點**，確保同步邏輯的一致性。
 
 ```python
 @api.model
-def sync_area_from_ha_data(self, area_data, instance_id):
+def _sync_area_from_ha_data(self, area_data, instance_id):
     """
     統一方法：從 HA 資料同步單一 Area 到 Odoo
 
@@ -702,7 +702,7 @@ def sync_area_from_ha_data(self, area_data, instance_id):
 ### 呼叫來源
 
 ```
-sync_area_from_ha_data (統一入口點)
+_sync_area_from_ha_data (統一入口點)
   ↑
   ├─ _sync_area_create_or_update_from_ha (WebSocket 事件處理)
   │   └─ _fetch_and_sync_area (debounce 後執行)
@@ -861,7 +861,7 @@ area = env['ha.area'].create({
 # 檢查 log，應該看到：
 # - create → _create_area_in_ha → HA API 呼叫
 # - area_id update → 不觸發 HA API（有 from_ha_sync）
-# - WebSocket 事件 → sync_area_from_ha_data → 不觸發 HA API（有 from_ha_sync）
+# - WebSocket 事件 → _sync_area_from_ha_data → 不觸發 HA API（有 from_ha_sync）
 
 # 確認沒有無限循環
 ```
@@ -934,7 +934,7 @@ area = env['ha.area'].create({
 # 7. 更新 Odoo 記錄：area.write({'area_id': 'living_room_abc123'}, from_ha_sync=True)
 # 8. 因為有 from_ha_sync=True，不再觸發 _update_area_in_ha()
 # 9. HA 發送 area_registry_updated 事件
-# 10. WebSocket 收到事件，呼叫 sync_area_from_ha_data (from_ha_sync=True)
+# 10. WebSocket 收到事件，呼叫 _sync_area_from_ha_data (from_ha_sync=True)
 # 11. 更新 Odoo 記錄（如果 HA 有修改），因為有 from_ha_sync=True，不觸發反向同步
 
 # 結果：Odoo 和 HA 都有這個 Area，且只進行了一次同步
@@ -959,7 +959,7 @@ area = env['ha.area'].create({
 # 6. 呼叫 config/area_registry/list 取得所有 areas
 # 7. 找到 area_id='living_room_abc123' 的資料
 # 8. 呼叫 _sync_area_create_or_update_from_ha()
-# 9. 呼叫 sync_area_from_ha_data (from_ha_sync=True)
+# 9. 呼叫 _sync_area_from_ha_data (from_ha_sync=True)
 # 10. 更新 Odoo 記錄，因為有 from_ha_sync=True，不觸發 _update_area_in_ha()
 
 # 結果：Odoo 記錄已更新，不會觸發反向同步到 HA

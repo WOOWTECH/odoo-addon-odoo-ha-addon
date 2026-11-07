@@ -315,7 +315,7 @@ class HADevice(models.Model):
     # ========== Bidirectional Sync: HA → Odoo ==========
 
     @api.model
-    def sync_device_from_ha_data(self, device_data, instance_id):
+    def _sync_device_from_ha_data(self, device_data, instance_id):
         """
         Unified method: Sync single device from HA data to Odoo
 
@@ -360,7 +360,7 @@ class HADevice(models.Model):
 
         # Convert HA labels (string array) to Odoo label_ids (Many2many)
         ha_labels = device_data.get('labels', [])
-        label_records = self.env['ha.label'].get_or_create_labels(ha_labels, instance_id)
+        label_records = self.env['ha.label']._get_or_create_labels(ha_labels, instance_id)
 
         values = {
             'device_id': device_id,
@@ -440,7 +440,7 @@ class HADevice(models.Model):
 
             for device_data in result:
                 try:
-                    action, _ = self.sync_device_from_ha_data(device_data, instance_id)
+                    action, _ = self._sync_device_from_ha_data(device_data, instance_id)
                     if action == 'created':
                         created_count += 1
                     elif action == 'updated':
