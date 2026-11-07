@@ -215,22 +215,43 @@ def normalize_entity_ids(value):
     return result
 
 
-def check_domain_service(domain, service, allow_any=False):
+def check_domain_service(domain, service, allow_any=False, denied_domains=MANAGER_ONLY_DOMAINS):
     """
     Validate a (domain, service) pair.
 
     ``allow_any`` (HA managers on the backend) skips the whitelist but still
-    requires well-formed names.
+    requires well-formed names.  ``denied_domains`` are refused even when
+    they are in CONTROL_SERVICES; by default this is MANAGER_ONLY_DOMAINS,
+    the backend rule for internal HA Users who are not managers.
     """
     if not isinstance(domain, str) or not isinstance(service, str) or not domain or not service:
         raise ServicePolicyError('domain and service are required', 'missing_params')
     if allow_any:
         return
-    if domain in MANAGER_ONLY_DOMAINS or domain not in CONTROL_SERVICES:
+    if domain in denied_domains:
+        # Clear message for the dashboard (scripts, automations, updates...)
+        raise ServicePolicyError(
+            'Only Home Assistant Managers can call %s services' % domain, 'domain_denied')
+    if domain not in CONTROL_SERVICES:
         raise ServicePolicyError('Domain not allowed: %s' % domain, 'domain_denied')
     if service not in CONTROL_SERVICES[domain]:
         raise ServicePolicyError(
             'Service not allowed for this domain: %s.%s' % (domain, service), 'service_denied')
+
+
+def check_portal_domain_service(domain, service):
+    """
+    Validate a (domain, service) pair for portal entity control.
+
+    The portal route already requires an explicit ``control`` share on the
+    entity and ``domain == entity.domain``, and it always calls HA with the
+    shared entity only.  So a share on ``script.x`` / ``automation.y`` /
+    ``update.z`` can only run that one entity, which is exactly what the
+    manager granted.  Therefore the MANAGER_ONLY_DOMAINS ban (which protects
+    the backend dashboard, where any group entity could be targeted) does
+    not apply here; only the CONTROL_SERVICES whitelist does.
+    """
+    check_domain_service(domain, service, denied_domains=frozenset())
 
 
 def sanitize_service_params(domain, service_data, passthrough_unknown_domain=False):

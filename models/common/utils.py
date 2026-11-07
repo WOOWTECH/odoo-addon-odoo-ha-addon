@@ -68,3 +68,27 @@ def ensure_ha_manager(env):
     from odoo import _
     from odoo.exceptions import AccessError
     raise AccessError(_('Only Home Assistant Managers can perform this operation.'))
+
+
+def ensure_ha_entity_control(records):
+    """
+    Raise AccessError unless the current user may control ``records`` the
+    same way /odoo_ha_addon/call_service allows it:
+
+    - superuser and HA Managers: always;
+    - HA Users: only for entities they can read through the ORM (ir.rule)
+      and whose domain is not in MANAGER_ONLY_DOMAINS (script, automation,
+      update, ...).
+    """
+    env = records.env
+    if env.su or env.user.has_group('odoo_ha_addon.group_ha_manager'):
+        return
+    from odoo import _
+    from odoo.exceptions import AccessError
+    from .service_policy import CONTROL_SERVICES, MANAGER_ONLY_DOMAINS
+    if not env.user.has_group('odoo_ha_addon.group_ha_user'):
+        raise AccessError(_('Only Home Assistant Users can control entities.'))
+    records.check_access('read')
+    for record in records:
+        if record.domain in MANAGER_ONLY_DOMAINS or record.domain not in CONTROL_SERVICES:
+            raise AccessError(_('Only Home Assistant Managers can perform this operation.'))

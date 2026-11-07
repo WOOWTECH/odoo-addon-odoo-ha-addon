@@ -27,7 +27,7 @@ from odoo.addons.odoo_ha_addon.models.common.service_policy import (
     CONTROL_SERVICES,
     ENTITY_REFERENCE_KEYS,
     ServicePolicyError,
-    check_domain_service,
+    check_portal_domain_service,
     sanitize_service_params,
 )
 import logging
@@ -739,7 +739,7 @@ class HAPortalController(CustomerPortal):
             }
 
         try:
-            check_domain_service(domain, service)
+            check_portal_domain_service(domain, service)
             # Target selectors (area_id, device_id, floor_id, label_id,
             # target) and unknown keys are dropped; numbers must be finite.
             ha_params = sanitize_service_params(domain, service_data)
@@ -1118,12 +1118,20 @@ class HAPortalController(CustomerPortal):
                 'error_code': 'missing_params'
             }
 
-        record_id = service_data.get('entity_id')
+        record_id = service_data.get('entity_id') if isinstance(service_data, dict) else None
         if not record_id:
             return {
                 'success': False,
                 'error': _('entity_id is required in service_data'),
                 'error_code': 'missing_entity_id'
+            }
+        # The legacy API passes the ha.entity record id; anything else
+        # (HA entity_id strings, lists, booleans) is rejected.
+        if isinstance(record_id, bool) or not isinstance(record_id, int) or record_id <= 0:
+            return {
+                'success': False,
+                'error': _('Entity not found'),
+                'error_code': 'not_found'
             }
 
         entity = request.env['ha.entity'].sudo().browse(record_id)

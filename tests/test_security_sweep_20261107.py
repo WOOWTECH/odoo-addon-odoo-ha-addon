@@ -270,14 +270,44 @@ class TestSweepRealtimeBusRecipients(_HAFixtureMixin, TransactionCase):
             'name': 'Sweep Public Group', 'ha_instance_id': self.inst_a.id,
             'entity_ids': [(6, 0, [self.switch_b.id])],
         })
-        partners, _sent = self._capture(lambda: self._notify(
-            'notify_entity_state_change', 'switch.sweep_b', {}, {'state': 'on'},
+        partners, sent = self._capture(lambda: self._notify(
+            'notify_entity_state_change', 'switch.sweep_b', {},
+            {'state': 'on', 'attributes': {'friendly_name': 'B', 'access_token': 'secret-b'},
+             'context': {'user_id': 'ha-admin'}},
             ha_instance_id=self.inst_a.id,
         ))
         for user in (self.manager, self.ha_user, self.ha_user2):
             self.assertIn(user.partner_id, partners)
         for user in (self.internal, self.portal_none, self.portal_share):
             self.assertNotIn(user.partner_id, partners)
+        # Round 3: the ha.entity record rules only follow explicit membership,
+        # so public-group-only HA Users get the sanitized payload.
+        by_partner = self._messages_by_partner(sent)
+        [(_t, full)] = by_partner[self.manager.partner_id.id]
+        self.assertEqual(full['new_state']['attributes']['access_token'], 'secret-b')
+        for user in (self.ha_user, self.ha_user2):
+            [(_t, message)] = by_partner[user.partner_id.id]
+            self.assertEqual(message['new_state']['state'], 'on')
+            self.assertEqual(message['new_state']['attributes']['friendly_name'], 'B')
+            self.assertNotIn('access_token', message['new_state']['attributes'])
+            self.assertNotIn('context', message['new_state'])
+
+    def test_public_group_instance_status_is_minimal(self):
+        self.env['ha.entity.group'].sudo().create({
+            'name': 'Sweep Public Group B', 'ha_instance_id': self.inst_b.id,
+            'entity_ids': [(6, 0, [self.lock_other.id])],
+        })
+        _partners, sent = self._capture(lambda: self._notify(
+            'notify_ha_websocket_status', 'error', 'cannot reach http://10.0.0.6:8123',
+            ha_instance_id=self.inst_b.id, instance_name='Sweep Instance B',
+        ))
+        by_partner = self._messages_by_partner(sent)
+        [(_t, member)] = by_partner[self.ha_user2.partner_id.id]
+        self.assertEqual(member['message'], 'cannot reach http://10.0.0.6:8123')
+        [(_t, public)] = by_partner[self.ha_user.partner_id.id]
+        self.assertEqual(public['status'], 'error')
+        self.assertNotIn('message', public)
+        self.assertNotIn(self.internal.partner_id.id, by_partner)
 
     def test_unknown_entity_only_reaches_managers(self):
         partners, _sent = self._capture(lambda: self._notify(
@@ -459,6 +489,39 @@ class TestSweepModelHardening(_HAFixtureMixin, TransactionCase):
                 with self.assertRaises(AccessError):
                     call()
             client.assert_not_called()
+
+    def test_scene_activation_matches_call_service_policy(self):
+        """Round 3: HA Users may activate scenes they can read (like call_service scene.turn_on)."""
+        Entity = self.env['ha.entity'].sudo()
+        scene = Entity.create({
+            'name': 'Sweep Scene S', 'entity_id': 'scene.sweep_s', 'domain': 'scene',
+            'entity_state': 'scening', 'ha_instance_id': self.inst_a.id,
+        })
+        hidden_scene = Entity.create({
+            'name': 'Sweep Scene H', 'entity_id': 'scene.sweep_h', 'domain': 'scene',
+            'entity_state': 'scening', 'ha_instance_id': self.inst_a.id,
+        })
+        self.group_g.sudo().write({'entity_ids': [(4, scene.id)]})
+        self.env.registry.clear_cache()
+        client = MagicMock()
+        with patch.object(websocket_client, 'get_websocket_client', return_value=client):
+            result = scene.with_user(self.ha_user).action_activate_scene()
+            self.assertEqual(result['params']['type'], 'success', result)
+            client.call_websocket_api_sync.assert_called_once_with('call_service', {
+                'domain': 'scene', 'service': 'turn_on', 'target': {'entity_id': 'scene.sweep_s'},
+            })
+            client.reset_mock()
+            for user, record in ((self.ha_user, hidden_scene), (self.ha_user2, scene),
+                                 (self.internal, scene), (self.portal_share, scene)):
+                with self.subTest(user=user.login, record=record.entity_id):
+                    with self.assertRaises(AccessError):
+                        record.with_user(user).action_activate_scene()
+            # scripts stay manager-only for HA Users, managers keep both
+            with self.assertRaises(AccessError):
+                self.script_c.with_user(self.ha_user).action_run_script()
+            client.call_websocket_api_sync.assert_not_called()
+            scene.with_user(self.manager).action_activate_scene()
+            client.call_websocket_api_sync.assert_called_once()
 
     def test_no_runtime_pip_install(self):
         source = inspect.getsource(hooks)
@@ -653,6 +716,16 @@ class TestSweepCallService(_ControllerCase):
                 self.assertFalse(result['success'], result)
         self.assertEqual(self._service_calls(), [])
 
+    def test_manager_only_domain_message_is_clear(self):
+        """Round 3: dashboard users see why a script/automation card cannot run."""
+        self._as_ha_user_with_preference()
+        result = self._rpc('/odoo_ha_addon/call_service', domain='script', service='turn_on',
+                           service_data={'entity_id': 'script.sweep_c'}, ha_instance_id=self.inst_a.id)
+        self.assertFalse(result['success'])
+        self.assertEqual(result['error_type'], 'domain_denied')
+        self.assertIn('Only Home Assistant Managers', result['error'])
+        self.assertEqual(self._service_calls(), [])
+
     def test_number_value_clamped_with_finite_check(self):
         self._as_ha_user_with_preference()
         result = self._rpc('/odoo_ha_addon/call_service', domain='input_number', service='set_value',
@@ -759,6 +832,87 @@ class TestSweepPortalCallService(_ControllerCase):
             result = self._portal_call('light', 'turn_on', {})
             self.assertFalse(result['success'])
         self.assertEqual(self._service_calls(), [])
+
+
+    def _shared_entity(self, entity_id, domain, user, permission='control'):
+        entity = self.env['ha.entity'].sudo().create({
+            'name': 'Sweep %s' % entity_id, 'entity_id': entity_id, 'domain': domain,
+            'entity_state': 'off', 'ha_instance_id': self.inst_a.id,
+        })
+        self.env['ha.entity.share'].sudo().create({
+            'entity_id': entity.id, 'user_id': user.id, 'permission': permission,
+        })
+        return entity
+
+    def test_portal_control_share_on_script_and_automation(self):
+        """Round 3: a control share on script/automation keeps the portal buttons working."""
+        automation = self._shared_entity('automation.sweep_auto', 'automation', self.portal_share)
+        self.env['ha.entity.share'].sudo().create({
+            'entity_id': self.script_c.id, 'user_id': self.portal_share.id, 'permission': 'control',
+        })
+        self.authenticate('sweep_portal_share', PASSWORD)
+        cases = [
+            # (entity, domain, service, data sent by domain_config.js, expected HA service_data)
+            (self.script_c, 'script', 'turn_on', {'area_id': 'all'}, {'entity_id': 'script.sweep_c'}),
+            (self.script_c, 'script', 'toggle', {}, {'entity_id': 'script.sweep_c'}),
+            (automation, 'automation', 'trigger', {'skip_condition': True, 'target': {'area_id': 'x'}},
+             {'entity_id': 'automation.sweep_auto', 'skip_condition': True}),
+            (automation, 'automation', 'toggle', {}, {'entity_id': 'automation.sweep_auto'}),
+        ]
+        for entity, domain, service, data, expected in cases:
+            with self.subTest(domain=domain, service=service):
+                self.ws_calls.clear()
+                result = self._portal_call(domain, service, data, entity=entity)
+                self.assertTrue(result['success'], result)
+                self.assertEqual(self._service_calls(), [{
+                    'domain': domain, 'service': service, 'service_data': expected,
+                }])
+        # still restricted to the entity's own domain and the whitelist
+        self.ws_calls.clear()
+        for domain, service in (('script', 'reload'), ('automation', 'reload'),
+                                ('homeassistant', 'turn_on')):
+            with self.subTest(denied='%s.%s' % (domain, service)):
+                entity = self.script_c if domain != 'automation' else automation
+                result = self._portal_call(domain, service, {}, entity=entity)
+                self.assertFalse(result['success'], result)
+        self.assertEqual(self._service_calls(), [])
+
+    def test_portal_view_share_on_script_denied(self):
+        self.env['ha.entity.share'].sudo().create({
+            'entity_id': self.script_c.id, 'user_id': self.portal_none.id, 'permission': 'view',
+        })
+        automation = self._shared_entity(
+            'automation.sweep_view', 'automation', self.portal_none, permission='view')
+        self.authenticate('sweep_portal_none', PASSWORD)
+        self.assertFalse(self._portal_call('script', 'turn_on', {}, entity=self.script_c)['success'])
+        self.assertFalse(self._portal_call('automation', 'trigger', {}, entity=automation)['success'])
+        self.assertEqual(self._service_calls(), [])
+
+    def test_portal_control_share_on_update_entity(self):
+        """Portal keeps the base behaviour for explicitly shared update entities."""
+        update = self._shared_entity('update.sweep_fw', 'update', self.portal_share)
+        self.authenticate('sweep_portal_share', PASSWORD)
+        result = self._portal_call('update', 'install', {'backup': True, 'device_id': 'x'}, entity=update)
+        self.assertTrue(result['success'], result)
+        self.assertEqual(self._service_calls(), [{
+            'domain': 'update', 'service': 'install',
+            'service_data': {'entity_id': 'update.sweep_fw', 'backup': True},
+        }])
+
+    def test_portal_legacy_route_rejects_non_int_entity(self):
+        self.authenticate('sweep_portal_share', PASSWORD)
+        for value in ('light.sweep_a', [self.light_a.id], True, -1):
+            with self.subTest(value=value):
+                result = self._rpc('/portal/call-service', domain='light', service='turn_on',
+                                   service_data={'entity_id': value})
+                self.assertFalse(result['success'], result)
+        result = self._rpc('/portal/call-service', domain='light', service='turn_on',
+                           service_data={'entity_id': self.light_a.id, 'area_id': 'all'})
+        self.assertTrue(result['success'], result)
+        self.assertEqual(self._service_calls(), [{
+            'domain': 'light', 'service': 'turn_on',
+            'service_data': {'entity_id': 'light.sweep_a'},
+        }])
 
 
     def test_ha_user_cannot_install_updates(self):

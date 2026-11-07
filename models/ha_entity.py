@@ -3,7 +3,9 @@ from odoo.exceptions import ValidationError, AccessError
 import logging
 import json
 from psycopg2 import errors as psycopg2_errors
-from .common.utils import parse_iso_datetime, parse_domain_from_entitiy_id, ensure_ha_manager
+from .common.utils import (
+    parse_iso_datetime, parse_domain_from_entitiy_id, ensure_ha_manager, ensure_ha_entity_control,
+)
 from .common.hass_rest_api import HassRestApi
 
 _logger = logging.getLogger(__name__)
@@ -1372,9 +1374,11 @@ class HAEntity(models.Model):
 
         Calls HA service: scene.turn_on
         Only applicable for entities with domain='scene'.
+        HA Users may activate scenes they can read (same rule as
+        /odoo_ha_addon/call_service scene.turn_on).
         """
-        ensure_ha_manager(self.env)
         self.ensure_one()
+        ensure_ha_entity_control(self)
 
         if self.domain != 'scene':
             raise ValidationError(_('This action is only available for scene entities.'))

@@ -43,21 +43,28 @@ class HaRealtimeUpdate(models.Model):
     @api.model
     def _ha_users_from_entity_groups(self, entity_groups):
         """
-        Users authorised through ha.entity.group membership.
+        Users authorised through ha.entity.group membership, as a pair
+        ``(members, public_users)``:
 
-        A group without user_ids is "public": every HA User may use it, so all
-        group_ha_user members are returned in that case.  Members listed in
-        user_ids only count while they still belong to group_ha_user (the
-        ha.entity record rules only apply to that group).
+        - ``members``: users listed in ``user_ids`` of the groups who still
+          belong to group_ha_user (the ha.entity record rules only apply to
+          that group).  They can read the entities through the ORM
+          (``user.ha_entity_group_ids``), so they get full payloads;
+        - ``public_users``: when one of the groups has no ``user_ids``
+          ("public" group), every other group_ha_user member.  The ORM record
+          rules only follow explicit membership, so these users cannot read
+          the entity records; they receive the sanitized (restricted)
+          payload instead of the full HA state.
         """
         users = self.env['res.users'].sudo().browse()
         if not entity_groups:
-            return users
+            return users, users
         ha_users = self._ha_users_in_groups('odoo_ha_addon.group_ha_user')
+        members = entity_groups.mapped('user_ids') & ha_users
+        public_users = users
         if any(not group.user_ids for group in entity_groups):
-            users |= ha_users
-        users |= entity_groups.mapped('user_ids') & ha_users
-        return users
+            public_users = ha_users - members
+        return members, public_users
 
     @api.model
     def _ha_users_from_shares(self, share_domain):
@@ -72,12 +79,14 @@ class HaRealtimeUpdate(models.Model):
         Users allowed to receive realtime payloads about one HA entity, split
         in two sets:
 
-        - ``full``: group_ha_manager members and users of active
-          ha.entity.group(s) containing the entity (public group => all
-          group_ha_user members); they see the entity through the ORM anyway;
+        - ``full``: group_ha_manager members and explicit members (user_ids)
+          of active ha.entity.group(s) containing the entity; they see the
+          entity through the ORM anyway;
         - ``restricted``: other users holding a non-expired ha.entity.share on
-          the entity, on a group containing it, or on its device; they get the
-          same sanitized attributes as the portal API.
+          the entity, on a group containing it, or on its device, plus the
+          group_ha_user members reached only through a public group (no
+          user_ids); they get the same sanitized attributes as the portal
+          API.
         """
         full = self._ha_users_in_groups('odoo_ha_addon.group_ha_manager')
         restricted = self.env['res.users'].sudo().browse()
@@ -92,7 +101,8 @@ class HaRealtimeUpdate(models.Model):
         groups = self.env['ha.entity.group'].sudo().search([
             ('entity_ids', 'in', entities.ids),
         ])
-        full |= self._ha_users_from_entity_groups(groups)
+        members, public_users = self._ha_users_from_entity_groups(groups)
+        full |= members
 
         share_domains = [[('entity_id', 'in', entities.ids)]]
         if groups:
@@ -100,7 +110,7 @@ class HaRealtimeUpdate(models.Model):
         devices = entities.mapped('device_id')
         if devices:
             share_domains.append([('device_id', 'in', devices.ids)])
-        restricted = self._ha_users_from_shares(expression.OR(share_domains)) - full
+        restricted = (self._ha_users_from_shares(expression.OR(share_domains)) | public_users) - full
         return full, restricted
 
     @api.model
@@ -119,8 +129,10 @@ class HaRealtimeUpdate(models.Model):
         groups = self.env['ha.entity.group'].sudo().search([
             ('ha_instance_id', '=', ha_instance_id),
         ])
-        full |= self._ha_users_from_entity_groups(groups)
-        restricted = self._ha_users_from_shares([('ha_instance_id', '=', ha_instance_id)]) - full
+        members, public_users = self._ha_users_from_entity_groups(groups)
+        full |= members
+        restricted = (self._ha_users_from_shares(
+            [('ha_instance_id', '=', ha_instance_id)]) | public_users) - full
         return full, restricted
 
     @api.model
