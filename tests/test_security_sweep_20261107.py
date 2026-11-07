@@ -894,16 +894,15 @@ class TestSweepPortalCallService(_ControllerCase):
         self.assertFalse(self._portal_call('automation', 'trigger', {}, entity=automation)['success'])
         self.assertEqual(self._service_calls(), [])
 
-    def test_portal_control_share_on_update_entity(self):
-        """Portal keeps the base behaviour for explicitly shared update entities."""
+    def test_portal_control_share_on_update_entity_denied(self):
+        """Firmware/core updates are manager-only, even with a control share on the update entity."""
         update = self._shared_entity('update.sweep_fw', 'update', self.portal_share)
         self.authenticate('sweep_portal_share', PASSWORD)
-        result = self._portal_call('update', 'install', {'backup': True, 'device_id': 'x'}, entity=update)
-        self.assertTrue(result['success'], result)
-        self.assertEqual(self._service_calls(), [{
-            'domain': 'update', 'service': 'install',
-            'service_data': {'entity_id': 'update.sweep_fw', 'backup': True},
-        }])
+        for service in ('install', 'skip'):
+            with self.subTest(service=service):
+                result = self._portal_call('update', service, {'backup': True}, entity=update)
+                self.assertFalse(result['success'], result)
+        self.assertEqual(self._service_calls(), [])
 
     def test_portal_legacy_route_rejects_non_int_entity(self):
         self.authenticate('sweep_portal_share', PASSWORD)

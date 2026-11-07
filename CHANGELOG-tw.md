@@ -11,6 +11,7 @@
 
 ### 安全性
 
+- 入口網站：對 `update` 實體的控制分享不再能執行 `install`／`skip`，韌體與核心更新一律限 HA 管理員
 - `/odoo_ha_addon/ha_urls`（HA 內部／外部／Nabu Casa 雲端網址）限 HA 管理員；其他使用者收到標準「需要管理員權限」錯誤，且不會向 HA 查詢
 - `/odoo_ha_addon/websocket_status` 不再對非管理員回傳實例 API 網址與是否有 token（改回 `url_hidden: true`，儀表板顯示替代文字）
 - 實體、實體群組、裝置的 `action_share` 限 HA 管理員（分享精靈原本就只有管理員能用）

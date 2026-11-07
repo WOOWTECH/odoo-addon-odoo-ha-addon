@@ -239,19 +239,26 @@ def check_domain_service(domain, service, allow_any=False, denied_domains=MANAGE
             'Service not allowed for this domain: %s.%s' % (domain, service), 'service_denied')
 
 
+# Domains a portal share holder may never call, even with a control share on
+# that one entity: installing / skipping firmware or core updates is an
+# administrative action (owner decision 2026-11-07).
+PORTAL_DENIED_DOMAINS = frozenset({'update'})
+
+
 def check_portal_domain_service(domain, service):
     """
     Validate a (domain, service) pair for portal entity control.
 
     The portal route already requires an explicit ``control`` share on the
     entity and ``domain == entity.domain``, and it always calls HA with the
-    shared entity only.  So a share on ``script.x`` / ``automation.y`` /
-    ``update.z`` can only run that one entity, which is exactly what the
-    manager granted.  Therefore the MANAGER_ONLY_DOMAINS ban (which protects
-    the backend dashboard, where any group entity could be targeted) does
-    not apply here; only the CONTROL_SERVICES whitelist does.
+    shared entity only.  So a share on ``script.x`` / ``automation.y`` can
+    only run that one entity, which is exactly what the manager granted.
+    Therefore the MANAGER_ONLY_DOMAINS ban (which protects the backend
+    dashboard, where any group entity could be targeted) does not apply
+    here; only the CONTROL_SERVICES whitelist and PORTAL_DENIED_DOMAINS
+    (updates stay manager-only everywhere) do.
     """
-    check_domain_service(domain, service, denied_domains=frozenset())
+    check_domain_service(domain, service, denied_domains=PORTAL_DENIED_DOMAINS)
 
 
 def sanitize_service_params(domain, service_data, passthrough_unknown_domain=False):

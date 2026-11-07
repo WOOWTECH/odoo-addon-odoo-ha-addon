@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Portal: a control share on an `update` entity no longer allows `install` / `skip`; firmware and core updates are HA-Manager-only everywhere
 - `/odoo_ha_addon/ha_urls` (HA internal / external / Nabu Casa cloud URLs) requires HA Manager; other users get the standard "manager required" error and HA is not queried
 - `/odoo_ha_addon/websocket_status` no longer returns the instance API URL or token presence to non-managers (`url_hidden: true`; the dashboard shows a placeholder)
 - `action_share` on entities, entity groups and devices requires HA Manager (the share wizard was already manager-only)
