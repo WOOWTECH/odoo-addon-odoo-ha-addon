@@ -5,7 +5,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeoutError
 from .common.utils import parse_domain_from_entitiy_id
 from .common.hass_rest_api import HassRestApi
-from .common.utils import parse_iso_datetime
+from .common.utils import parse_iso_datetime, ensure_ha_manager
 from .common.instance_helper import HAInstanceHelper
 
 _logger = logging.getLogger(__name__)
@@ -262,6 +262,7 @@ class HAEntityHistory(models.Model):
         Args:
             instance_id: HA 實例 ID（可選，預設使用當前實例）
         """
+        ensure_ha_manager(self.env)
         _logger.info("=== Starting sync_entity_history_from_ha ===")
 
         # 取得當前實例
@@ -374,6 +375,7 @@ class HAEntityHistory(models.Model):
         Args:
             instance_id: HA 實例 ID（可選，預設使用當前實例）
         """
+        ensure_ha_manager(self.env)
         _logger.info("=== fetch_and_store_history called (delegating to sync_entity_history_from_ha) ===")
 
         # 委派給新的標準方法

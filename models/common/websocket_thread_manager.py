@@ -500,22 +500,16 @@ def is_config_changed(env, instance_id, return_details=False):
         if url_changed:
             _logger.info(f"  URL: {old_url} -> {current_ha_url}")
         if token_changed:
-            # 安全起見，只顯示 token 前綴
-            old_prefix = (old_token[:10] + '...') if (old_token and isinstance(old_token, str) and len(old_token) > 10) else 'None'
-            new_prefix = (current_ha_token[:10] + '...') if (current_ha_token and isinstance(current_ha_token, str) and len(current_ha_token) > 10) else 'None'
-            _logger.info(f"  Token: {old_prefix} -> {new_prefix}")
+            # 安全起見，不記錄 token 內容（含前綴）
+            _logger.info(f"  Token: {'[SET]' if old_token else '[NOT SET]'} -> {'[SET]' if current_ha_token else '[NOT SET]'}")
 
     if not return_details:
         return any_changed
 
     # 返回詳細資訊
-    old_token_prefix = None
-    if old_token and isinstance(old_token, str) and len(old_token) > 10:
-        old_token_prefix = old_token[:10] + '...'
-
-    new_token_prefix = None
-    if current_ha_token and isinstance(current_ha_token, str) and len(current_ha_token) > 10:
-        new_token_prefix = current_ha_token[:10] + '...'
+    # 不回傳 token 片段（前綴也屬於機密），只表示是否已設定
+    old_token_prefix = '[SET]' if old_token else None
+    new_token_prefix = '[SET]' if current_ha_token else None
 
     return {
         'changed': any_changed,

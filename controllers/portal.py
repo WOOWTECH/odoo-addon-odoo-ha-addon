@@ -19,6 +19,13 @@ from odoo import http, _
 from odoo.http import request
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
 from odoo.osv.expression import AND
+from odoo.addons.odoo_ha_addon.models.common.service_policy import (
+    CONTROL_SERVICES,
+    ENTITY_REFERENCE_KEYS,
+    ServicePolicyError,
+    check_domain_service,
+    sanitize_service_params,
+)
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -66,62 +73,8 @@ PORTAL_GROUP_FIELDS = [
     'entity_count',
 ]
 
-# Services whitelist using HA call_service naming convention
-# Includes advanced controls like brightness, temperature, etc.
-PORTAL_CONTROL_SERVICES = {
-    # Original 9 domains
-    'switch': ['toggle', 'turn_on', 'turn_off'],
-    'light': ['toggle', 'turn_on', 'turn_off', 'set_brightness', 'set_color_temp'],
-    'fan': ['toggle', 'turn_on', 'turn_off', 'set_percentage', 'set_preset_mode', 'set_direction', 'oscillate'],
-    'climate': ['set_temperature', 'set_hvac_mode', 'set_fan_mode', 'set_swing_mode', 'set_preset_mode'],
-    'cover': ['open_cover', 'close_cover', 'stop_cover', 'set_cover_position',
-              'open_cover_tilt', 'close_cover_tilt', 'stop_cover_tilt', 'set_cover_tilt_position'],
-    'scene': ['turn_on'],
-    'script': ['toggle', 'turn_on', 'turn_off'],
-    'automation': ['toggle', 'trigger', 'turn_on', 'turn_off'],
-    'sensor': [],  # Read-only, no control actions
-    # Phase 1: Toggle / Simple Button Domains
-    'input_boolean': ['toggle', 'turn_on', 'turn_off'],
-    'siren': ['toggle', 'turn_on', 'turn_off'],
-    'button': ['press'],
-    'input_button': ['press'],
-    'lock': ['lock', 'unlock', 'open'],
-    'humidifier': ['toggle', 'turn_on', 'turn_off', 'set_humidity', 'set_mode'],
-    # Phase 2: Input Domains
-    'input_number': ['set_value', 'increment', 'decrement'],
-    'number': ['set_value'],
-    'input_text': ['set_value'],
-    'text': ['set_value'],
-    'input_select': ['select_option', 'select_next', 'select_previous', 'select_first', 'select_last'],
-    'select': ['select_option', 'select_first', 'select_last', 'select_next', 'select_previous'],
-    'input_datetime': ['set_datetime'],
-    'date': ['set_value'],
-    'time': ['set_value'],
-    'datetime': ['set_value'],
-    # Phase 3: Complex Control Domains
-    'media_player': ['toggle', 'turn_on', 'turn_off', 'media_play', 'media_pause', 'media_stop',
-                     'media_next_track', 'media_previous_track', 'volume_set', 'volume_mute', 'select_source',
-                     'select_sound_mode', 'shuffle_set', 'repeat_set'],
-    'vacuum': ['start', 'stop', 'pause', 'return_to_base', 'locate', 'set_fan_speed'],
-    'valve': ['open_valve', 'close_valve', 'stop_valve', 'set_valve_position'],
-    'water_heater': ['set_temperature', 'set_operation_mode', 'set_away_mode'],
-    'alarm_control_panel': ['alarm_arm_home', 'alarm_arm_away', 'alarm_arm_night',
-                            'alarm_arm_vacation', 'alarm_disarm', 'alarm_trigger'],
-    'remote': ['toggle', 'turn_on', 'turn_off', 'send_command'],
-    'lawn_mower': ['start_mowing', 'pause', 'dock'],
-    # Phase 4: Read-only Display Domains (no control services)
-    'binary_sensor': [],
-    'weather': [],
-    'device_tracker': [],
-    'person': [],
-    'calendar': [],
-    'event': [],
-    # Phase 5: Special Control Domains
-    'todo': ['add_item', 'update_item', 'remove_item'],
-    'update': ['install', 'skip'],
-    'camera': [],  # Read-only
-    'tts': ['speak'],
-}
+# Services whitelist using HA call_service naming convention (shared policy)
+PORTAL_CONTROL_SERVICES = CONTROL_SERVICES
 
 
 class HAPortalController(CustomerPortal):
@@ -766,21 +719,63 @@ class HAPortalController(CustomerPortal):
                 'error_code': 'access_denied'
             }
 
-        if domain not in PORTAL_CONTROL_SERVICES:
-            _logger.warning(f"Portal call-service denied: domain '{domain}' not allowed")
+        if entity.ha_instance_id.id != instance_id:
+            # URL instance must match the entity's instance
+            _logger.warning(
+                "Portal call-service denied: entity %s does not belong to instance %s",
+                entity_id, instance_id)
+            return {
+                'success': False,
+                'error': _('Entity not found'),
+                'error_code': 'not_found'
+            }
+
+        # The service domain must be the entity's own domain: a share on a
+        # light must not allow lock.unlock / cover.open_cover etc.
+        if domain != entity.domain:
+            _logger.warning(
+                "Portal call-service denied: domain '%s' does not match entity domain '%s'",
+                domain, entity.domain)
             return {
                 'success': False,
                 'error': _('Domain not allowed: %s') % domain,
                 'error_code': 'domain_denied'
             }
 
-        if service not in PORTAL_CONTROL_SERVICES[domain]:
-            _logger.warning(f"Portal call-service denied: service '{service}' not allowed for domain '{domain}'")
+        try:
+            check_domain_service(domain, service)
+            # Target selectors (area_id, device_id, floor_id, label_id,
+            # target) and unknown keys are dropped; numbers must be finite.
+            ha_params = sanitize_service_params(domain, service_data)
+        except ServicePolicyError as e:
+            _logger.warning("Portal call-service denied for entity %s: %s", entity_id, e)
+            messages = {
+                'domain_denied': _('Domain not allowed: %s') % domain,
+                'service_denied': _('Service not allowed for this domain: %s.%s') % (domain, service),
+            }
             return {
                 'success': False,
-                'error': _('Service not allowed for this domain: %s.%s') % (domain, service),
-                'error_code': 'service_denied'
+                'error': messages.get(e.code, _('Invalid service parameters')),
+                'error_code': e.code,
             }
+
+        # Parameters referencing another entity (e.g. tts.speak
+        # media_player_entity_id) need their own control share.
+        for ref_key in ENTITY_REFERENCE_KEYS.intersection(ha_params):
+            ref_value = ha_params[ref_key]
+            ref_ids = ref_value if isinstance(ref_value, list) else [ref_value]
+            ref_entities = request.env['ha.entity'].sudo().search([
+                ('entity_id', 'in', [str(v) for v in ref_ids]),
+                ('ha_instance_id', '=', entity.ha_instance_id.id),
+            ])
+            if len(ref_entities) != len(set(ref_ids)) or not all(
+                    self._check_entity_share_access(ref.id, user.id, required_permission='control')
+                    for ref in ref_entities):
+                return {
+                    'success': False,
+                    'error': _('Control permission required'),
+                    'error_code': 'access_denied'
+                }
 
         try:
             from odoo.addons.odoo_ha_addon.models.common.websocket_client import get_websocket_client
@@ -793,10 +788,7 @@ class HAPortalController(CustomerPortal):
                     'error_code': 'no_instance'
                 }
 
-            ha_service_data = {'entity_id': entity.entity_id}
-            for key, value in service_data.items():
-                if key != 'entity_id':
-                    ha_service_data[key] = value
+            ha_service_data = dict(ha_params, entity_id=entity.entity_id)
 
             client = get_websocket_client(request.env, instance_id=ha_instance_id)
             result = client.call_websocket_api(

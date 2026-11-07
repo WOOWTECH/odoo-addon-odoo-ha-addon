@@ -1,6 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import AccessError, ValidationError
 import logging
+from .common.utils import ensure_ha_manager
 
 _logger = logging.getLogger(__name__)
 
@@ -422,6 +423,7 @@ class HALabel(models.Model):
         Args:
             instance_id: HA instance ID, if None uses HAInstanceHelper
         """
+        ensure_ha_manager(self.env)
         _logger.info(f"=== Starting sync_labels_from_ha (instance_id={instance_id}) ===")
 
         try:

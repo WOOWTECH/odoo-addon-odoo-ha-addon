@@ -19,7 +19,9 @@ Following Point of Sale module pattern, the addon implements a dedicated group-b
 - Read authorized entities (via entity groups)
 - Read entity history for authorized entities
 - Read areas from authorized instances
-- Create/modify entity groups and tags
+- Read authorized entity groups and group tags (read-only; only HA Managers can create/modify/delete them, because group membership is the authorization source)
+- Call Home Assistant services only on entities visible through their entity groups, within the domain/service whitelist (no `homeassistant`, `hassio`, `shell_command`, `script`, `automation`, ...); target selectors (`area_id`, `device_id`, `floor_id`, `label_id`, `target`) are dropped
+- Receive realtime bus notifications only for entities/instances they are authorized for
 - Cannot modify instances, entities, or areas (read-only)
 
 **Assignment**: Must be explicitly granted to users who need HA access
@@ -35,7 +37,8 @@ Following Point of Sale module pattern, the addon implements a dedicated group-b
 - Create/modify/delete HA instances
 - Manage instance configurations and credentials
 - Full access to all instances, entities, and areas
-- WebSocket service management
+- WebSocket service management (restart, start/stop) and full HA synchronisation
+- Create/modify/delete entity groups and group tags (authorize HA Users)
 
 **Inheritance**: Automatically includes `base.group_user` + `group_ha_user`
 

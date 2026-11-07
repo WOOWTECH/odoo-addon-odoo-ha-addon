@@ -95,9 +95,8 @@ class HassRestApi:
         api_endpoint = "/api/states"
 
         _logger.debug("ha_url: %s", ha_url)
-        # 安全起見，只顯示 token 前綴
-        token_prefix = (ha_token[:10] + '...') if (ha_token and isinstance(ha_token, str) and len(ha_token) > 10) else 'None'
-        _logger.debug("ha_token: %s", token_prefix)
+        # 安全起見，不記錄 token 內容（含前綴），只記錄是否存在
+        _logger.debug("ha_token configured: %s", bool(ha_token))
 
         url = f"{ha_url}{api_endpoint}"
         _logger.info("URL: %s", url)
@@ -203,9 +202,8 @@ class HassRestApi:
         api_endpoint = "/api/history/period/" if timestamp else "/api/history/period"
 
         _logger.debug("ha_url: %s", ha_url)
-        # 安全起見，只顯示 token 前綴
-        token_prefix = (ha_token[:10] + '...') if (ha_token and isinstance(ha_token, str) and len(ha_token) > 10) else 'None'
-        _logger.debug("ha_token: %s", token_prefix)
+        # 安全起見，不記錄 token 內容（含前綴），只記錄是否存在
+        _logger.debug("ha_token configured: %s", bool(ha_token))
 
         # 完整的 API URL
         # url = f"{ha_url}{api_endpoint}2024-12-15T16:00:00?filter_entity_id={entity_id}"

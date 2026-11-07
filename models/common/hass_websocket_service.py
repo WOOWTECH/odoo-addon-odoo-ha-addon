@@ -886,7 +886,7 @@ class HassWebSocketService:
             with db.db_connect(self.db_name).cursor() as cr:
                 env = api.Environment(cr, 1, {})
                 realtime_service = env['ha.realtime.update']
-                realtime_service.notify_device_registry_update(
+                realtime_service._notify_device_registry_update(
                     action=action,
                     device_id=device_id,
                     ha_instance_id=self.instance_id
@@ -909,7 +909,7 @@ class HassWebSocketService:
             with db.db_connect(self.db_name).cursor() as cr:
                 env = api.Environment(cr, 1, {})
                 realtime_service = env['ha.realtime.update']
-                realtime_service.notify_area_registry_update(
+                realtime_service._notify_area_registry_update(
                     action=action,
                     area_id=area_id,
                     ha_instance_id=self.instance_id
@@ -2669,7 +2669,7 @@ class HassWebSocketService:
                 # 🔔 通知前端：實體狀態變更（Phase 2: 附加 instance_id）
                 try:
                     realtime_service = env['ha.realtime.update']
-                    realtime_service.notify_entity_state_change(
+                    realtime_service._notify_entity_state_change(
                         entity_id,
                         old_state_data,
                         new_state_data,
@@ -2737,7 +2737,7 @@ class HassWebSocketService:
                 env = api.Environment(cr, 1, {})  # 使用 admin 用戶
                 realtime_service = env['ha.realtime.update']
                 # Phase 2: 附加 instance_id 參數
-                realtime_service.notify_ha_websocket_status(status, message, ha_instance_id=self.instance_id)
+                realtime_service._notify_ha_websocket_status(status, message, ha_instance_id=self.instance_id)
                 cr.commit()
                 self._logger.debug(f"Notified frontend: {status} - {message} (instance {self.instance_id})")
         except Exception as e:

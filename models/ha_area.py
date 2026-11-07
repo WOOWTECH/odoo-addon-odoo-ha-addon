@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 import logging
+from .common.utils import ensure_ha_manager
 import json
 
 _logger = logging.getLogger(__name__)
@@ -373,6 +374,7 @@ class HAArea(models.Model):
         Args:
             instance_id: HA 實例 ID (Phase 3 & 3.1)，如果為 None 則使用 HAInstanceHelper
         """
+        ensure_ha_manager(self.env)
         _logger.info(f"=== Starting sync_areas_from_ha (instance_id={instance_id}) ===")
 
         try:

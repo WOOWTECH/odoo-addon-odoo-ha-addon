@@ -1,0 +1,685 @@
+# -*- coding: utf-8 -*-
+# Part of odoo_ha_addon. See LICENSE file for full copyright and licensing details.
+"""
+Regression tests for the 2026-11-07 security sweep.
+
+Every class documents the finding fingerprint it covers.  Home Assistant is
+never contacted: the WebSocket client and the thread manager are mocked.
+"""
+import inspect
+from datetime import timedelta
+from unittest.mock import MagicMock, patch
+
+from odoo import fields
+from odoo.exceptions import AccessError
+from odoo.tests import HttpCase, TransactionCase, tagged
+
+from odoo.addons.odoo_ha_addon import hooks
+from odoo.addons.odoo_ha_addon.models.common import (
+    hass_rest_api,
+    websocket_client,
+    websocket_thread_manager,
+)
+
+PASSWORD = 'Sweep-20261107-pw'
+
+
+class _HAFixtureMixin:
+    """Shared fixture: two instances, entities, groups, users and shares."""
+
+    @classmethod
+    def _make_user(cls, login, groups):
+        return cls.env['res.users'].with_context(no_reset_password=True).create({
+            'name': login,
+            'login': login,
+            'password': PASSWORD,
+            'groups_id': [(6, 0, [cls.env.ref(g).id for g in groups])],
+        })
+
+    @classmethod
+    def _setup_ha_fixture(cls):
+        env = cls.env
+        Instance = env['ha.instance'].sudo()
+        cls.inst_a = Instance.create({
+            'name': 'Sweep Instance A', 'api_url': 'http://sweep-a.invalid:8123',
+            'api_token': 'sweep-token-a-0123456789', 'active': True,
+        })
+        cls.inst_b = Instance.create({
+            'name': 'Sweep Instance B', 'api_url': 'http://sweep-b.invalid:8123',
+            'api_token': 'sweep-token-b-0123456789', 'active': True,
+        })
+        cls.device_d = env['ha.device'].sudo().create({
+            'ha_instance_id': cls.inst_a.id, 'device_id': 'sweep_dev_d', 'name': 'Sweep Device D',
+        })
+        Entity = env['ha.entity'].sudo()
+        cls.light_a = Entity.create({
+            'name': 'Sweep Light A', 'entity_id': 'light.sweep_a', 'domain': 'light',
+            'entity_state': 'off', 'ha_instance_id': cls.inst_a.id, 'device_id': cls.device_d.id,
+        })
+        cls.switch_b = Entity.create({
+            'name': 'Sweep Switch B', 'entity_id': 'switch.sweep_b', 'domain': 'switch',
+            'entity_state': 'off', 'ha_instance_id': cls.inst_a.id, 'device_id': cls.device_d.id,
+        })
+        cls.script_c = Entity.create({
+            'name': 'Sweep Script C', 'entity_id': 'script.sweep_c', 'domain': 'script',
+            'entity_state': 'off', 'ha_instance_id': cls.inst_a.id,
+        })
+        cls.number_n = Entity.create({
+            'name': 'Sweep Number N', 'entity_id': 'input_number.sweep_n', 'domain': 'input_number',
+            'entity_state': '1', 'ha_instance_id': cls.inst_a.id,
+            'attributes': {'min': 0, 'max': 10},
+        })
+        cls.lock_other = Entity.create({
+            'name': 'Sweep Lock B', 'entity_id': 'lock.sweep_b', 'domain': 'lock',
+            'entity_state': 'locked', 'ha_instance_id': cls.inst_b.id,
+        })
+
+        cls.manager = cls._make_user('sweep_manager', ['odoo_ha_addon.group_ha_manager'])
+        cls.ha_user = cls._make_user('sweep_ha_user', ['base.group_user', 'odoo_ha_addon.group_ha_user'])
+        cls.ha_user2 = cls._make_user('sweep_ha_user2', ['base.group_user', 'odoo_ha_addon.group_ha_user'])
+        cls.internal = cls._make_user('sweep_internal', ['base.group_user'])
+        cls.portal_share = cls._make_user('sweep_portal_share', ['base.group_portal'])
+        cls.portal_none = cls._make_user('sweep_portal_none', ['base.group_portal'])
+        cls.portal_expired = cls._make_user('sweep_portal_expired', ['base.group_portal'])
+        cls.portal_device = cls._make_user('sweep_portal_device', ['base.group_portal'])
+
+        Group = env['ha.entity.group'].sudo()
+        cls.group_g = Group.create({
+            'name': 'Sweep Group G', 'ha_instance_id': cls.inst_a.id,
+            'entity_ids': [(6, 0, [cls.light_a.id, cls.script_c.id, cls.number_n.id])],
+            'user_ids': [(6, 0, [cls.ha_user.id])],
+        })
+        cls.group_other = Group.create({
+            'name': 'Sweep Group Other', 'ha_instance_id': cls.inst_b.id,
+            'entity_ids': [(6, 0, [cls.lock_other.id])],
+            'user_ids': [(6, 0, [cls.ha_user2.id])],
+        })
+
+        Share = env['ha.entity.share'].sudo()
+        cls.share_portal = Share.create({
+            'entity_id': cls.light_a.id, 'user_id': cls.portal_share.id, 'permission': 'control',
+        })
+        cls.share_expired = Share.create({
+            'entity_id': cls.light_a.id, 'user_id': cls.portal_expired.id, 'permission': 'control',
+            'expiry_date': fields.Datetime.now() - timedelta(days=3),
+        })
+        cls.share_device = Share.create({
+            'device_id': cls.device_d.id, 'user_id': cls.portal_device.id, 'permission': 'view',
+        })
+        env.registry.clear_cache()
+
+
+# ---------------------------------------------------------------------------
+# 81c5ad52f34c  ha.ws.request.queue global ACL
+# ---------------------------------------------------------------------------
+@tagged('post_install', '-at_install', 'ha_sweep')
+class TestSweepWsRequestQueueAcl(_HAFixtureMixin, TransactionCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._setup_ha_fixture()
+
+    def test_no_global_acl_row(self):
+        rows = self.env['ir.model.access'].search([
+            ('model_id.model', '=', 'ha.ws.request.queue'),
+            ('group_id', '=', False),
+        ])
+        self.assertFalse(rows, "ha.ws.request.queue must not have a group-less ACL row")
+        self.assertFalse(self.env.ref('odoo_ha_addon.access_ha_ws_request_queue', raise_if_not_found=False))
+
+    def test_non_system_users_cannot_create_or_read_queue(self):
+        Queue = self.env['ha.ws.request.queue']
+        for user in (self.portal_share, self.ha_user, self.manager, self.internal):
+            with self.subTest(user=user.login):
+                with self.assertRaises(AccessError):
+                    Queue.with_user(user).create({
+                        'request_id': 'sweep-%s' % user.id,
+                        'message_type': 'call_service',
+                        'payload': '{"domain": "homeassistant", "service": "restart"}',
+                        'ha_instance_id': self.inst_a.id,
+                    })
+                with self.assertRaises(AccessError):
+                    Queue.with_user(user).search_read([], ['result'])
+
+    def test_manager_clear_wizard_still_counts_queue(self):
+        self.env['ha.ws.request.queue'].sudo().create({
+            'request_id': 'sweep-queue-1', 'message_type': 'get_states',
+            'payload': '{}', 'ha_instance_id': self.inst_a.id,
+        })
+        wizard = self.env['ha.instance.clear.wizard'].with_user(self.manager).create({
+            'instance_id': self.inst_a.id,
+        })
+        self.assertEqual(wizard.queue_count, 1)
+
+
+# ---------------------------------------------------------------------------
+# 9c5d22553699  realtime bus broadcast to every user  (+ hardening 3c2a6e5d034d)
+# ---------------------------------------------------------------------------
+@tagged('post_install', '-at_install', 'ha_sweep')
+class TestSweepRealtimeBusRecipients(_HAFixtureMixin, TransactionCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._setup_ha_fixture()
+
+    def _capture(self, func):
+        sent = []
+
+        def fake_sendone(bus_self, target, notification_type, message):
+            sent.append((target, notification_type, message))
+
+        with patch.object(type(self.env['bus.bus']), '_sendone', fake_sendone):
+            func()
+        partners = self.env['res.partner']
+        for target, _type, _msg in sent:
+            if isinstance(target, tuple):
+                target = target[0]
+            if getattr(target, '_name', None) == 'res.partner':
+                partners |= target
+        return partners, sent
+
+    def _notify(self, name, *args, **kwargs):
+        model = self.env['ha.realtime.update'].sudo()
+        # private after the fix; the public name exists on the vulnerable base
+        method = getattr(model, '_' + name, None) or getattr(model, name)
+        return method(*args, **kwargs)
+
+    def test_state_change_only_reaches_authorised_users(self):
+        partners, sent = self._capture(lambda: self._notify(
+            'notify_entity_state_change', 'light.sweep_a',
+            {'state': 'off'}, {'state': 'on', 'attributes': {'secret': 1}},
+            ha_instance_id=self.inst_a.id,
+        ))
+        self.assertTrue(sent)
+        self.assertTrue(all(t == 'ha_state_changed' for _c, t, _m in sent))
+        for user in (self.manager, self.ha_user, self.portal_share, self.portal_device):
+            self.assertIn(user.partner_id, partners, "%s is authorised" % user.login)
+        for user in (self.ha_user2, self.internal, self.portal_none, self.portal_expired):
+            self.assertNotIn(user.partner_id, partners, "%s must not receive the state" % user.login)
+
+    def test_public_group_reaches_all_ha_users_only(self):
+        self.env['ha.entity.group'].sudo().create({
+            'name': 'Sweep Public Group', 'ha_instance_id': self.inst_a.id,
+            'entity_ids': [(6, 0, [self.switch_b.id])],
+        })
+        partners, _sent = self._capture(lambda: self._notify(
+            'notify_entity_state_change', 'switch.sweep_b', {}, {'state': 'on'},
+            ha_instance_id=self.inst_a.id,
+        ))
+        for user in (self.manager, self.ha_user, self.ha_user2):
+            self.assertIn(user.partner_id, partners)
+        for user in (self.internal, self.portal_none, self.portal_share):
+            self.assertNotIn(user.partner_id, partners)
+
+    def test_unknown_entity_only_reaches_managers(self):
+        partners, _sent = self._capture(lambda: self._notify(
+            'notify_entity_state_change', 'light.not_synced', {}, {'state': 'on'},
+            ha_instance_id=self.inst_a.id,
+        ))
+        self.assertIn(self.manager.partner_id, partners)
+        for user in (self.ha_user, self.internal, self.portal_share, self.portal_none):
+            self.assertNotIn(user.partner_id, partners)
+
+    def test_instance_status_scoped_to_instance(self):
+        partners, _sent = self._capture(lambda: self._notify(
+            'notify_ha_websocket_status', 'connected', 'ok', ha_instance_id=self.inst_b.id,
+        ))
+        self.assertIn(self.manager.partner_id, partners)
+        self.assertIn(self.ha_user2.partner_id, partners)
+        for user in (self.ha_user, self.internal, self.portal_share, self.portal_none):
+            self.assertNotIn(user.partner_id, partners)
+
+    def test_registry_updates_scoped_to_instance(self):
+        for name, arg in (('notify_device_registry_update', 'dev'), ('notify_area_registry_update', 'area')):
+            with self.subTest(name=name):
+                partners, _sent = self._capture(lambda: self._notify(
+                    name, 'update', arg, ha_instance_id=self.inst_a.id))
+                self.assertIn(self.ha_user.partner_id, partners)
+                self.assertIn(self.portal_share.partner_id, partners)
+                for user in (self.ha_user2, self.internal, self.portal_none):
+                    self.assertNotIn(user.partner_id, partners)
+
+    def test_instance_switched_only_to_switching_user(self):
+        partners, _sent = self._capture(lambda: self._notify(
+            'notify_instance_switched', self.inst_a.id, self.inst_a.name, user_id=self.ha_user.id))
+        self.assertEqual(partners, self.ha_user.partner_id)
+
+    def test_notify_helpers_are_private(self):
+        model = self.env['ha.realtime.update']
+        for name in ('notify_entity_state_change', 'notify_ha_websocket_status',
+                     'notify_instance_invalidated', 'notify_instance_fallback',
+                     'notify_instance_switched', 'notify_device_registry_update',
+                     'notify_area_registry_update', '_broadcast_to_users'):
+            self.assertFalse(hasattr(model, name), "%s must not be a public RPC method" % name)
+            if not name.startswith('_'):
+                self.assertTrue(hasattr(model, '_' + name))
+
+
+# ---------------------------------------------------------------------------
+# 7cc62a202824  HA User self-authorisation through ha.entity.group CRUD
+# ---------------------------------------------------------------------------
+@tagged('post_install', '-at_install', 'ha_sweep')
+class TestSweepEntityGroupAcl(_HAFixtureMixin, TransactionCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._setup_ha_fixture()
+        cls.public_group = cls.env['ha.entity.group'].sudo().create({
+            'name': 'Sweep Public B', 'ha_instance_id': cls.inst_b.id,
+            'entity_ids': [(6, 0, [cls.lock_other.id])],
+        })
+
+    def test_ha_user_cannot_create_group(self):
+        with self.assertRaises(AccessError):
+            self.env['ha.entity.group'].with_user(self.ha_user).create({
+                'name': 'Sweep Self Grant', 'ha_instance_id': self.inst_b.id,
+                'user_ids': [(4, self.ha_user.id)],
+            })
+
+    def test_ha_user_cannot_join_public_group(self):
+        with self.assertRaises(AccessError):
+            self.public_group.with_user(self.ha_user).write({'user_ids': [(4, self.ha_user.id)]})
+
+    def test_ha_user_cannot_modify_or_delete_own_group(self):
+        group = self.group_g.with_user(self.ha_user)
+        with self.assertRaises(AccessError):
+            group.write({'entity_ids': [(4, self.switch_b.id)]})
+        with self.assertRaises(AccessError):
+            group.unlink()
+
+    def test_ha_user_cannot_manage_group_tags(self):
+        with self.assertRaises(AccessError):
+            self.env['ha.entity.group.tag'].with_user(self.ha_user).create({
+                'name': 'Sweep Tag', 'ha_instance_id': self.inst_a.id,
+            })
+
+    def test_ha_user_still_reads_own_group_and_entities(self):
+        groups = self.env['ha.entity.group'].with_user(self.ha_user).search([('id', '=', self.group_g.id)])
+        self.assertEqual(groups, self.group_g)
+        visible = self.env['ha.entity'].with_user(self.ha_user).search([('ha_instance_id', '=', self.inst_a.id)])
+        self.assertIn(self.light_a, visible)
+        self.assertNotIn(self.switch_b, visible)
+
+    def test_manager_grant_and_revoke_take_effect_immediately(self):
+        Entity = self.env['ha.entity'].with_user(self.ha_user2)
+        # warm the per-uid ir.rule cache
+        self.assertNotIn(self.light_a, Entity.search([('ha_instance_id', '=', self.inst_a.id)]))
+        self.group_g.with_user(self.manager).write({'user_ids': [(4, self.ha_user2.id)]})
+        self.assertIn(self.light_a, Entity.search([('ha_instance_id', '=', self.inst_a.id)]))
+        self.group_g.with_user(self.manager).write({'user_ids': [(3, self.ha_user2.id)]})
+        self.assertNotIn(self.light_a, Entity.search([('ha_instance_id', '=', self.inst_a.id)]))
+
+
+# ---------------------------------------------------------------------------
+# 9b54a6ece4bd  ha.entity.share readable by every portal / HA user
+# ---------------------------------------------------------------------------
+@tagged('post_install', '-at_install', 'ha_sweep')
+class TestSweepEntityShareRules(_HAFixtureMixin, TransactionCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._setup_ha_fixture()
+        cls.share_ha_user = cls.env['ha.entity.share'].sudo().create({
+            'entity_id': cls.switch_b.id, 'user_id': cls.ha_user.id, 'permission': 'view',
+        })
+
+    def test_portal_reads_only_own_shares(self):
+        rows = self.env['ha.entity.share'].with_user(self.portal_share).search_read([], ['user_id'])
+        self.assertTrue(rows)
+        self.assertEqual({r['user_id'][0] for r in rows}, {self.portal_share.id})
+        self.assertEqual(self.env['ha.entity.share'].with_user(self.portal_none).search_count([]), 0)
+
+    def test_ha_user_reads_only_own_shares(self):
+        shares = self.env['ha.entity.share'].with_user(self.ha_user).search([])
+        self.assertEqual(shares, self.share_ha_user)
+
+    def test_manager_reads_all_shares(self):
+        shares = self.env['ha.entity.share'].with_user(self.manager).search([])
+        for share in (self.share_portal, self.share_expired, self.share_device, self.share_ha_user):
+            self.assertIn(share, shares)
+
+
+# ---------------------------------------------------------------------------
+# Hardening: model-level manager checks, runtime pip, token logs, portal token
+# (4f22a544827d, b876fbe88121, 33c0905ad0b5, 655a39e9d150)
+# ---------------------------------------------------------------------------
+@tagged('post_install', '-at_install', 'ha_sweep')
+class TestSweepModelHardening(_HAFixtureMixin, TransactionCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._setup_ha_fixture()
+
+    def test_websocket_start_stop_require_manager(self):
+        with patch.object(websocket_thread_manager, 'start_websocket_service') as start, \
+                patch.object(websocket_thread_manager, 'stop_websocket_service') as stop:
+            Entity = self.env['ha.entity']
+            with self.assertRaises(AccessError):
+                Entity.with_user(self.ha_user).start_websocket_service_manual()
+            with self.assertRaises(AccessError):
+                Entity.with_user(self.ha_user).stop_websocket_service()
+            start.assert_not_called()
+            stop.assert_not_called()
+
+            Entity.with_user(self.manager).stop_websocket_service()
+            stop.assert_called_once_with(self.env.cr.dbname)
+
+    def test_instance_actions_require_manager(self):
+        instance = self.inst_a.with_user(self.ha_user)
+        with patch.object(websocket_thread_manager, 'restart_websocket_service') as restart, \
+                patch.object(websocket_client, 'get_websocket_client'):
+            for action in ('action_restart_websocket', 'action_sync_entities',
+                           'action_sync_registry', 'action_clear_data'):
+                with self.subTest(action=action):
+                    with self.assertRaises(AccessError):
+                        getattr(instance, action)()
+            restart.assert_not_called()
+
+    def test_sync_entry_points_require_manager(self):
+        calls = [
+            lambda: self.env['ha.entity'].with_user(self.ha_user).sync_entity_states_from_ha(self.inst_a.id),
+            lambda: self.env['ha.area'].with_user(self.ha_user).sync_areas_from_ha(self.inst_a.id),
+            lambda: self.env['ha.device'].with_user(self.ha_user).sync_devices_from_ha(self.inst_a.id),
+            lambda: self.env['ha.label'].with_user(self.ha_user).sync_labels_from_ha(self.inst_a.id),
+            lambda: self.script_c.with_user(self.ha_user).action_run_script(),
+        ]
+        with patch.object(websocket_client, 'get_websocket_client') as client:
+            for call in calls:
+                with self.assertRaises(AccessError):
+                    call()
+            client.assert_not_called()
+
+    def test_no_runtime_pip_install(self):
+        source = inspect.getsource(hooks)
+        self.assertNotIn('subprocess', source)
+        self.assertNotIn("'-m', 'pip'", source)
+        from odoo.modules.module import get_manifest
+        manifest = get_manifest('odoo_ha_addon')
+        self.assertIn('websockets', manifest.get('external_dependencies', {}).get('python', []))
+
+    def test_token_prefix_not_logged(self):
+        for module in (hass_rest_api, websocket_thread_manager):
+            source = inspect.getsource(module)
+            self.assertNotIn("token[:10]", source)
+            self.assertNotIn("ha_token[:10]", source)
+
+    def test_revoking_share_resets_portal_token(self):
+        self.light_a._portal_ensure_token()
+        self.assertTrue(self.light_a.access_token)
+        self.share_portal.unlink()
+        self.assertFalse(self.light_a.access_token)
+
+    def test_expiry_cron_resets_portal_token(self):
+        self.light_a._portal_ensure_token()
+        self.share_expired.write({'expiry_date': fields.Datetime.now() - timedelta(hours=1)})
+        self.env['ha.entity.share']._cron_check_expiring_shares()
+        self.assertFalse(self.light_a.access_token)
+
+
+# ---------------------------------------------------------------------------
+# HTTP controllers: eefe41281f6e (restart/areas), eae835a11941 (call_service,
+# glances, hardware/network), 940a44f359bd (portal call-service), 99fb8b890178
+# ---------------------------------------------------------------------------
+class _ControllerCase(_HAFixtureMixin, HttpCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._setup_ha_fixture()
+
+    def setUp(self):
+        super().setUp()
+        self.ws_calls = []
+        self.registry_entities = [
+            {'entity_id': 'light.sweep_a', 'device_id': 'sweep_dev_d'},
+            {'entity_id': 'switch.sweep_b', 'device_id': 'sweep_dev_d'},
+        ]
+        self.devices = [
+            {'id': 'sweep_dev_d', 'name': 'Glances D', 'identifiers': [['glances', 'd']]},
+            {'id': 'sweep_dev_x', 'name': 'Glances X', 'identifiers': [['glances', 'x']]},
+        ]
+
+        def call_websocket_api(message_type, payload=None, timeout=15):
+            self.ws_calls.append((message_type, payload))
+            if message_type == 'config/entity_registry/list':
+                return {'success': True, 'data': self.registry_entities}
+            if message_type == 'config/device_registry/list':
+                return {'success': True, 'data': self.devices}
+            if message_type == 'get_states':
+                return {'success': True, 'data': [
+                    {'entity_id': 'light.sweep_a', 'state': 'on', 'attributes': {}},
+                    {'entity_id': 'switch.sweep_b', 'state': 'on', 'attributes': {'secret': 'x'}},
+                ]}
+            return {'success': True, 'data': {'context': {}}}
+
+        client = MagicMock()
+        client.call_websocket_api.side_effect = call_websocket_api
+        patch.object(websocket_client, 'get_websocket_client', return_value=client).start()
+
+        self.restart = patch.object(
+            websocket_thread_manager, 'restart_websocket_service',
+            return_value={'success': True, 'message': 'restarted'}).start()
+        self.addCleanup(patch.stopall)
+
+    def _rpc(self, route, **params):
+        return self.make_jsonrpc_request(route, params)
+
+    def _service_calls(self):
+        return [p for t, p in self.ws_calls if t == 'call_service']
+
+
+@tagged('post_install', '-at_install', 'ha_sweep')
+class TestSweepRestartAndAreas(_ControllerCase):
+
+    def _patch_sync(self):
+        area_sync = patch.object(type(self.env['ha.area']), 'sync_areas_from_ha').start()
+        entity_sync = patch.object(type(self.env['ha.entity']), 'sync_entity_states_from_ha').start()
+        rel_sync = patch.object(type(self.env['ha.entity']), '_sync_entity_registry_relations').start()
+        return area_sync, entity_sync, rel_sync
+
+    def test_restart_denied_for_portal_and_ha_user(self):
+        for login in ('sweep_portal_share', 'sweep_ha_user'):
+            self.authenticate(login, PASSWORD)
+            for instance_id in (0, False, self.inst_a.id, self.inst_b.id):
+                with self.subTest(login=login, instance_id=instance_id):
+                    result = self._rpc('/odoo_ha_addon/websocket_restart',
+                                       ha_instance_id=instance_id, force=True)
+                    self.assertFalse(result['success'])
+        self.restart.assert_not_called()
+
+    def test_restart_manager_never_restarts_all(self):
+        self.authenticate('sweep_manager', PASSWORD)
+        for instance_id in (0, False, -3, 'abc'):
+            result = self._rpc('/odoo_ha_addon/websocket_restart', ha_instance_id=instance_id)
+            self.assertFalse(result['success'])
+        self.restart.assert_not_called()
+        result = self._rpc('/odoo_ha_addon/websocket_restart', ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'])
+        self.restart.assert_called_once()
+        self.assertEqual(self.restart.call_args.kwargs['instance_id'], self.inst_a.id)
+
+    def test_areas_no_sync_for_unauthorised_or_non_manager(self):
+        area_sync, entity_sync, rel_sync = self._patch_sync()
+        self.authenticate('sweep_portal_share', PASSWORD)
+        result = self._rpc('/odoo_ha_addon/areas', ha_instance_id=self.inst_a.id)
+        self.assertFalse(result['success'])
+
+        self.authenticate('sweep_ha_user', PASSWORD)
+        result = self._rpc('/odoo_ha_addon/areas', ha_instance_id=self.inst_b.id)
+        self.assertFalse(result['success'], "instance B is not visible to this HA User")
+        result = self._rpc('/odoo_ha_addon/areas', ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'], "authorised HA User still reads areas")
+        area_sync.assert_not_called()
+        entity_sync.assert_not_called()
+        rel_sync.assert_not_called()
+
+    def test_areas_manager_triggers_sync(self):
+        area_sync, entity_sync, rel_sync = self._patch_sync()
+        self.authenticate('sweep_manager', PASSWORD)
+        result = self._rpc('/odoo_ha_addon/areas', ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'])
+        area_sync.assert_called_once()
+        entity_sync.assert_called_once()
+
+
+@tagged('post_install', '-at_install', 'ha_sweep')
+class TestSweepCallService(_ControllerCase):
+
+    def _as_ha_user_with_preference(self):
+        # current instance preference (the path that bypassed the api_token
+        # field check on the vulnerable base through the sudo prefetch)
+        self.ha_user.sudo().write({'current_ha_instance_id': self.inst_a.id})
+        self.authenticate('sweep_ha_user', PASSWORD)
+
+    def test_ha_user_controls_authorised_entity(self):
+        self._as_ha_user_with_preference()
+        result = self._rpc('/odoo_ha_addon/call_service', domain='light', service='turn_on',
+                           service_data={'entity_id': 'light.sweep_a', 'brightness': 100,
+                                         'area_id': 'kitchen', 'device_id': 'x',
+                                         'target': {'area_id': 'kitchen'}, 'foo': 'bar'},
+                           ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'], result)
+        self.assertEqual(self._service_calls(), [{
+            'domain': 'light', 'service': 'turn_on',
+            'service_data': {'entity_id': 'light.sweep_a', 'brightness': 100},
+        }])
+
+    def test_ha_user_without_explicit_instance_uses_current(self):
+        self._as_ha_user_with_preference()
+        result = self._rpc('/odoo_ha_addon/call_service', domain='light', service='toggle',
+                           service_data={'entity_id': 'light.sweep_a'})
+        self.assertTrue(result['success'], result)
+        self.assertEqual(len(self._service_calls()), 1)
+
+    def test_ha_user_denied_calls(self):
+        self._as_ha_user_with_preference()
+        denied = [
+            ('switch', 'turn_off', {'entity_id': 'switch.sweep_b'}),          # not in group
+            ('homeassistant', 'restart', {'entity_id': 'light.sweep_a'}),     # system domain
+            ('shell_command', 'run', {'entity_id': 'light.sweep_a'}),
+            ('script', 'turn_on', {'entity_id': 'script.sweep_c'}),           # manager-only domain
+            ('lock', 'unlock', {'entity_id': 'light.sweep_a'}),               # domain mismatch
+            ('lock', 'unlock', {'entity_id': 'lock.sweep_b'}),                # other instance
+            ('light', 'turn_on', {'entity_id': ['light.sweep_a', 'switch.sweep_b']}),
+            ('light', 'turn_on', {'entity_id': 'all'}),
+            ('input_number', 'set_value', {'entity_id': 'input_number.sweep_n', 'value': 'nan'}),
+            ('light', 'turn_on', {'entity_id': 'light.sweep_a', 'brightness': 'inf'}),
+        ]
+        for domain, service, data in denied:
+            with self.subTest(domain=domain, service=service, data=data):
+                result = self._rpc('/odoo_ha_addon/call_service', domain=domain,
+                                   service=service, service_data=data)
+                self.assertFalse(result['success'], result)
+        self.assertEqual(self._service_calls(), [])
+
+    def test_number_value_clamped_with_finite_check(self):
+        self._as_ha_user_with_preference()
+        result = self._rpc('/odoo_ha_addon/call_service', domain='input_number', service='set_value',
+                           service_data={'entity_id': 'input_number.sweep_n', 'value': 42},
+                           ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'], result)
+        self.assertEqual(self._service_calls()[0]['service_data']['value'], 10)
+
+    def test_portal_and_internal_without_groups_denied(self):
+        for login in ('sweep_portal_share', 'sweep_internal'):
+            self.authenticate(login, PASSWORD)
+            result = self._rpc('/odoo_ha_addon/call_service', domain='light', service='turn_on',
+                               service_data={'entity_id': 'light.sweep_a'},
+                               ha_instance_id=self.inst_a.id)
+            self.assertFalse(result['success'])
+        self.assertEqual(self._service_calls(), [])
+
+    def test_manager_call_service_drops_target_selectors(self):
+        self.authenticate('sweep_manager', PASSWORD)
+        result = self._rpc('/odoo_ha_addon/call_service', domain='script', service='turn_on',
+                           service_data={'entity_id': 'script.sweep_c', 'area_id': 'all'},
+                           ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'], result)
+        self.assertEqual(self._service_calls()[0]['service_data'], {'entity_id': 'script.sweep_c'})
+        result = self._rpc('/odoo_ha_addon/call_service', domain='homeassistant', service='restart',
+                           service_data={'entity_id': 'light.sweep_a'},
+                           ha_instance_id=self.inst_a.id)
+        self.assertFalse(result['success'], "domain must match the entity domain")
+
+    def test_glances_only_visible_entities(self):
+        self._as_ha_user_with_preference()
+        result = self._rpc('/odoo_ha_addon/glances_device_entities', device_id='sweep_dev_d',
+                           ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'], result)
+        self.assertEqual([e['entity_id'] for e in result['data']['entities']], ['light.sweep_a'])
+
+        result = self._rpc('/odoo_ha_addon/glances_devices', ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'], result)
+        self.assertEqual([d['id'] for d in result['data']['devices']], ['sweep_dev_d'])
+
+    def test_entity_related_only_visible_entities(self):
+        self._as_ha_user_with_preference()
+        result = self._rpc('/odoo_ha_addon/entity_related', entity_id='switch.sweep_b',
+                           ha_instance_id=self.inst_a.id)
+        self.assertFalse(result['success'])
+        self.assertFalse([t for t, _p in self.ws_calls if t == 'search/related'])
+        result = self._rpc('/odoo_ha_addon/entity_related', entity_id='light.sweep_a',
+                           ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'], result)
+
+    def test_hardware_and_network_info_manager_only(self):
+        self._as_ha_user_with_preference()
+        for route in ('/odoo_ha_addon/hardware_info', '/odoo_ha_addon/network_info'):
+            result = self._rpc(route, ha_instance_id=self.inst_a.id)
+            self.assertFalse(result['success'])
+        self.assertFalse([t for t, _p in self.ws_calls if t == 'supervisor/api'])
+        self.authenticate('sweep_manager', PASSWORD)
+        result = self._rpc('/odoo_ha_addon/hardware_info', ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'], result)
+        self.assertTrue([t for t, _p in self.ws_calls if t == 'supervisor/api'])
+
+
+@tagged('post_install', '-at_install', 'ha_sweep')
+class TestSweepPortalCallService(_ControllerCase):
+
+    def _portal_call(self, domain, service, service_data, instance=None, entity=None):
+        instance = instance or self.inst_a
+        entity = entity or self.light_a
+        return self._rpc('/my/ha/%s/entity/%s/service' % (instance.id, entity.id),
+                         domain=domain, service=service, service_data=service_data)
+
+    def test_portal_control_happy_path_strips_selectors(self):
+        self.authenticate('sweep_portal_share', PASSWORD)
+        result = self._portal_call('light', 'turn_on', {
+            'brightness': 50, 'area_id': 'kitchen', 'device_id': 'dev', 'floor_id': 'f1',
+            'label_id': 'l1', 'target': {'area_id': 'kitchen'}, 'entity_id': 'lock.front', 'x': 1,
+        })
+        self.assertTrue(result['success'], result)
+        self.assertEqual(self._service_calls(), [{
+            'domain': 'light', 'service': 'turn_on',
+            'service_data': {'entity_id': 'light.sweep_a', 'brightness': 50},
+        }])
+
+    def test_portal_domain_must_match_entity(self):
+        self.authenticate('sweep_portal_share', PASSWORD)
+        for domain, service in (('lock', 'unlock'), ('cover', 'open_cover'),
+                                ('alarm_control_panel', 'alarm_disarm'), ('homeassistant', 'restart')):
+            with self.subTest(domain=domain):
+                result = self._portal_call(domain, service, {'area_id': 'kitchen'})
+                self.assertFalse(result['success'])
+        self.assertEqual(self._service_calls(), [])
+
+    def test_portal_rejects_non_finite_and_wrong_instance(self):
+        self.authenticate('sweep_portal_share', PASSWORD)
+        result = self._portal_call('light', 'turn_on', {'brightness': 'nan'})
+        self.assertFalse(result['success'])
+        result = self._portal_call('light', 'turn_on', {}, instance=self.inst_b)
+        self.assertFalse(result['success'])
+        self.assertEqual(self._service_calls(), [])
+
+    def test_portal_without_control_share_denied(self):
+        for login in ('sweep_portal_none', 'sweep_portal_expired', 'sweep_portal_device'):
+            self.authenticate(login, PASSWORD)
+            result = self._portal_call('light', 'turn_on', {})
+            self.assertFalse(result['success'])
+        self.assertEqual(self._service_calls(), [])

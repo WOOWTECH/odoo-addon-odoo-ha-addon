@@ -1,6 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import AccessError
 import logging
+from .common.utils import ensure_ha_manager
 import json
 
 _logger = logging.getLogger(__name__)
@@ -412,6 +413,7 @@ class HADevice(models.Model):
         Returns:
             dict: {'created': int, 'updated': int}
         """
+        ensure_ha_manager(self.env)
         _logger.info(f"=== Starting sync_devices_from_ha (instance_id={instance_id}) ===")
 
         try:

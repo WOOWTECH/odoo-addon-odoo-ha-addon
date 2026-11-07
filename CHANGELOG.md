@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [18.0.7.1] - 2026-11-07
+
+### Security
+
+- Remove the global (group-less) `ha.ws.request.queue` ACL; the internal WebSocket request queue is now `base.group_system` only (migration removes the old row on update)
+- Realtime bus notifications are only sent to authorised users (HA managers, members of entity groups containing the entity, public group => all HA Users, users with a non-expired share on the entity / its group / its device); instance notifications are scoped to the instance; instance switch/fallback notifications only go to the triggering user. `notify_*` helpers are now private
+- `/odoo_ha_addon/websocket_restart` requires HA Manager, a positive instance id visible through record rules, and can no longer restart every instance; `/odoo_ha_addon/areas` uses record rules and only managers trigger the full HA sync
+- `/odoo_ha_addon/call_service`: domain/service whitelist for HA Users (no `homeassistant`, `hassio`, `shell_command`, `script`, `automation`, ...), every `entity_id` must be visible to the caller on the same instance with a matching domain, target selectors (`area_id`, `device_id`, `floor_id`, `label_id`, `target`) and unknown keys are dropped, numbers must be finite
+- Glances endpoints only return entities visible to the caller; `hardware_info` / `network_info` require HA Manager; `entity_related` checks entity visibility
+- `ha.entity.group` / `ha.entity.group.tag` are read-only for HA Users (managers manage them); rule caches are invalidated when groups change so grants and revocations apply immediately
+- Portal control requires the service domain to equal the entity domain and the URL instance to match; target selectors and unknown parameters are stripped
+- `ha.entity.share` records are only readable by their own user (managers see all)
+- Model methods that start/stop the WebSocket service, run full syncs or call HA services require HA Manager (or system context)
+- No runtime `pip install`: `websockets` is declared in `external_dependencies`
+- Token prefixes and full `service_data` are no longer logged
+- Portal access tokens of shared targets are reset when a share is revoked or expires
+
 ## [18.0.6.2] - 2026-01-21
 
 ### Added

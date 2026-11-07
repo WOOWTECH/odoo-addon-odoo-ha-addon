@@ -4,6 +4,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, AccessError
 import logging
 from odoo.addons.odoo_ha_addon.models.common.hass_rest_api import HassRestApi
+from odoo.addons.odoo_ha_addon.models.common.utils import ensure_ha_manager
 from odoo.addons.odoo_ha_addon.models.common.ws_config import (
     WS_CLOSE_TIMEOUT,
     WS_AUTH_TIMEOUT,
@@ -641,6 +642,7 @@ class HAInstance(models.Model):
         2. Areas（Device 需要 Area 存在）
         3. Devices
         """
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         try:
@@ -711,6 +713,7 @@ class HAInstance(models.Model):
 
         Phase 3: 支援多實例，自動同步 Entity-Area 關聯
         """
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         try:
@@ -767,6 +770,7 @@ class HAInstance(models.Model):
 
         只同步 enable_record=True 的實體
         """
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         try:
@@ -842,6 +846,7 @@ class HAInstance(models.Model):
         Returns:
             dict: ir.actions.client notification
         """
+        ensure_ha_manager(self.env)
         from .common.websocket_thread_manager import restart_websocket_service
 
         success_count = 0
@@ -1095,6 +1100,7 @@ class HAInstance(models.Model):
 
         ⚠️ 此操作不可逆！
         """
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         # 返回確認 wizard

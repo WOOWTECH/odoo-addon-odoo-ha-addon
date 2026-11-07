@@ -3,7 +3,7 @@ from odoo.exceptions import ValidationError, AccessError
 import logging
 import json
 from psycopg2 import errors as psycopg2_errors
-from .common.utils import parse_iso_datetime, parse_domain_from_entitiy_id
+from .common.utils import parse_iso_datetime, parse_domain_from_entitiy_id, ensure_ha_manager
 from .common.hass_rest_api import HassRestApi
 
 _logger = logging.getLogger(__name__)
@@ -502,6 +502,7 @@ class HAEntity(models.Model):
             instance_id: HA 實例 ID (Phase 3 & 3.1)，如果為 None 則使用 HAInstanceHelper
             sync_area_relations: 是否同步 entity 與 area 的關聯關係（預設 True）
         """
+        ensure_ha_manager(self.env)
         _logger.info(f"=== Starting sync_entity_states_from_ha (instance_id={instance_id}) ===")
 
         try:
@@ -772,6 +773,7 @@ class HAEntity(models.Model):
         已棄用: 此方法保留以維持向後兼容，請使用 sync_entity_states_from_ha()
         未來需要排程成刪除不存在的 entity。
         """
+        ensure_ha_manager(self.env)
         _logger.info("=== fetch_states called (delegating to sync_entity_states_from_ha) ===")
         _logger.debug(f"Current model: {self._name}")
         _logger.debug(f"Environment context: {self.env.context}")
@@ -959,6 +961,7 @@ class HAEntity(models.Model):
         """
         手動啟動 WebSocket 服務 (用於測試或手動控制)
         """
+        ensure_ha_manager(self.env)
         from .common.websocket_thread_manager import start_websocket_service
 
         try:
@@ -989,10 +992,12 @@ class HAEntity(models.Model):
         """
         停止 WebSocket 服務
         """
+        ensure_ha_manager(self.env)
         from .common.websocket_thread_manager import stop_websocket_service as stop_ws
 
         try:
-            stop_ws()
+            # Only this database's services (no argument would stop every DB)
+            stop_ws(self.env.cr.dbname)
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
@@ -1151,6 +1156,7 @@ class HAEntity(models.Model):
 
     def action_toggle_automation(self):
         """Toggle an automation on/off in Home Assistant."""
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         if self.domain != 'automation':
@@ -1201,6 +1207,7 @@ class HAEntity(models.Model):
 
     def action_trigger_automation(self):
         """Trigger an automation manually in Home Assistant."""
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         if self.domain != 'automation':
@@ -1253,6 +1260,7 @@ class HAEntity(models.Model):
 
     def action_run_script(self):
         """Run a script in Home Assistant."""
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         if self.domain != 'script':
@@ -1303,6 +1311,7 @@ class HAEntity(models.Model):
 
     def action_toggle_script(self):
         """Toggle a script on/off in Home Assistant."""
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         if self.domain != 'script':
@@ -1360,6 +1369,7 @@ class HAEntity(models.Model):
         Calls HA service: scene.turn_on
         Only applicable for entities with domain='scene'.
         """
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         if self.domain != 'scene':

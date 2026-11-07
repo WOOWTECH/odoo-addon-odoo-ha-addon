@@ -54,3 +54,17 @@ def to_iso_datetime_time_string(dt):
 
     # print(formatted_date)
     return formatted_date
+
+def ensure_ha_manager(env):
+    """
+    Raise AccessError unless the environment is superuser (system code,
+    cron, WebSocket worker, explicit sudo()) or the user is an HA Manager.
+
+    Used on public model methods that trigger Home Assistant calls or full
+    synchronisations and are therefore reachable through /web/dataset/call_kw.
+    """
+    if env.su or env.user.has_group('odoo_ha_addon.group_ha_manager'):
+        return
+    from odoo import _
+    from odoo.exceptions import AccessError
+    raise AccessError(_('Only Home Assistant Managers can perform this operation.'))
