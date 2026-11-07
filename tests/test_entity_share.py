@@ -13,6 +13,7 @@ This module tests:
 
 from datetime import timedelta
 from odoo.tests import TransactionCase, tagged
+from odoo.tools import mute_logger
 from odoo.exceptions import ValidationError
 from odoo import fields
 import psycopg2
@@ -151,7 +152,12 @@ class TestEntityShareConstraints(TransactionCase):
 
     def test_constraint_entity_or_group_required_neither(self):
         """Test constraint: must specify either entity_id or group_id"""
-        with self.assertRaises((ValidationError, psycopg2.IntegrityError)):
+        # Odoo's assertRaises does not accept exception tuples. The SQL CHECK
+        # entity_group_device_exclusive rejects the INSERT before the Python
+        # constraint runs, so this is an IntegrityError (savepoint keeps the
+        # test transaction usable).
+        with self.assertRaises(psycopg2.IntegrityError), \
+                mute_logger('odoo.sql_db'), self.env.cr.savepoint():
             self.env['ha.entity.share'].create({
                 'user_id': self.test_user.id,
                 'permission': 'view',
@@ -159,7 +165,8 @@ class TestEntityShareConstraints(TransactionCase):
 
     def test_constraint_entity_or_group_required_both(self):
         """Test constraint: cannot specify both entity_id and group_id"""
-        with self.assertRaises((ValidationError, psycopg2.IntegrityError)):
+        with self.assertRaises(psycopg2.IntegrityError), \
+                mute_logger('odoo.sql_db'), self.env.cr.savepoint():
             self.env['ha.entity.share'].create({
                 'entity_id': self.test_entity.id,
                 'group_id': self.test_group.id,

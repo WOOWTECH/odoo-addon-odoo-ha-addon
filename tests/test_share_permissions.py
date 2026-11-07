@@ -6,6 +6,10 @@ Permission tests for share functionality.
 
 This module tests that the Share button is only accessible to users with
 the group_ha_manager group, not regular group_ha_user users.
+
+Sharing is user-based (ha.entity.share records created by the
+ha.entity.share.wizard); the earlier token-based portal.share wizard was
+replaced, so action_share() no longer mints a portal access token.
 """
 
 from odoo.tests import TransactionCase, tagged
@@ -66,9 +70,10 @@ class TestShareButtonPermissions(TransactionCase):
             action = entity_as_manager.action_share()
             self.assertEqual(
                 action['res_model'],
-                'portal.share',
+                'ha.entity.share.wizard',
                 "HA Manager should be able to call action_share"
             )
+            self.assertEqual(action['context'].get('default_entity_id'), entity.id)
         except AccessError:
             self.fail("HA Manager should be able to access action_share")
 
@@ -87,11 +92,41 @@ class TestShareButtonPermissions(TransactionCase):
             action = group_as_manager.action_share()
             self.assertEqual(
                 action['res_model'],
-                'portal.share',
+                'ha.entity.share.wizard',
                 "HA Manager should be able to call action_share on groups"
             )
+            self.assertEqual(action['context'].get('default_group_id'), group.id)
         except AccessError:
             self.fail("HA Manager should be able to access action_share on groups")
+
+    def test_ha_user_cannot_call_action_share(self):
+        """action_share is manager-only for call_kw callers, too"""
+        entity = self.env['ha.entity'].sudo().create({
+            'name': 'User Share Entity',
+            'entity_id': 'sensor.user_share',
+            'domain': 'sensor',
+            'ha_instance_id': self.ha_instance.id,
+        })
+        group = self.env['ha.entity.group'].sudo().create({
+            'name': 'User Share Group',
+            'ha_instance_id': self.ha_instance.id,
+            'entity_ids': [(6, 0, [entity.id])],
+            'user_ids': [(6, 0, [self.ha_user.id])],
+        })
+        device = self.env['ha.device'].sudo().create({
+            'name': 'User Share Device',
+            'device_id': 'user_share_device',
+            'ha_instance_id': self.ha_instance.id,
+        })
+        for record in (entity, group, device):
+            with self.subTest(model=record._name):
+                with self.assertRaises(AccessError):
+                    record.with_user(self.ha_user).action_share()
+        with self.assertRaises(AccessError):
+            self.env['ha.entity.share.wizard'].with_user(self.ha_user).create({
+                'entity_id': entity.id,
+                'user_ids': [(6, 0, [self.ha_user.id])],
+            })
 
     def test_share_button_visibility_in_entity_view(self):
         """Test that Share button has correct groups attribute in entity form view"""
@@ -130,7 +165,7 @@ class TestShareButtonPermissions(TransactionCase):
 
 @tagged('post_install', '-at_install')
 class TestShareWizardPermissions(TransactionCase):
-    """Test cases for portal.share wizard access control"""
+    """Test cases for ha.entity.share.wizard action context"""
 
     @classmethod
     def setUpClass(cls):
@@ -164,17 +199,17 @@ class TestShareWizardPermissions(TransactionCase):
         entity_as_manager = entity.with_user(self.ha_manager_user)
         action = entity_as_manager.action_share()
 
-        # Verify the wizard receives correct model and record info
+        # The user-based share wizard takes the target as default_<field>
+        # (portal.share's default_res_model/default_res_id are gone).
+        self.assertEqual(action['res_model'], 'ha.entity.share.wizard')
         self.assertEqual(
-            action['context']['default_res_model'],
-            'ha.entity',
-            "Wizard should receive correct model name"
+            action['context'],
+            {'default_entity_id': entity.id},
+            "Wizard should receive the entity as its target"
         )
-        self.assertEqual(
-            action['context']['default_res_id'],
-            entity.id,
-            "Wizard should receive correct record ID"
-        )
+        wizard = self.env['ha.entity.share.wizard'].with_user(
+            self.ha_manager_user).with_context(**action['context']).new({})
+        self.assertEqual(wizard.entity_id, entity)
         self.assertEqual(
             action['target'],
             'new',
@@ -191,17 +226,13 @@ class TestShareWizardPermissions(TransactionCase):
         group_as_manager = group.with_user(self.ha_manager_user)
         action = group_as_manager.action_share()
 
-        # Verify the wizard receives correct model and record info
+        self.assertEqual(action['res_model'], 'ha.entity.share.wizard')
         self.assertEqual(
-            action['context']['default_res_model'],
-            'ha.entity.group',
-            "Wizard should receive correct model name for groups"
+            action['context'],
+            {'default_group_id': group.id},
+            "Wizard should receive the group as its target"
         )
-        self.assertEqual(
-            action['context']['default_res_id'],
-            group.id,
-            "Wizard should receive correct record ID for groups"
-        )
+        self.assertEqual(action['target'], 'new')
 
 
 @tagged('post_install', '-at_install')
@@ -228,8 +259,13 @@ class TestTokenGenerationPermissions(TransactionCase):
             ])]
         })
 
-    def test_manager_can_generate_token(self):
-        """Test that HA Manager can generate access tokens"""
+    def test_manager_share_does_not_mint_portal_token(self):
+        """action_share opens the user-based wizard and mints no bearer token.
+
+        The portal access_token is created lazily by _portal_ensure_token()
+        when a share holder opens the portal page (and reset when shares are
+        removed); opening the share wizard must not create one.
+        """
         entity = self.env['ha.entity'].sudo().create({
             'name': 'Token Gen Entity',
             'entity_id': 'sensor.token_gen',
@@ -239,18 +275,19 @@ class TestTokenGenerationPermissions(TransactionCase):
 
         entity_as_manager = entity.with_user(self.ha_manager_user)
 
-        # Token generation should work via action_share
-        # action_share calls _portal_ensure_token internally
         try:
             entity_as_manager.action_share()
-            # Reload to see if token was set
-            entity.invalidate_recordset()
-            self.assertTrue(
-                entity.access_token,
-                "Token should be generated when HA Manager calls action_share"
-            )
         except AccessError:
-            self.fail("HA Manager should be able to trigger token generation")
+            self.fail("HA Manager should be able to call action_share")
+        entity.invalidate_recordset()
+        self.assertFalse(
+            entity.access_token,
+            "Opening the share wizard must not mint a portal access token"
+        )
+        # The token is still available on demand (portal page view).
+        token = entity.sudo()._portal_ensure_token()
+        self.assertTrue(token)
+        self.assertEqual(entity.access_token, token)
 
     def test_multiple_share_calls_same_token(self):
         """Test that multiple share calls return same token"""
