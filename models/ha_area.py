@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 import logging
+from .common.utils import ensure_ha_manager
 import json
 
 _logger = logging.getLogger(__name__)
@@ -227,7 +228,7 @@ class HAArea(models.Model):
     # ========== Bidirectional Sync: HA → Odoo ==========
 
     @api.model
-    def sync_area_from_ha_event(self, action, area_id, instance_id):
+    def _sync_area_from_ha_event(self, action, area_id, instance_id):
         """
         處理從 HA WebSocket 事件收到的 Area 變更
 
@@ -303,7 +304,7 @@ class HAArea(models.Model):
             _logger.error(f"Failed to sync area from HA event: {e}", exc_info=True)
 
     @api.model
-    def sync_area_from_ha_data(self, area_data, instance_id):
+    def _sync_area_from_ha_data(self, area_data, instance_id):
         """
         統一方法：從 HA 資料同步單一 Area 到 Odoo
 
@@ -325,7 +326,7 @@ class HAArea(models.Model):
 
         # Convert HA labels (string array) to Odoo label_ids (Many2many)
         ha_labels = area_data.get('labels', [])
-        label_records = self.env['ha.label'].get_or_create_labels(ha_labels, instance_id)
+        label_records = self.env['ha.label']._get_or_create_labels(ha_labels, instance_id)
 
         values = {
             'area_id': area_id,
@@ -359,7 +360,7 @@ class HAArea(models.Model):
             area_data: HA 回傳的 area 資料
             instance_id: HA 實例 ID
         """
-        action, area = self.sync_area_from_ha_data(area_data, instance_id)
+        action, area = self._sync_area_from_ha_data(area_data, instance_id)
         if action and area:
             _logger.info(f"{action.capitalize()} area from HA: {area.name} (area_id={area.area_id})")
 
@@ -373,6 +374,7 @@ class HAArea(models.Model):
         Args:
             instance_id: HA 實例 ID (Phase 3 & 3.1)，如果為 None 則使用 HAInstanceHelper
         """
+        ensure_ha_manager(self.env)
         _logger.info(f"=== Starting sync_areas_from_ha (instance_id={instance_id}) ===")
 
         try:
@@ -410,7 +412,7 @@ class HAArea(models.Model):
         """
         批次更新 area 記錄
 
-        使用 sync_area_from_ha_data 統一方法
+        使用 _sync_area_from_ha_data 統一方法
 
         Args:
             areas_data: HA 回傳的 area 資料列表
@@ -421,7 +423,7 @@ class HAArea(models.Model):
 
         for area_data in areas_data:
             try:
-                action, _ = self.sync_area_from_ha_data(area_data, instance_id)
+                action, _ = self._sync_area_from_ha_data(area_data, instance_id)
                 if action == 'created':
                     created_count += 1
                 elif action == 'updated':

@@ -7,6 +7,38 @@
 
 ## [Unreleased]
 
+## [18.0.7.2] - 2026-11-07
+
+### 安全性
+
+- 入口網站：對 `update` 實體的控制分享不再能執行 `install`／`skip`，韌體與核心更新一律限 HA 管理員
+- `/odoo_ha_addon/ha_urls`（HA 內部／外部／Nabu Casa 雲端網址）限 HA 管理員；其他使用者收到標準「需要管理員權限」錯誤，且不會向 HA 查詢
+- `/odoo_ha_addon/websocket_status` 不再對非管理員回傳實例 API 網址與是否有 token（改回 `url_hidden: true`，儀表板顯示替代文字）
+- 實體、實體群組、裝置的 `action_share` 限 HA 管理員（分享精靈原本就只有管理員能用）
+
+### 修正
+
+- 分享精靈：「必須且只能有一個分享對象」的檢查在完全沒給對象時也會執行；先前沒有對象的精靈會被接受，`action_share` 可能改寫所選使用者另一筆無關的既有分享
+- 舊網址 `/portal/entity/<id>` 轉址改用與實體頁相同的存取規則（直接分享或群組分享）
+- 測試改為 Odoo 18 入口網站現況（舊網址轉到 `/my/ha`、OWL 控制元件、`/my/ha` 首頁文字）與以使用者為對象的分享精靈；移除 `assertRaises` 的例外 tuple
+
+## [18.0.7.1] - 2026-11-07
+
+### 安全性
+
+- 移除 `ha.ws.request.queue` 的全域（無群組）存取權；內部 WebSocket 請求佇列只開放給 `base.group_system`（更新時由 migration 刪除舊列）
+- 即時 bus 通知只送給有權限的使用者（HA Manager、包含該 entity 的 entity group 成員、公開群組＝所有 HA User、對該 entity／其群組／其裝置有未過期分享的使用者）；實例通知限縮到該實例；實例切換／降級通知只送給觸發的使用者。`notify_*` 改為私有方法
+- `/odoo_ha_addon/websocket_restart` 需要 HA Manager、正整數且 ir.rule 可見的實例 ID，不再能重啟全部實例；`/odoo_ha_addon/areas` 套用 ir.rule，只有 Manager 會觸發完整同步
+- `/odoo_ha_addon/call_service`：HA User 有 domain/service 白名單（禁止 `homeassistant`、`hassio`、`shell_command`、`script`、`automation` 等），每個 `entity_id` 必須是呼叫者在同一實例可見且 domain 相符的 entity，丟棄 target selector（`area_id`、`device_id`、`floor_id`、`label_id`、`target`）與未知參數，數值必須為有限數
+- Glances 端點只回傳呼叫者可見的 entity；`hardware_info`／`network_info` 需要 HA Manager；`entity_related` 檢查 entity 可見性
+- `ha.entity.group`／`ha.entity.group.tag` 對 HA User 改為唯讀（由 Manager 管理）；群組變更時清除規則快取，授權與撤銷立即生效
+- Portal 控制要求 service domain 與 entity domain 相同、URL 實例相符，並移除 target selector 與未知參數
+- `ha.entity.share` 只能讀取自己的分享紀錄（Manager 可看全部）
+- 啟停 WebSocket 服務、完整同步、呼叫 HA service 的模型方法需要 HA Manager（或系統環境）
+- 不再於執行期 `pip install`：`websockets` 改以 `external_dependencies` 宣告
+- 不再記錄 token 前綴與完整 `service_data`
+- 分享撤銷或到期時重設分享目標的 portal access token
+
 ## [18.0.6.2] - 2026-01-21
 
 ### 新增功能

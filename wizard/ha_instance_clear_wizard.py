@@ -122,7 +122,8 @@ class HAInstanceClearWizard(models.TransientModel):
                     ('ha_instance_id', '=', instance_id)
                 ])
 
-                wizard.queue_count = self.env['ha.ws.request.queue'].search_count([
+                # sudo: ha.ws.request.queue 只開放給 base.group_system（內部通訊佇列）
+                wizard.queue_count = self.env['ha.ws.request.queue'].sudo().search_count([
                     ('ha_instance_id', '=', instance_id)
                 ])
             else:

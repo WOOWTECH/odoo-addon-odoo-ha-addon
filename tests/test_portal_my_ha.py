@@ -99,11 +99,14 @@ class TestPortalMyHaRoutes(HttpCase):
             200,
             "Should load /my/ha page even without shares"
         )
+        # /my/ha is an instance card hub since the Odoo 18 portal refactor
+        # (commit 04a026f); its empty state text changed with it.
         self.assertIn(
-            'No Shared Devices',
+            'No Home Assistant devices shared with you yet.',
             response.text,
             "Should show empty state message"
         )
+        self.assertNotIn('My HA Test Instance', response.text)
 
     def test_my_ha_multiple_instances(self):
         """Test /my/ha page shows multiple instances"""
@@ -399,11 +402,14 @@ class TestPortalMyHaExpiredShares(HttpCase):
         response = self.url_open(url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(
-            'Active Entity',
-            response.text,
-            "Should show active entity"
+        # The hub lists instance cards with per-type counts (entity names
+        # are on the instance detail page): only the active share counts.
+        self.assertIn('Expired Share Test Instance', response.text)
+        self.assertRegex(
+            response.text, r'\b1\s+entities,',
+            "Hub should count only the non-expired entity share"
         )
+        self.assertNotIn('Expired Entity', response.text)
 
         # Check instance detail excludes expired
         url_detail = f'/my/ha/{self.ha_instance.id}'

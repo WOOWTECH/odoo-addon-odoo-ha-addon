@@ -220,7 +220,10 @@ class WoowHaInfoDashboard extends Component {
 
       if (result.success) {
         this.state.websocket.connected = result.data.is_running;
-        this.state.websocket.url = result.data.current_url || "未設定";
+        // 非管理員不會收到 current_url（後端以 url_hidden 標示）
+        this.state.websocket.url = result.data.url_hidden
+          ? "僅管理員可見"
+          : (result.data.current_url || "未設定");
         this.state.websocket.configSynced = result.data.config_synced;
         this.state.websocket.lastUpdate = result.data.status_text;
         this.state.websocket.error = null;

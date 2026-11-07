@@ -2,73 +2,42 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
-def _check_python_dependencies():
+def _check_python_dependencies(raise_on_missing=True):
     """
-    檢查必要的 Python 依賴是否已安裝
-    如果缺少依賴，將自動安裝
+    檢查必要的 Python 依賴是否已安裝。
+
+    安全性：不再於執行期以 pip 安裝套件（未鎖版本／雜湊、會改動系統
+    Python）。websockets 必須預先安裝在 Odoo image 中（requirements.txt），
+    manifest 以 external_dependencies 宣告，缺少時 Odoo 會拒絕安裝模組。
     """
-    import subprocess
-    import sys
-
-    _logger.info("Checking Python dependencies for Home Assistant WebSocket integration")
-
     required_packages = {
         'websockets': 'websockets>=10.0',
     }
 
-    missing_packages = []
-
+    missing = []
     for package, pip_spec in required_packages.items():
         try:
             __import__(package)
-            _logger.info(f"✓ {package} is installed")
+            _logger.debug("✓ %s is installed", package)
         except ImportError:
-            _logger.warning(f"✗ Missing required package: {package}")
-            missing_packages.append(pip_spec)
+            missing.append(pip_spec)
 
-    if missing_packages:
-        _logger.info("=" * 60)
-        _logger.info("Auto-installing missing Python packages...")
-        _logger.info("=" * 60)
-
-        for pip_spec in missing_packages:
-            try:
-                _logger.info(f"Installing {pip_spec}...")
-                # Use --break-system-packages for Debian/Ubuntu externally-managed Python
-                subprocess.check_call([
-                    sys.executable, '-m', 'pip', 'install',
-                    '--break-system-packages', pip_spec
-                ])
-                _logger.info(f"✓ Successfully installed {pip_spec}")
-            except subprocess.CalledProcessError as e:
-                _logger.error(f"✗ Failed to install {pip_spec}: {e}")
-                # Fallback: try without --break-system-packages
-                try:
-                    subprocess.check_call([
-                        sys.executable, '-m', 'pip', 'install', pip_spec
-                    ])
-                    _logger.info(f"✓ Successfully installed {pip_spec} (fallback)")
-                except subprocess.CalledProcessError as e2:
-                    raise ImportError(
-                        f"Failed to install {pip_spec}. "
-                        f"Please install manually: pip install --break-system-packages {pip_spec}"
-                    )
-
-        # 重新檢查安裝是否成功
-        for package in required_packages.keys():
-            try:
-                __import__(package)
-                _logger.info(f"✓ {package} is now available")
-            except ImportError:
-                raise ImportError(
-                    f"Package {package} was installed but cannot be imported. "
-                    "Please restart Odoo."
-                )
+    if missing:
+        message = (
+            "Missing Python package(s) for odoo_ha_addon: %s. "
+            "Install them in the Odoo image (pip install %s) and restart Odoo."
+            % (', '.join(missing), ' '.join(missing))
+        )
+        if raise_on_missing:
+            raise ImportError(message)
+        _logger.error(message)
+        return False
+    return True
 
 def pre_init_hook(cr):
     """
     在模組安裝前執行，檢查必要的 Python 依賴
-    如果依賴缺失，將拋出錯誤並提供安裝指引
+    如果依賴缺失，將拋出錯誤並提供安裝指引（不會自動安裝）
     """
     _check_python_dependencies()
 
@@ -287,8 +256,9 @@ def post_load_hook():
     _logger.info("Post-load hook: Initializing Home Assistant WebSocket integration")
     _logger.info("=" * 60)
 
-    # 每次重啟都檢查 Python 依賴（如果缺失會拋出錯誤）
-    _check_python_dependencies()
+    # 每次重啟都檢查 Python 依賴（缺少時只記錄錯誤並略過啟動，不在執行期安裝）
+    if not _check_python_dependencies(raise_on_missing=False):
+        return
 
     _logger.info("Starting WebSocket services for all active HA instances...")
 

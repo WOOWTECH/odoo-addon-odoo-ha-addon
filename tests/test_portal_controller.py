@@ -7,8 +7,11 @@ Integration tests for portal controller endpoints with user-based authentication
 This module tests the portal access for entities and entity groups using
 ha.entity.share records for authorization:
 - Valid share access (200 response)
-- No share access (403 response)
-- Non-existent record access (404 response)
+- No share access (403 response on /my/ha/<instance>/entity|group/<id>)
+- Non-existent record access (404 response on the same routes)
+- Legacy /portal/entity|entity_group/<id> URLs (kept since the Odoo 18
+  portal refactor, commit 04a026f): without a valid share, and for unknown
+  ids, they redirect to the user's own /my/ha hub and render no record data
 - Permission level checks (view vs control)
 - Expired share handling
 - Polling endpoint JSON responses
@@ -42,6 +45,20 @@ class TestPortalEntityController(HttpCase):
             'password': 'portal_test_password',
             'groups_id': [(6, 0, [cls.env.ref('base.group_portal').id])],
         })
+
+    def _assert_legacy_redirects_to_hub(self, url, forbidden_text=None):
+        """Legacy portal URL without access: 303 to /my/ha, no record data."""
+        response = self.url_open(url, allow_redirects=False)
+        self.assertIn(response.status_code, (302, 303))
+        self.assertTrue(
+            response.headers.get('Location', '').rstrip('/').endswith('/my/ha'),
+            "Legacy URL without a valid share must go to the user's own hub",
+        )
+        response = self.url_open(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('/entity/', response.url)
+        if forbidden_text:
+            self.assertNotIn(forbidden_text, response.text)
 
     def test_portal_entity_with_share(self):
         """Test portal entity page loads successfully with valid share"""
@@ -89,7 +106,7 @@ class TestPortalEntityController(HttpCase):
         # Authenticate as portal user (no share created)
         self.authenticate('portal_test_user', 'portal_test_password')
 
-        url = f'/portal/entity/{entity.id}'
+        url = f'/my/ha/{self.ha_instance.id}/entity/{entity.id}'
         response = self.url_open(url)
 
         self.assertEqual(
@@ -97,6 +114,9 @@ class TestPortalEntityController(HttpCase):
             403,
             "Missing share should return 403 status"
         )
+        self.assertNotIn('sensor.no_share_test', response.text)
+        self._assert_legacy_redirects_to_hub(
+            f'/portal/entity/{entity.id}', 'sensor.no_share_test')
 
     def test_portal_entity_expired_share(self):
         """Test portal entity page returns 403 with expired share"""
@@ -117,7 +137,7 @@ class TestPortalEntityController(HttpCase):
 
         self.authenticate('portal_test_user', 'portal_test_password')
 
-        url = f'/portal/entity/{entity.id}'
+        url = f'/my/ha/{self.ha_instance.id}/entity/{entity.id}'
         response = self.url_open(url)
 
         self.assertEqual(
@@ -125,12 +145,15 @@ class TestPortalEntityController(HttpCase):
             403,
             "Expired share should return 403 status"
         )
+        self.assertNotIn('sensor.expired_share_test', response.text)
+        self._assert_legacy_redirects_to_hub(
+            f'/portal/entity/{entity.id}', 'sensor.expired_share_test')
 
     def test_portal_entity_not_found(self):
         """Test portal entity page returns 404 for non-existent entity"""
         self.authenticate('portal_test_user', 'portal_test_password')
 
-        url = '/portal/entity/999999'
+        url = f'/my/ha/{self.ha_instance.id}/entity/999999'
         response = self.url_open(url)
 
         self.assertEqual(
@@ -138,6 +161,8 @@ class TestPortalEntityController(HttpCase):
             404,
             "Non-existent entity should return 404 status"
         )
+        # The legacy URL treats unknown ids like unshared ones (no oracle).
+        self._assert_legacy_redirects_to_hub('/portal/entity/999999')
 
     def test_portal_entity_unauthenticated_redirect(self):
         """Test unauthenticated user is redirected to login"""
@@ -271,6 +296,8 @@ class TestPortalEntityGroupController(HttpCase):
             'groups_id': [(6, 0, [cls.env.ref('base.group_portal').id])],
         })
 
+    _assert_legacy_redirects_to_hub = TestPortalEntityController._assert_legacy_redirects_to_hub
+
     def test_portal_entity_group_with_share(self):
         """Test portal entity group page loads successfully with valid share"""
         group = self.env['ha.entity.group'].sudo().create({
@@ -310,7 +337,7 @@ class TestPortalEntityGroupController(HttpCase):
 
         self.authenticate('group_portal_test_user', 'group_portal_test_password')
 
-        url = f'/portal/entity_group/{group.id}'
+        url = f'/my/ha/{self.ha_instance.id}/group/{group.id}'
         response = self.url_open(url)
 
         self.assertEqual(
@@ -318,12 +345,15 @@ class TestPortalEntityGroupController(HttpCase):
             403,
             "Missing share should return 403 status"
         )
+        self.assertNotIn('No Share Group', response.text)
+        self._assert_legacy_redirects_to_hub(
+            f'/portal/entity_group/{group.id}', 'No Share Group')
 
     def test_portal_entity_group_not_found(self):
         """Test portal entity group page returns 404 for non-existent group"""
         self.authenticate('group_portal_test_user', 'group_portal_test_password')
 
-        url = '/portal/entity_group/999999'
+        url = f'/my/ha/{self.ha_instance.id}/group/999999'
         response = self.url_open(url)
 
         self.assertEqual(
@@ -331,6 +361,7 @@ class TestPortalEntityGroupController(HttpCase):
             404,
             "Non-existent group should return 404 status"
         )
+        self._assert_legacy_redirects_to_hub('/portal/entity_group/999999')
 
     def test_portal_entity_group_with_entities(self):
         """Test portal group page shows entities when present"""
@@ -365,6 +396,34 @@ class TestPortalEntityGroupController(HttpCase):
             response.text,
             "Portal page should display member entity name"
         )
+
+    def test_legacy_entity_url_follows_group_share(self):
+        """Legacy entity URL uses the same access rule as the entity page."""
+        entity = self.env['ha.entity'].sudo().create({
+            'name': 'Legacy Group Member',
+            'entity_id': 'sensor.legacy_group_member',
+            'domain': 'sensor',
+            'ha_instance_id': self.ha_instance.id,
+        })
+        group = self.env['ha.entity.group'].sudo().create({
+            'name': 'Legacy Redirect Group',
+            'ha_instance_id': self.ha_instance.id,
+            'entity_ids': [(6, 0, [entity.id])],
+        })
+        self.env['ha.entity.share'].sudo().create({
+            'group_id': group.id,
+            'user_id': self.portal_user.id,
+            'permission': 'view',
+        })
+        self.authenticate('group_portal_test_user', 'group_portal_test_password')
+
+        response = self.url_open(f'/portal/entity/{entity.id}', allow_redirects=False)
+        self.assertIn(response.status_code, (302, 303))
+        self.assertTrue(response.headers['Location'].endswith(
+            f'/my/ha/{self.ha_instance.id}/entity/{entity.id}'))
+        response = self.url_open(f'/portal/entity/{entity.id}')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Legacy Group Member', response.text)
 
     def test_portal_entity_group_state_endpoint_with_share(self):
         """Test group polling endpoint returns JSON with valid share"""
@@ -475,10 +534,14 @@ class TestPortalPermissionLevels(HttpCase):
         response = self.url_open(url)
 
         self.assertEqual(response.status_code, 200)
-        # View permission should show view-only notice
-        self.assertIn('View Only', response.text, "Should show view-only notice")
-        # View permission should NOT show control card
-        self.assertNotIn('id="control-card"', response.text, "Should not show control card")
+        self.assertIn('/entity/', response.url)
+        # Since the Odoo 18 portal refactor the page shows the permission
+        # badge and mounts the OWL control component only for 'control'.
+        self.assertIn('View Permission Entity', response.text)
+        self.assertIn('odoo_ha_addon.PortalEntityInfo', response.text)
+        self.assertNotIn(
+            'odoo_ha_addon.PortalEntityController', response.text,
+            "View-only share must not mount the control component")
 
     def test_control_permission_shows_controls(self):
         """Test control permission shows control UI"""
@@ -502,8 +565,10 @@ class TestPortalPermissionLevels(HttpCase):
         response = self.url_open(url)
 
         self.assertEqual(response.status_code, 200)
-        # Control permission should show control card
-        self.assertIn('id="control-card"', response.text, "Should show control card")
+        self.assertIn('/entity/', response.url)
+        self.assertIn(
+            'odoo_ha_addon.PortalEntityController', response.text,
+            "Control share should mount the control component")
 
 
 @tagged('post_install', '-at_install')

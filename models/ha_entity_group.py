@@ -2,6 +2,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 import logging
+from .common.utils import ensure_ha_manager
 
 _logger = logging.getLogger(__name__)
 
@@ -97,6 +98,32 @@ class HAEntityGroup(models.Model):
         copy=True,
         help='Custom properties for this group (defined at instance level)'
     )
+
+    # ========================================
+    # Authorization cache invalidation
+    # ========================================
+    # ir.rule domains for ha.instance / ha.entity / ha.area / history are
+    # evaluated from user.ha_entity_group_ids and cached per uid.  Any change
+    # to membership, content or instance of a group must invalidate that
+    # cache so grants and revocations take effect immediately.
+    _AUTHZ_FIELDS = {'user_ids', 'entity_ids', 'tag_ids', 'ha_instance_id', 'active'}
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        self.env.registry.clear_cache()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if self._AUTHZ_FIELDS.intersection(vals):
+            self.env.registry.clear_cache()
+        return res
+
+    def unlink(self):
+        res = super().unlink()
+        self.env.registry.clear_cache()
+        return res
 
     # ========================================
     # Computed Fields
@@ -200,6 +227,9 @@ class HAEntityGroup(models.Model):
         This opens a wizard that allows selecting users and setting permissions
         for user-based sharing (not portal token-based).
         """
+        # Sharing is a manager operation (the wizard ACL is manager-only);
+        # fail fast for call_kw callers instead of returning the action.
+        ensure_ha_manager(self.env)
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',

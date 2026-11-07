@@ -1,6 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import AccessError, ValidationError
 import logging
+from .common.utils import ensure_ha_manager
 
 _logger = logging.getLogger(__name__)
 
@@ -330,7 +331,7 @@ class HALabel(models.Model):
     # ========== Bidirectional Sync: HA → Odoo ==========
 
     @api.model
-    def sync_label_from_ha_data(self, label_data, instance_id):
+    def _sync_label_from_ha_data(self, label_data, instance_id):
         """
         Unified method: Sync single label from HA data to Odoo
 
@@ -375,7 +376,7 @@ class HALabel(models.Model):
             return 'created', new_label
 
     @api.model
-    def get_or_create_labels(self, label_ids, instance_id):
+    def _get_or_create_labels(self, label_ids, instance_id):
         """
         Get or create labels by HA label_ids for a specific HA instance.
 
@@ -422,6 +423,7 @@ class HALabel(models.Model):
         Args:
             instance_id: HA instance ID, if None uses HAInstanceHelper
         """
+        ensure_ha_manager(self.env)
         _logger.info(f"=== Starting sync_labels_from_ha (instance_id={instance_id}) ===")
 
         try:
@@ -449,7 +451,7 @@ class HALabel(models.Model):
 
             for label_data in result:
                 try:
-                    action, _ = self.sync_label_from_ha_data(label_data, instance_id)
+                    action, _ = self._sync_label_from_ha_data(label_data, instance_id)
                     if action == 'created':
                         created_count += 1
                     elif action == 'updated':

@@ -3,7 +3,9 @@ from odoo.exceptions import ValidationError, AccessError
 import logging
 import json
 from psycopg2 import errors as psycopg2_errors
-from .common.utils import parse_iso_datetime, parse_domain_from_entitiy_id
+from .common.utils import (
+    parse_iso_datetime, parse_domain_from_entitiy_id, ensure_ha_manager, ensure_ha_entity_control,
+)
 from .common.hass_rest_api import HassRestApi
 
 _logger = logging.getLogger(__name__)
@@ -253,6 +255,10 @@ class HAEntity(models.Model):
         name_changed = 'name' in vals
         label_ids_changed = 'label_ids' in vals
         result = super().write(vals)
+        if 'group_ids' in vals:
+            # Entity-group membership drives the HA User ir.rules; drop the
+            # cached rule domains so a grant/revoke applies immediately.
+            self.env.registry.clear_cache()
 
         # 若是從 HA 同步過來的，不再回傳給 HA（防止循環）
         if not self.env.context.get('from_ha_sync'):
@@ -502,6 +508,7 @@ class HAEntity(models.Model):
             instance_id: HA 實例 ID (Phase 3 & 3.1)，如果為 None 則使用 HAInstanceHelper
             sync_area_relations: 是否同步 entity 與 area 的關聯關係（預設 True）
         """
+        ensure_ha_manager(self.env)
         _logger.info(f"=== Starting sync_entity_states_from_ha (instance_id={instance_id}) ===")
 
         try:
@@ -715,7 +722,7 @@ class HAEntity(models.Model):
 
                 # 更新 label_ids
                 if ha_labels:
-                    label_records = env['ha.label'].get_or_create_labels(ha_labels, instance_id)
+                    label_records = env['ha.label']._get_or_create_labels(ha_labels, instance_id)
                     current_label_ids = set(entity.label_ids.ids)
                     new_label_ids = set(label_records.ids)
                     if current_label_ids != new_label_ids:
@@ -772,6 +779,7 @@ class HAEntity(models.Model):
         已棄用: 此方法保留以維持向後兼容，請使用 sync_entity_states_from_ha()
         未來需要排程成刪除不存在的 entity。
         """
+        ensure_ha_manager(self.env)
         _logger.info("=== fetch_states called (delegating to sync_entity_states_from_ha) ===")
         _logger.debug(f"Current model: {self._name}")
         _logger.debug(f"Environment context: {self.env.context}")
@@ -959,6 +967,7 @@ class HAEntity(models.Model):
         """
         手動啟動 WebSocket 服務 (用於測試或手動控制)
         """
+        ensure_ha_manager(self.env)
         from .common.websocket_thread_manager import start_websocket_service
 
         try:
@@ -989,10 +998,12 @@ class HAEntity(models.Model):
         """
         停止 WebSocket 服務
         """
+        ensure_ha_manager(self.env)
         from .common.websocket_thread_manager import stop_websocket_service as stop_ws
 
         try:
-            stop_ws()
+            # Only this database's services (no argument would stop every DB)
+            stop_ws(self.env.cr.dbname)
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
@@ -1135,6 +1146,9 @@ class HAEntity(models.Model):
         This opens a wizard that allows selecting users and setting permissions
         for user-based sharing (not portal token-based).
         """
+        # Sharing is a manager operation (the wizard ACL is manager-only);
+        # fail fast for call_kw callers instead of returning the action.
+        ensure_ha_manager(self.env)
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
@@ -1151,6 +1165,7 @@ class HAEntity(models.Model):
 
     def action_toggle_automation(self):
         """Toggle an automation on/off in Home Assistant."""
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         if self.domain != 'automation':
@@ -1201,6 +1216,7 @@ class HAEntity(models.Model):
 
     def action_trigger_automation(self):
         """Trigger an automation manually in Home Assistant."""
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         if self.domain != 'automation':
@@ -1253,6 +1269,7 @@ class HAEntity(models.Model):
 
     def action_run_script(self):
         """Run a script in Home Assistant."""
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         if self.domain != 'script':
@@ -1303,6 +1320,7 @@ class HAEntity(models.Model):
 
     def action_toggle_script(self):
         """Toggle a script on/off in Home Assistant."""
+        ensure_ha_manager(self.env)
         self.ensure_one()
 
         if self.domain != 'script':
@@ -1359,8 +1377,11 @@ class HAEntity(models.Model):
 
         Calls HA service: scene.turn_on
         Only applicable for entities with domain='scene'.
+        HA Users may activate scenes they can read (same rule as
+        /odoo_ha_addon/call_service scene.turn_on).
         """
         self.ensure_one()
+        ensure_ha_entity_control(self)
 
         if self.domain != 'scene':
             raise ValidationError(_('This action is only available for scene entities.'))

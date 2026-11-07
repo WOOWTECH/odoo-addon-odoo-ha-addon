@@ -23,3 +23,11 @@ class ResUsers(models.Model):
         string='Authorized Entity Groups',
         help='Entity groups accessible by this user. Users can only view entities within their authorized groups.'
     )
+
+    def write(self, vals):
+        res = super().write(vals)
+        # ir.rule domains of the HA models are computed from
+        # ha_entity_group_ids and cached per uid: invalidate on change.
+        if 'ha_entity_group_ids' in vals:
+            self.env.registry.clear_cache()
+        return res

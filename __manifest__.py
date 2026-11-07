@@ -1,16 +1,16 @@
 {
     'name': 'WOOW Dashboard',
-    'version': '18.0.7.0',
+    'version': '18.0.7.2',
     'category': 'WOOW/Extra Tools',
     'summary': 'Dashboard with Home Assistant integration',
     'depends': ['base', 'web', 'mail', 'portal'],
-    # Note: Python dependencies (websockets) are auto-installed by pre_init_hook
-    # Do not use external_dependencies as it blocks installation before hook runs
+    # websockets must be installed in the Odoo image (see requirements.txt);
+    # the module no longer pip-installs packages at runtime.
+    'external_dependencies': {'python': ['websockets']},
     'data': [
         # Security - 權限組必須在 access rules 之前載入
         'security/security.xml',
         'security/ir.model.access.csv',
-        'security/ha_ws_request_queue_security.xml',
         'data/dashboard_data.xml',
         'data/websocket_cron.xml',
         'data/cron.xml',  # Entity share expiry notifications

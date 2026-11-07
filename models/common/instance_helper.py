@@ -75,7 +75,7 @@ class HAInstanceHelper:
 
                     # 發送實例失效通知
                     try:
-                        env['ha.realtime.update'].sudo().notify_instance_invalidated(
+                        env['ha.realtime.update'].sudo()._notify_instance_invalidated(
                             instance_id=session_instance_id,
                             reason='實例不存在或已停用'
                         )
@@ -96,7 +96,7 @@ class HAInstanceHelper:
                 if session_instance_id:
                     logger.info(f"Falling back to user preference: {instance.name}")
                     try:
-                        env['ha.realtime.update'].sudo().notify_instance_fallback(
+                        env['ha.realtime.update'].sudo()._notify_instance_fallback(
                             from_instance_id=session_instance_id,
                             to_instance_id=instance.id,
                             to_instance_name=instance.name,
@@ -120,7 +120,7 @@ class HAInstanceHelper:
                 from_id = session_instance_id or user_preference_id
                 logger.info(f"Falling back to first accessible instance: {first_instance.name}")
                 try:
-                    env['ha.realtime.update'].sudo().notify_instance_fallback(
+                    env['ha.realtime.update'].sudo()._notify_instance_fallback(
                         from_instance_id=from_id,
                         to_instance_id=first_instance.id,
                         to_instance_name=first_instance.name,

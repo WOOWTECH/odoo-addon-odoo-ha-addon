@@ -7,3 +7,4 @@ from . import test_share_permissions
 from . import test_entity_share
 from . import test_share_wizard
 from . import test_security
+from . import test_security_sweep_20261107

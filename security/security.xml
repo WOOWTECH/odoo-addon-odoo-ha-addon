@@ -215,5 +215,28 @@
             <field name="groups" eval="[(4, ref('group_ha_manager'))]"/>
         </record>
 
+        <!-- ========================================
+             記錄規則: 分享紀錄 (ha.entity.share)
+             ========================================
+             Portal 與 HA User 只能讀自己的分享紀錄；Manager 可看全部。
+             （群組規則為 OR：Manager 也屬於 HA User，需要 manager 規則才不會被限縮）
+        -->
+
+        <!-- 規則 15: Portal / HA User 只能看到分享給自己的紀錄 -->
+        <record id="ha_entity_share_own_rule" model="ir.rule">
+            <field name="name">HA Entity Share: Own Shares Only</field>
+            <field name="model_id" ref="model_ha_entity_share"/>
+            <field name="domain_force">[('user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_ha_user')), (4, ref('base.group_portal'))]"/>
+        </record>
+
+        <!-- 規則 16: Manager 可以看到所有分享紀錄 -->
+        <record id="ha_entity_share_manager_rule" model="ir.rule">
+            <field name="name">HA Entity Share: Manager Full Access</field>
+            <field name="model_id" ref="model_ha_entity_share"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_ha_manager'))]"/>
+        </record>
+
     </data>
 </odoo>

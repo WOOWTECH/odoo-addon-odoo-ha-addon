@@ -1,11 +1,20 @@
 from collections import defaultdict
 
 from odoo import http, _
+from odoo.exceptions import AccessError
 from odoo.http import request
 import logging
 import time
 from psycopg2 import errors as psycopg2_errors
 from odoo.addons.odoo_ha_addon.models.common.instance_helper import HAInstanceHelper
+from odoo.addons.odoo_ha_addon.models.common.service_policy import (
+    ENTITY_REFERENCE_KEYS,
+    ServicePolicyError,
+    check_domain_service,
+    coerce_finite_number,
+    normalize_entity_ids,
+    sanitize_service_params,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -30,6 +39,29 @@ def _safe_int(value, field_name):
         return int(value)
     except (ValueError, TypeError):
         raise ValueError(_("Invalid %(field)s: must be a numeric ID") % {'field': field_name})
+
+
+def _positive_int(value):
+    """Return value as a positive int, or None when it is not one (bool excluded)."""
+    if isinstance(value, bool):
+        return None
+    try:
+        value = int(value)
+    except (ValueError, TypeError):
+        return None
+    return value if value > 0 else None
+
+
+def _is_ha_manager():
+    return request.env.user.has_group('odoo_ha_addon.group_ha_manager')
+
+
+def _manager_required_response():
+    return {
+        'success': False,
+        'error': _('Home Assistant Manager permission required'),
+        'error_type': 'access_denied',
+    }
 
 
 class AwesomeDashboard(http.Controller):
@@ -57,6 +89,21 @@ class AwesomeDashboard(http.Controller):
             int: HA 實例 ID，如果找不到則返回 None
         """
         return HAInstanceHelper.get_current_instance(request.env, logger=_logger)
+
+    def _search_visible_instance(self, instance_id):
+        """
+        Return the ha.instance with this id if the current user may read it
+        (ACL + ir.rule), else an empty recordset. Unlike browse().exists(),
+        search() applies record rules.
+        """
+        Instance = request.env['ha.instance']
+        instance_id = _positive_int(instance_id)
+        if not instance_id:
+            return Instance
+        try:
+            return Instance.search([('id', '=', instance_id)], limit=1)
+        except AccessError:
+            return Instance
 
     def _validate_instance(self, instance_id):
         """
@@ -98,9 +145,7 @@ class AwesomeDashboard(http.Controller):
 
         # 檢查實例是否存在（ir.rule 會自動檢查權限）
         # 移除 .sudo() 以確保只能訪問授權的實例
-        instance = request.env['ha.instance'].search([
-            ('id', '=', instance_id)
-        ], limit=1)
+        instance = self._search_visible_instance(instance_id)
 
         if not instance:
             _logger.warning(f"Instance ID {instance_id} not found")
@@ -120,11 +165,15 @@ class AwesomeDashboard(http.Controller):
             }
 
         # 檢查實例是否已配置（有 API URL 和 token）
-        if not instance.api_url or not instance.api_token:
+        # api_token 欄位只開放給 group_ha_manager；這裡只需要「是否存在」，
+        # 用 sudo 讀布林值，避免一般 HA User 因欄位權限而無法使用已授權的實例。
+        # （存取授權由上方套用 ir.rule 的 search 與各路由自己的檢查負責）
+        has_token = bool(instance.sudo().api_token)
+        if not instance.api_url or not has_token:
             missing_fields = []
             if not instance.api_url:
                 missing_fields.append('API URL')
-            if not instance.api_token:
+            if not has_token:
                 missing_fields.append('API Token')
 
             missing = ', '.join(missing_fields)
@@ -309,6 +358,8 @@ class AwesomeDashboard(http.Controller):
             # 指定實例
             result = self.get_hardware_info(ha_instance_id=2)
         """
+        if not _is_ha_manager():
+            return self._standardize_response(_manager_required_response())
         result = self._call_websocket_api(
             message_type='supervisor/api',
             payload={
@@ -352,6 +403,8 @@ class AwesomeDashboard(http.Controller):
             # 指定實例
             result = self.get_network_info(ha_instance_id=2)
         """
+        if not _is_ha_manager():
+            return self._standardize_response(_manager_required_response())
         result = self._call_websocket_api(
             message_type='supervisor/api',
             payload={
@@ -398,6 +451,13 @@ class AwesomeDashboard(http.Controller):
             # 指定實例
             result = self.get_ha_urls(ha_instance_id=2)
         """
+        # internal/external/cloud URLs describe the HA host network (LAN
+        # address, Nabu Casa remote URL) and are only needed by managers.
+        # Like hardware_info / network_info, non-managers get the standard
+        # "manager required" error and HA is not contacted at all.
+        if not _is_ha_manager():
+            return self._standardize_response(_manager_required_response())
+
         _logger.debug("Getting Home Assistant URLs via WebSocket")
 
         # 使用 network/url WebSocket API（根據 PDF 文件）
@@ -473,6 +533,11 @@ class AwesomeDashboard(http.Controller):
                 restart_websocket_service
             )
 
+            # 只有 HA Manager 可以重啟 WebSocket 服務
+            if not _is_ha_manager():
+                _logger.warning("WebSocket restart denied for user %s (not HA manager)", request.env.uid)
+                return _manager_required_response()
+
             # Phase 3: 如果沒指定實例 ID，使用當前實例
             if ha_instance_id is None:
                 ha_instance_id = self._get_current_instance()
@@ -482,9 +547,28 @@ class AwesomeDashboard(http.Controller):
                         'error': 'No active HA instance available'
                     }
 
-            _logger.info(f"Manual WebSocket restart requested (instance={ha_instance_id}, force={force})")
+            # 必須是正整數：0/False/'' 不能落入「重啟所有實例」分支
+            instance_id = _positive_int(ha_instance_id)
+            if instance_id is None:
+                return {
+                    'success': False,
+                    'error': _('Invalid ha_instance_id: must be a positive integer'),
+                    'error_type': 'validation_error',
+                }
+
+            # 套用 ir.rule 確認實例可見
+            validation = self._validate_instance(instance_id)
+            if not validation['valid']:
+                return {
+                    'success': False,
+                    'error': validation['error_message'],
+                    'error_type': validation['error_type'],
+                }
+
+            force = force is True
+            _logger.info("Manual WebSocket restart requested (instance=%s, force=%s)", instance_id, force)
             if request.env:
-                result = restart_websocket_service(request.env, instance_id=ha_instance_id, force=force)
+                result = restart_websocket_service(request.env, instance_id=instance_id, force=force)
 
                 if not result['success']:
                     # 重啟失敗或被跳過
@@ -567,28 +651,36 @@ class AwesomeDashboard(http.Controller):
 
             # 取得實例資料（ir.rule 會自動檢查權限）
             # 移除 .sudo() 以確保只能訪問授權的實例
-            instance = request.env['ha.instance'].browse(ha_instance_id)
-            if not instance.exists():
+            instance = self._search_visible_instance(ha_instance_id)
+            if not instance:
                 return self._standardize_response({
                     'success': False,
                     'error': f'HA instance with ID {ha_instance_id} not found or access denied'
                 })
+            ha_instance_id = instance.id
 
             # 使用 thread manager 的狀態檢查（更準確）
             is_running = is_websocket_service_running(request.env, instance_id=ha_instance_id) if request.env else False
             config_synced = not is_config_changed(request.env, instance_id=ha_instance_id) if request.env and is_running else True
 
+            data = {
+                'is_running': is_running,
+                'config_synced': config_synced,
+                'status_text': _('Connected') if is_running else _('Disconnected'),
+                'instance_id': ha_instance_id,
+                'instance_name': instance.name,
+            }
+            if _is_ha_manager():
+                # Connection details (HA host URL, token presence) are
+                # configuration data for managers only.
+                data['current_url'] = instance.api_url
+                data['has_token'] = bool(instance.sudo().api_token)
+            else:
+                # The dashboard shows a placeholder instead of the URL.
+                data['url_hidden'] = True
             return self._standardize_response({
                 'success': True,
-                'data': {
-                    'is_running': is_running,
-                    'config_synced': config_synced,
-                    'current_url': instance.api_url,
-                    'has_token': bool(instance.api_token),
-                    'status_text': _('Connected') if is_running else _('Disconnected'),
-                    'instance_id': ha_instance_id,
-                    'instance_name': instance.name
-                }
+                'data': data,
             })
 
         except Exception as e:
@@ -652,16 +744,23 @@ class AwesomeDashboard(http.Controller):
                     'error': 'No active HA instance available'
                 })
 
+        # Phase 3: 取得實例（search 會套用 ir.rule；browse().exists() 不會）
+        instance = self._search_visible_instance(ha_instance_id)
+        if not instance:
+            return self._standardize_response({
+                'success': False,
+                'error': f'HA instance with ID {ha_instance_id} not found or access denied'
+            })
+        ha_instance_id = instance.id
+
+        # 只有 HA Manager 觸發從 HA 的完整 sudo 同步；一般使用者只讀現有 areas
+        # （即時更新由 WebSocket 服務維持）
+        do_sync = _is_ha_manager()
+
         for attempt in range(max_retries):
             try:
-                # Phase 3: 取得實例（ir.rule 會自動檢查權限）
-                # 移除 .sudo() 以確保只能訪問授權的實例
-                instance = request.env['ha.instance'].browse(ha_instance_id)
-                if not instance.exists():
-                    return self._standardize_response({
-                        'success': False,
-                        'error': f'HA instance with ID {ha_instance_id} not found or access denied'
-                    })
+                if not do_sync:
+                    break
 
                 # 同步操作：每步驟後 commit 以減少鎖定時間
                 # Trade-off: 犧牲原子性換取更好的並發性能
@@ -685,25 +784,7 @@ class AwesomeDashboard(http.Controller):
                 # sudo: 系統層級同步，需要更新所有 entities 的 area 關聯
                 request.env['ha.entity'].sudo()._sync_entity_registry_relations(instance_id=ha_instance_id)
                 request.env.cr.commit()  # 釋放關聯更新的鎖
-
-                # 4. 讀取該實例的 areas (Phase 3: 過濾 ha_instance_id)
-                # 移除 .sudo() 以尊重 ir.rule 權限控制（HA User 只能看到授權的 areas）
-                areas = request.env['ha.area'].search([
-                    ('ha_instance_id', '=', ha_instance_id)
-                ])
-
-                return self._standardize_response({
-                    'success': True,
-                    'data': {
-                        'areas': [{
-                            'id': area.id,
-                            'area_id': area.area_id,
-                            'name': area.name,
-                            'icon': area.icon,
-                            'entity_count': area.entity_count,
-                        } for area in areas]
-                    }
-                })
+                break
 
             except psycopg2_errors.SerializationFailure as e:
                 # 序列化衝突，重試
@@ -728,13 +809,30 @@ class AwesomeDashboard(http.Controller):
                     'error': str(e)
                 })
 
-        # 理論上不會到這裡，但作為安全網保留
-        # 如果執行到這裡，表示 for 循環邏輯有問題
-        _logger.critical("Unexpected: reached unreachable code in get_areas(). Check retry loop logic.")
-        return self._standardize_response({
-            'success': False,
-            'error': 'Unexpected error'
-        })
+        try:
+            # 4. 讀取該實例的 areas (Phase 3: 過濾 ha_instance_id)
+            # 不用 sudo，尊重 ir.rule 權限控制（HA User 只能看到授權的 areas）
+            areas = request.env['ha.area'].search([
+                ('ha_instance_id', '=', ha_instance_id)
+            ])
+            return self._standardize_response({
+                'success': True,
+                'data': {
+                    'areas': [{
+                        'id': area.id,
+                        'area_id': area.area_id,
+                        'name': area.name,
+                        'icon': area.icon,
+                        'entity_count': area.entity_count,
+                    } for area in areas]
+                }
+            })
+        except Exception as e:
+            _logger.error(f"Failed to read areas: {e}", exc_info=True)
+            return self._standardize_response({
+                'success': False,
+                'error': str(e)
+            })
 
     @http.route('/odoo_ha_addon/entities_by_area', type='json', auth='user')
     def get_entities_by_area(self, area_id, ha_instance_id=None):
@@ -1218,55 +1316,53 @@ class AwesomeDashboard(http.Controller):
             # Set climate temperature
             {'domain': 'climate', 'service': 'set_temperature', 'service_data': {'entity_id': 'climate.living_room', 'temperature': 22}}
         """
-        _logger.info(f"Service call request: {domain}.{service} with data: {service_data}")
-
-        if service_data is None:
-            service_data = {}
+        # service_data 可能含 lock / alarm code，不在 info 等級記錄內容
+        _logger.debug("Service call request: %s.%s keys=%s", domain, service,
+                      list(service_data) if isinstance(service_data, dict) else type(service_data))
 
         try:
-            # Validate required parameters
-            if not domain or not service:
-                return self._standardize_response({
+            # 1. 解析並驗證實例（ir.rule）
+            if ha_instance_id is None:
+                ha_instance_id = self._get_current_instance()
+                if ha_instance_id is None:
+                    return self._standardize_response({
+                        'success': False,
+                        'error': _('No HA instance available'),
+                    })
+            instance_id = _positive_int(ha_instance_id)
+            validation = self._validate_instance(instance_id)
+            if not validation['valid']:
+                return {
                     'success': False,
-                    'error': 'domain and service are required'
-                })
+                    'error': validation['error_message'],
+                    'error_type': validation['error_type'],
+                }
+            instance = validation['instance']
 
-            if 'entity_id' not in service_data:
-                return self._standardize_response({
+            # 2. 授權與參數檢查（domain/service 白名單、entity 可見性、
+            #    target selector 與未知參數過濾、數值有限性）
+            try:
+                ha_service_data = self._authorize_service_call(
+                    instance, domain, service, service_data)
+            except ServicePolicyError as e:
+                _logger.warning(
+                    "Service call %s.%s denied for user %s: %s",
+                    domain, service, request.env.uid, e)
+                return {
                     'success': False,
-                    'error': 'entity_id is required in service_data'
-                })
+                    'error': str(e),
+                    'error_type': e.code,
+                }
 
-            # Validate and clamp input_number/number values against HA min/max
-            if domain in ('input_number', 'number') and service == 'set_value' and 'value' in service_data:
-                entity = request.env['ha.entity'].sudo().search(
-                    [('entity_id', '=', service_data['entity_id'])], limit=1)
-                if entity and entity.attributes:
-                    import json
-                    attrs = entity.attributes if isinstance(entity.attributes, dict) else json.loads(entity.attributes_str or '{}')
-                    ha_min = attrs.get('min')
-                    ha_max = attrs.get('max')
-                    raw_val = float(service_data['value'])
-                    clamped = raw_val
-                    if ha_min is not None:
-                        clamped = max(float(ha_min), clamped)
-                    if ha_max is not None:
-                        clamped = min(float(ha_max), clamped)
-                    if clamped != raw_val:
-                        _logger.warning(
-                            f"Clamped {service_data['entity_id']} value {raw_val} to {clamped} "
-                            f"(range {ha_min}-{ha_max})")
-                    service_data['value'] = clamped
-
-            # Call WebSocket API (Phase 3: 傳入 instance_id)
+            # 3. Call WebSocket API (Phase 3: 傳入 instance_id)
             result = self._call_websocket_api(
                 message_type='call_service',
                 payload={
                     'domain': domain,
                     'service': service,
-                    'service_data': service_data
+                    'service_data': ha_service_data
                 },
-                instance_id=ha_instance_id
+                instance_id=instance.id
             )
 
             _logger.info(f"Service {domain}.{service} called: success={result.get('success')}")
@@ -1278,6 +1374,93 @@ class AwesomeDashboard(http.Controller):
                 'success': False,
                 'error': str(e)
             })
+
+    def _authorize_service_call(self, instance, domain, service, service_data):
+        """
+        Authorise a backend call_service request and build the service_data
+        forwarded to Home Assistant.
+
+        - non-managers: domain/service must be whitelisted (no homeassistant,
+          hassio, shell_command, script, automation, ...);
+        - every entity_id must be an ha.entity of this instance that the user
+          can read through the ORM (ir.rule), and its domain must equal the
+          requested domain;
+        - target selectors (area_id, device_id, floor_id, label_id, target)
+          and unknown parameters are dropped; numbers must be finite.
+
+        :raises ServicePolicyError: when the call is not allowed
+        :return: dict service_data for HA
+        """
+        is_manager = _is_ha_manager()
+        check_domain_service(domain, service, allow_any=is_manager)
+
+        if service_data is None:
+            service_data = {}
+        if not isinstance(service_data, dict):
+            raise ServicePolicyError(_('service_data must be an object'), 'invalid_params')
+        if 'entity_id' not in service_data:
+            raise ServicePolicyError(_('entity_id is required in service_data'), 'invalid_entity')
+
+        entity_ids = normalize_entity_ids(service_data.get('entity_id'))
+        entities = self._get_visible_entities(instance, entity_ids)
+        if len(entities) != len(set(entity_ids)):
+            raise ServicePolicyError(_('Entity not found or access denied'), 'access_denied')
+        if any(entity.domain != domain for entity in entities):
+            raise ServicePolicyError(
+                _('Domain %s does not match the entity domain') % domain, 'domain_denied')
+
+        params = sanitize_service_params(
+            domain, service_data, passthrough_unknown_domain=is_manager)
+
+        # Parameters that reference other entities must be visible as well
+        for ref_key in ENTITY_REFERENCE_KEYS.intersection(params):
+            ref_ids = normalize_entity_ids(params[ref_key])
+            if len(self._get_visible_entities(instance, ref_ids)) != len(set(ref_ids)):
+                raise ServicePolicyError(_('Entity not found or access denied'), 'access_denied')
+
+        # Validate and clamp input_number/number values against HA min/max
+        if domain in ('input_number', 'number') and service == 'set_value' and 'value' in params:
+            for entity in entities[:1]:
+                attrs = entity.attributes if isinstance(entity.attributes, dict) else {}
+                value = params['value']
+                clamped = value
+                try:
+                    ha_min = attrs.get('min')
+                    ha_max = attrs.get('max')
+                    if ha_min is not None:
+                        clamped = max(coerce_finite_number(ha_min, 'min'), clamped)
+                    if ha_max is not None:
+                        clamped = min(coerce_finite_number(ha_max, 'max'), clamped)
+                except ServicePolicyError:
+                    clamped = value
+                if clamped != value:
+                    _logger.warning(
+                        "Clamped %s value %s to %s (range %s-%s)",
+                        entity.entity_id, value, clamped, attrs.get('min'), attrs.get('max'))
+                params['value'] = clamped
+
+        params['entity_id'] = entity_ids[0] if len(entity_ids) == 1 else entity_ids
+        return params
+
+    def _visible_entities_for_devices(self, ha_instance_id, ha_device_ids):
+        """ORM-visible ha.entity records attached to these HA device ids."""
+        try:
+            return request.env['ha.entity'].search([
+                ('ha_instance_id', '=', ha_instance_id),
+                ('device_id.device_id', 'in', list(ha_device_ids)),
+            ])
+        except AccessError:
+            return request.env['ha.entity']
+
+    def _get_visible_entities(self, instance, entity_ids):
+        """ha.entity records of ``instance`` with these entity_id strings, readable by the user."""
+        try:
+            return request.env['ha.entity'].search([
+                ('entity_id', 'in', list(entity_ids)),
+                ('ha_instance_id', '=', instance.id),
+            ])
+        except AccessError:
+            return request.env['ha.entity']
 
     # ====================================
     # Phase 3: Multi-Instance Management
@@ -1402,7 +1585,7 @@ class AwesomeDashboard(http.Controller):
             # Phase 3.3: 發送 Bus notification 同步所有標籤頁
             # sudo: 系統廣播通知，需要存取所有用戶的 partner channel
             try:
-                request.env['ha.realtime.update'].sudo().notify_instance_switched(
+                request.env['ha.realtime.update'].sudo()._notify_instance_switched(
                     instance_id=instance.id,
                     instance_name=instance.name,
                     user_id=request.env.user.id
@@ -1463,6 +1646,20 @@ class AwesomeDashboard(http.Controller):
         """
         _logger.debug("Getting Glances devices via WebSocket")
 
+        if ha_instance_id is None:
+            ha_instance_id = self._get_current_instance()
+            if ha_instance_id is None:
+                return self._standardize_response({
+                    'success': False,
+                    'error': _('No HA instance available'),
+                })
+        ha_instance_id = _positive_int(ha_instance_id)
+        if not ha_instance_id:
+            return self._standardize_response({
+                'success': False,
+                'error': _('Invalid ha_instance_id: must be a positive integer'),
+            })
+
         # 呼叫 config/device_registry/list WebSocket API
         result = self._call_websocket_api(
             message_type='config/device_registry/list',
@@ -1501,6 +1698,13 @@ class AwesomeDashboard(http.Controller):
                     'config_entry_id': device.get('config_entries', [None])[0] if device.get('config_entries') else None,
                     'area_id': device.get('area_id'),
                 })
+
+        # 非 manager 只回傳至少有一個 ORM 可見 entity（ir.rule）的設備
+        if glances_devices and not _is_ha_manager():
+            visible_device_ids = set(self._visible_entities_for_devices(
+                ha_instance_id, [d['id'] for d in glances_devices]
+            ).mapped('device_id.device_id'))
+            glances_devices = [d for d in glances_devices if d['id'] in visible_device_ids]
 
         _logger.debug(f"Found {len(glances_devices)} Glances devices")
 
@@ -1553,6 +1757,20 @@ class AwesomeDashboard(http.Controller):
 
         _logger.debug(f"Getting entities for Glances device: {device_id}")
 
+        if ha_instance_id is None:
+            ha_instance_id = self._get_current_instance()
+            if ha_instance_id is None:
+                return self._standardize_response({
+                    'success': False,
+                    'error': _('No HA instance available'),
+                })
+        ha_instance_id = _positive_int(ha_instance_id)
+        if not ha_instance_id:
+            return self._standardize_response({
+                'success': False,
+                'error': _('Invalid ha_instance_id: must be a positive integer'),
+            })
+
         # Step 1: 取得實體註冊表
         entity_result = self._call_websocket_api(
             message_type='config/entity_registry/list',
@@ -1570,6 +1788,13 @@ class AwesomeDashboard(http.Controller):
         for entity in all_entities:
             if entity.get('device_id') == device_id:
                 device_entity_ids.append(entity.get('entity_id'))
+
+        # 非 manager 只能取得 ORM 可見（ir.rule）的 entity 狀態
+        if device_entity_ids and not _is_ha_manager():
+            instance = self._search_visible_instance(ha_instance_id)
+            visible = set(self._get_visible_entities(instance, device_entity_ids).mapped('entity_id')) \
+                if instance else set()
+            device_entity_ids = [eid for eid in device_entity_ids if eid in visible]
 
         if not device_entity_ids:
             return self._standardize_response({
@@ -1687,6 +1912,15 @@ class AwesomeDashboard(http.Controller):
                 return self._standardize_response({
                     'success': False,
                     'error': _('No active HA instance available')
+                })
+
+        # 非 manager 只能查詢自己 ORM 可見（ir.rule）的 entity
+        if not _is_ha_manager():
+            instance = self._search_visible_instance(ha_instance_id)
+            if not instance or not self._get_visible_entities(instance, [entity_id]):
+                return self._standardize_response({
+                    'success': False,
+                    'error': _('Entity not found or access denied'),
                 })
 
         # 呼叫 search/related WebSocket API
