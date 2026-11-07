@@ -1059,16 +1059,20 @@ class HAPortalController(CustomerPortal):
         sitemap=False
     )
     def portal_entity_redirect(self, entity_id, **kw):
-        """Redirect old /portal/entity/<id> to new /my/ha/<instance_id>/entity/<id>."""
+        """Redirect old /portal/entity/<id> to new /my/ha/<instance_id>/entity/<id>.
+
+        Users without a valid (direct or group) share, and ids that do not
+        exist, are both sent to their own /my/ha hub: the legacy URL never
+        renders entity data and does not reveal whether the id exists.
+        """
         user = request.env.user
-        share = request.env['ha.entity.share'].sudo().search([
-            ('user_id', '=', user.id),
-            ('entity_id', '=', entity_id),
-            ('is_expired', '=', False),
-        ], limit=1)
-        if share and share.entity_id.ha_instance_id:
+        # Same rule as the canonical entity page (direct share or a share on
+        # a group that contains the entity).
+        share = self._check_entity_share_access(entity_id, user.id)
+        entity = request.env['ha.entity'].sudo().browse(entity_id).exists()
+        if share and entity and entity.ha_instance_id:
             return request.redirect(
-                f'/my/ha/{share.entity_id.ha_instance_id.id}/entity/{entity_id}'
+                f'/my/ha/{entity.ha_instance_id.id}/entity/{entity_id}'
             )
         return request.redirect('/my/ha')
 

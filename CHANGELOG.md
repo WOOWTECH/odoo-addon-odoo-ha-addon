@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [18.0.7.2] - 2026-11-07
+
+### Security
+
+- `/odoo_ha_addon/ha_urls` (HA internal / external / Nabu Casa cloud URLs) requires HA Manager; other users get the standard "manager required" error and HA is not queried
+- `/odoo_ha_addon/websocket_status` no longer returns the instance API URL or token presence to non-managers (`url_hidden: true`; the dashboard shows a placeholder)
+- `action_share` on entities, entity groups and devices requires HA Manager (the share wizard was already manager-only)
+
+### Fixed
+
+- Share wizard: the "exactly one target" constraint now also runs when no target is given; before, a wizard without a target was accepted and `action_share` could overwrite an unrelated existing share of the selected users
+- Legacy `/portal/entity/<id>` redirect follows the same access rule as the entity page (direct or group share)
+- Tests updated to the Odoo 18 portal (legacy URLs redirect to `/my/ha`, OWL control component, `/my/ha` hub texts) and user-based share wizard; `assertRaises` tuples replaced
+
 ## [18.0.7.1] - 2026-11-07
 
 ### Security

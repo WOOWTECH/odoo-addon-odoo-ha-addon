@@ -586,6 +586,12 @@ class _ControllerCase(_HAFixtureMixin, HttpCase):
                 ]}
             if message_type == 'search/related':
                 return {'success': True, 'data': self.related_data}
+            if message_type == 'network/url':
+                return {'success': True, 'data': {
+                    'internal': 'http://192.168.77.10:8123',
+                    'external': 'https://sweep-external.invalid',
+                    'cloud': 'https://sweepcloud.ui.nabu.casa',
+                }}
             return {'success': True, 'data': {'context': {}}}
 
         def call_websocket_api_sync(message_type, payload=None, timeout=15):
@@ -1057,3 +1063,82 @@ class TestSweepEntitySideMembershipCache(_HAFixtureMixin, TransactionCase):
         self.assertNotIn(self.light_a, Entity.search([('ha_instance_id', '=', self.inst_a.id)]))
         self.switch_b.sudo().write({'group_ids': [(4, self.group_g.id)]})
         self.assertIn(self.switch_b, Entity.search([('ha_instance_id', '=', self.inst_a.id)]))
+
+
+# ---------------------------------------------------------------------------
+# Round-1 open item: /odoo_ha_addon/ha_urls and /websocket_status exposed the
+# HA host URLs (LAN, external, Nabu Casa cloud) to every user who can read
+# the instance.
+# ---------------------------------------------------------------------------
+@tagged('post_install', '-at_install', 'ha_sweep')
+class TestSweepHaUrlsAndStatus(_ControllerCase):
+
+    URL_MARKERS = ('192.168.77.10', 'sweep-external.invalid', 'nabu.casa', 'sweep-a.invalid')
+
+    def setUp(self):
+        super().setUp()
+        patch.object(websocket_thread_manager, 'is_websocket_service_running',
+                     return_value=True).start()
+        patch.object(websocket_thread_manager, 'is_config_changed',
+                     return_value=False).start()
+
+    def _assert_no_urls(self, result):
+        dumped = json.dumps(result)
+        for marker in self.URL_MARKERS:
+            self.assertNotIn(marker, dumped)
+
+    def test_ha_urls_manager_only(self):
+        for login in ('sweep_ha_user', 'sweep_portal_share', 'sweep_internal'):
+            with self.subTest(login=login):
+                self.ws_calls.clear()
+                self.authenticate(login, PASSWORD)
+                result = self._rpc('/odoo_ha_addon/ha_urls', ha_instance_id=self.inst_a.id)
+                self.assertFalse(result['success'])
+                self._assert_no_urls(result)
+                self.assertFalse(
+                    [t for t, _p in self.ws_calls if t == 'network/url'],
+                    "HA must not be queried for non-managers")
+
+        self.authenticate('sweep_manager', PASSWORD)
+        result = self._rpc('/odoo_ha_addon/ha_urls', ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'])
+        self.assertEqual(result['data'], {
+            'internal': 'http://192.168.77.10:8123',
+            'external': 'https://sweep-external.invalid',
+            'cloud': 'https://sweepcloud.ui.nabu.casa',
+        })
+
+    def test_websocket_status_hides_url_for_non_managers(self):
+        self.authenticate('sweep_ha_user', PASSWORD)
+        result = self._rpc('/odoo_ha_addon/websocket_status', ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'])
+        data = result['data']
+        # What the dashboard needs is still there.
+        self.assertIs(data['is_running'], True)
+        self.assertIs(data['config_synced'], True)
+        self.assertEqual(data['instance_id'], self.inst_a.id)
+        self.assertEqual(data['instance_name'], 'Sweep Instance A')
+        self.assertTrue(data['status_text'])
+        self.assertIs(data.get('url_hidden'), True)
+        self.assertNotIn('current_url', data)
+        self.assertNotIn('has_token', data)
+        self._assert_no_urls(result)
+
+        # Instance B is not visible to this HA User at all.
+        result = self._rpc('/odoo_ha_addon/websocket_status', ha_instance_id=self.inst_b.id)
+        self.assertFalse(result['success'])
+        self.assertNotIn('sweep-b.invalid', json.dumps(result))
+
+    def test_websocket_status_portal_denied(self):
+        self.authenticate('sweep_portal_share', PASSWORD)
+        result = self._rpc('/odoo_ha_addon/websocket_status', ha_instance_id=self.inst_a.id)
+        self.assertFalse(result.get('success'))
+        self._assert_no_urls(result)
+
+    def test_websocket_status_manager_keeps_url(self):
+        self.authenticate('sweep_manager', PASSWORD)
+        result = self._rpc('/odoo_ha_addon/websocket_status', ha_instance_id=self.inst_a.id)
+        self.assertTrue(result['success'])
+        self.assertEqual(result['data']['current_url'], 'http://sweep-a.invalid:8123')
+        self.assertIs(result['data']['has_token'], True)
+        self.assertNotIn('url_hidden', result['data'])

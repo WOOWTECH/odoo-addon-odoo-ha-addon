@@ -198,7 +198,12 @@ class HAEntityShareWizard(models.TransientModel):
 
         return res
 
-    @api.constrains('entity_id', 'group_id', 'device_id')
+    # 'permission' always has a value at create time (default 'view'), so the
+    # check also runs when no target field is in the create values at all.
+    # Without it a wizard with no target was accepted and action_share()
+    # searched [('device_id', '=', False)], i.e. it rewrote the permission
+    # and expiry of an arbitrary existing share of each selected user.
+    @api.constrains('entity_id', 'group_id', 'device_id', 'permission')
     def _check_entity_group_or_device(self):
         """Ensure exactly one of entity_id, group_id, or device_id is set."""
         for wizard in self:
@@ -235,6 +240,9 @@ class HAEntityShareWizard(models.TransientModel):
 
         if not self.user_ids:
             raise UserError(_('Please select at least one user to share with.'))
+        # Re-check the target here as well (the record may predate the
+        # constraint fix): never fall through to a device_id=False search.
+        self._check_entity_group_or_device()
 
         ShareModel = self.env['ha.entity.share']
         created_count = 0

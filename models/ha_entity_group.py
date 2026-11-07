@@ -2,6 +2,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 import logging
+from .common.utils import ensure_ha_manager
 
 _logger = logging.getLogger(__name__)
 
@@ -226,6 +227,9 @@ class HAEntityGroup(models.Model):
         This opens a wizard that allows selecting users and setting permissions
         for user-based sharing (not portal token-based).
         """
+        # Sharing is a manager operation (the wizard ACL is manager-only);
+        # fail fast for call_kw callers instead of returning the action.
+        ensure_ha_manager(self.env)
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',

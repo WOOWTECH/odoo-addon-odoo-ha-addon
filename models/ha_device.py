@@ -486,6 +486,9 @@ class HADevice(models.Model):
         Returns an action to open the ha.entity.share.wizard form
         with this device pre-selected as the target.
         """
+        # Sharing is a manager operation (the wizard ACL is manager-only);
+        # fail fast for call_kw callers instead of returning the action.
+        ensure_ha_manager(self.env)
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',

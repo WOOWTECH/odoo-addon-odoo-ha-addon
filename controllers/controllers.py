@@ -451,6 +451,13 @@ class AwesomeDashboard(http.Controller):
             # 指定實例
             result = self.get_ha_urls(ha_instance_id=2)
         """
+        # internal/external/cloud URLs describe the HA host network (LAN
+        # address, Nabu Casa remote URL) and are only needed by managers.
+        # Like hardware_info / network_info, non-managers get the standard
+        # "manager required" error and HA is not contacted at all.
+        if not _is_ha_manager():
+            return self._standardize_response(_manager_required_response())
+
         _logger.debug("Getting Home Assistant URLs via WebSocket")
 
         # 使用 network/url WebSocket API（根據 PDF 文件）
@@ -656,17 +663,24 @@ class AwesomeDashboard(http.Controller):
             is_running = is_websocket_service_running(request.env, instance_id=ha_instance_id) if request.env else False
             config_synced = not is_config_changed(request.env, instance_id=ha_instance_id) if request.env and is_running else True
 
+            data = {
+                'is_running': is_running,
+                'config_synced': config_synced,
+                'status_text': _('Connected') if is_running else _('Disconnected'),
+                'instance_id': ha_instance_id,
+                'instance_name': instance.name,
+            }
+            if _is_ha_manager():
+                # Connection details (HA host URL, token presence) are
+                # configuration data for managers only.
+                data['current_url'] = instance.api_url
+                data['has_token'] = bool(instance.sudo().api_token)
+            else:
+                # The dashboard shows a placeholder instead of the URL.
+                data['url_hidden'] = True
             return self._standardize_response({
                 'success': True,
-                'data': {
-                    'is_running': is_running,
-                    'config_synced': config_synced,
-                    'current_url': instance.api_url,
-                    'has_token': bool(instance.sudo().api_token),
-                    'status_text': _('Connected') if is_running else _('Disconnected'),
-                    'instance_id': ha_instance_id,
-                    'instance_name': instance.name
-                }
+                'data': data,
             })
 
         except Exception as e:
