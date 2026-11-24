@@ -430,16 +430,20 @@ class WebSocketClient:
             
             elif ws_request.state in ('failed', 'timeout'):
                 error = ws_request.error or 'Unknown error'
+                error_code = ws_request.error_code
                 self._logger.error(f"Request {request_id} failed: {error}")
                 self._logger.debug(f"Request {request_id} failed after {poll_count} polls")
                 
                 # 清理請求記錄
                 ws_request.unlink()
                 
-                return {
+                response = {
                     'success': False,
                     'error': error
                 }
+                if error_code:
+                    response['error_code'] = error_code
+                return response
             
             # 等待一段時間再檢查
             self._logger.debug(f"Request {request_id} still {ws_request.state}, waiting {poll_interval}s...")

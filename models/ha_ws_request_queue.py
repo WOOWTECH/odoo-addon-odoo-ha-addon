@@ -44,6 +44,7 @@ class HAWebSocketRequestQueue(models.Model):
 
     result = fields.Text(string='Result')  # JSON string
     error = fields.Text(string='Error Message')
+    error_code = fields.Char(string='Error Code', help="Home Assistant 回的錯誤代碼（例如 unknown_command）")
 
     create_date = fields.Datetime(string='Created At', readonly=True)
     write_date = fields.Datetime(string='Updated At', readonly=True)

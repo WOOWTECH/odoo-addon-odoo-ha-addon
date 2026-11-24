@@ -47,11 +47,13 @@ class WoowHaInfoDashboard extends Component {
       hardware: {
         loading: true,
         error: null,
+        notice: null,
         data: null,
       },
       network: {
         loading: true,
         error: null,
+        notice: null,
         data: null,
       },
       haUrls: {
@@ -293,12 +295,16 @@ class WoowHaInfoDashboard extends Component {
     try {
       this.state.hardware.loading = true;
       this.state.hardware.error = null;
+      this.state.hardware.notice = null;
 
       const params = this.instanceId ? { ha_instance_id: this.instanceId } : {};
       const result = await rpc("/odoo_ha_addon/hardware_info", params);
 
       if (result.success) {
         this.state.hardware.data = result.data;
+      } else if (result.error_type === 'supervisor_unavailable') {
+        // 沒有 Supervisor 的 HA（容器版安裝）本來就沒有這項資訊，不是錯誤
+        this.state.hardware.notice = result.error;
       } else {
         this.state.hardware.error = result.error || '無法取得硬體資訊';
       }
@@ -322,12 +328,16 @@ class WoowHaInfoDashboard extends Component {
     try {
       this.state.network.loading = true;
       this.state.network.error = null;
+      this.state.network.notice = null;
 
       const params = this.instanceId ? { ha_instance_id: this.instanceId } : {};
       const result = await rpc("/odoo_ha_addon/network_info", params);
 
       if (result.success) {
         this.state.network.data = result.data;
+      } else if (result.error_type === 'supervisor_unavailable') {
+        // 沒有 Supervisor 的 HA（容器版安裝）本來就沒有這項資訊，不是錯誤
+        this.state.network.notice = result.error;
       } else {
         this.state.network.error = result.error || '無法取得網路資訊';
       }

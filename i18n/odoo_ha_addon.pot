@@ -555,3 +555,9 @@ msgstr ""
 #: code:addons/odoo_ha_addon/static/src/services/ha_data_service.js:0
 msgid "Auto-switched to %s: "
 msgstr ""
+
+#. module: odoo_ha_addon
+#. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "This Home Assistant has no Supervisor (for example a Docker or Kubernetes installation), so it does not provide this information."
+msgstr ""

@@ -9,3 +9,4 @@ from . import test_share_wizard
 from . import test_security
 from . import test_security_sweep_20261107
 from . import test_security_review_20261124
+from . import test_supervisor_unavailable

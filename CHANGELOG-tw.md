@@ -7,6 +7,16 @@
 
 ## [Unreleased]
 
+## [18.0.7.4] - 2026-11-24
+
+### 修正
+
+- 儀表板：Home Assistant 沒有 Supervisor 時（容器版安裝，例如 Docker 或 Kubernetes），硬體與網路資訊改顯示一行灰色說明，不再顯示紅色的「Unknown command.」錯誤和 Python 程式追蹤（`/odoo_ha_addon/hardware_info` 與 `/network_info` 改回 `error_type: supervisor_unavailable`）
+
+### 安全性
+
+- WebSocket 請求失敗時，回給瀏覽器的錯誤不再附上 Python 程式追蹤（伺服器的檔案路徑與程式碼），追蹤只寫進伺服器日誌；Home Assistant 回的錯誤代碼存在新欄位 `ha.ws.request.queue.error_code`
+
 ## [18.0.7.3] - 2026-11-24
 
 ### 安全性

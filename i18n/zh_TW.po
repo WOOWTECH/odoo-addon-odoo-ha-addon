@@ -4834,6 +4834,12 @@ msgstr "此實體/群組共享的使用者。"
 
 #. module: odoo_ha_addon
 #. odoo-python
+#: code:addons/odoo_ha_addon/controllers/controllers.py:0
+msgid "This Home Assistant has no Supervisor (for example a Docker or Kubernetes installation), so it does not provide this information."
+msgstr "這台 Home Assistant 沒有 Supervisor（例如以 Docker 或 Kubernetes 安裝），所以不提供這項資訊。"
+
+#. module: odoo_ha_addon
+#. odoo-python
 #: code:addons/odoo_ha_addon/models/ha_entity.py:0
 msgid "This action is only available for automation entities."
 msgstr "此操作僅適用於自動化實體。"
