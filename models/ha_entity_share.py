@@ -171,6 +171,24 @@ class HAEntityShare(models.Model):
             return ['&', ('expiry_date', '!=', False), ('expiry_date', '<', now)]
         return []
 
+    @api.model
+    def _active_share_domain(self):
+        """
+        Domain of the shares that still grant something: not expired, and
+        neither the HA instance nor the shared group has been archived.
+        """
+        return [
+            ('is_expired', '=', False),
+            ('ha_instance_id.active', '=', True),
+            '|', ('group_id', '=', False), ('group_id.active', '=', True),
+        ]
+
+    def onchange(self, values, field_names, fields_spec):
+        # The web onchange() has no access check of its own, while stored
+        # computed fields (names, instance) are evaluated in sudo.
+        self.check_access('write' if self else 'create')
+        return super().onchange(values, field_names, fields_spec)
+
     @api.depends('entity_id', 'entity_id.name', 'entity_id.entity_id',
                  'group_id', 'group_id.name',
                  'device_id', 'device_id.name', 'device_id.name_by_user',

@@ -107,6 +107,15 @@ class ResConfigSettings(models.TransientModel):
     # 使用 related 欄位 + readonly=False 後，Odoo 會自動處理欄位的讀取和寫入
     # 不需要額外的 compute, inverse, create, write 方法
 
+    # ==================== 存取檢查 ====================
+
+    def onchange(self, values, field_names, fields_spec):
+        # The web onchange() has no access check of its own, while the related
+        # HA fields (URL, name, description...) are evaluated in sudo.
+        if any(name.startswith('ha_') for name in fields_spec):
+            self.check_access('write' if self else 'create')
+        return super().onchange(values, field_names, fields_spec)
+
     # ==================== 動作方法 ====================
 
     def action_ha_instance_create_new(self):

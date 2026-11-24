@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [18.0.7.3] - 2026-11-24
+
+### Security
+
+- `ha.device`, `ha.device.tag` and `ha.label` now have record rules: HA Users only see devices holding an entity of their groups, and tags / labels of the instances of their groups; `/odoo_ha_addon/area_dashboard_data` requires the instance to be visible
+- Home Assistant states and history are no longer written to the log (they hold camera tokens and coordinates); only the number of records is logged
+- An entity group whose members are all archived stays private on the realtime bus (it used to become public to all HA Users)
+- Portal shares grant nothing while the HA instance or the shared group is archived (portal pages, control and realtime bus)
+- `onchange` on `ha.entity.share`, `ha.entity.history` and the HA fields of `res.config.settings` requires create / write access (portal users could read instance URLs, names and entity names by id)
+
 ## [18.0.7.2] - 2026-11-07
 
 ### Security

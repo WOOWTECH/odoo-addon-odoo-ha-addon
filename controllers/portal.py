@@ -92,7 +92,7 @@ class HAPortalController(CustomerPortal):
         if 'ha_share_count' in counters:
             values['ha_share_count'] = request.env['ha.entity.share'].sudo().search_count([
                 ('user_id', '=', request.env.user.id),
-                ('is_expired', '=', False),
+                *request.env['ha.entity.share']._active_share_domain(),
             ])
         return values
 
@@ -119,7 +119,7 @@ class HAPortalController(CustomerPortal):
         share = request.env['ha.entity.share'].sudo().search([
             ('entity_id', '=', entity_id),
             ('user_id', '=', user_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ], limit=1)
 
         if share:
@@ -137,7 +137,7 @@ class HAPortalController(CustomerPortal):
             group_share = request.env['ha.entity.share'].sudo().search([
                 ('group_id', 'in', groups.ids),
                 ('user_id', '=', user_id),
-                ('is_expired', '=', False),
+                *request.env['ha.entity.share']._active_share_domain(),
             ], limit=1)
 
             if group_share:
@@ -170,7 +170,7 @@ class HAPortalController(CustomerPortal):
         share = request.env['ha.entity.share'].sudo().search([
             ('group_id', '=', group_id),
             ('user_id', '=', user_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ], limit=1)
 
         if not share:
@@ -196,7 +196,7 @@ class HAPortalController(CustomerPortal):
         share = request.env['ha.entity.share'].sudo().search([
             ('device_id', '=', device_id),
             ('user_id', '=', user_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ], limit=1)
 
         if not share:
@@ -257,14 +257,14 @@ class HAPortalController(CustomerPortal):
         """Get all valid (non-expired) shares for a user."""
         return request.env['ha.entity.share'].sudo().search([
             ('user_id', '=', user_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ])
 
     def _get_user_share_count(self, user_id):
         """Get the count of valid shares for a user."""
         return request.env['ha.entity.share'].sudo().search_count([
             ('user_id', '=', user_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ])
 
     def _get_user_instances_with_shares(self, user_id):
@@ -413,19 +413,19 @@ class HAPortalController(CustomerPortal):
             ('user_id', '=', user.id),
             ('entity_id', '!=', False),
             ('entity_id.ha_instance_id', '=', instance_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ])
         group_shares = request.env['ha.entity.share'].sudo().search([
             ('user_id', '=', user.id),
             ('group_id', '!=', False),
             ('group_id.ha_instance_id', '=', instance_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ])
         device_shares = request.env['ha.entity.share'].sudo().search([
             ('user_id', '=', user.id),
             ('device_id', '!=', False),
             ('device_id.ha_instance_id', '=', instance_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ])
 
         if not entity_shares and not group_shares and not device_shares:
@@ -611,7 +611,7 @@ class HAPortalController(CustomerPortal):
             ('user_id', '=', user.id),
             ('entity_id', '!=', False),
             ('entity_id.ha_instance_id', '=', instance_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ])
         all_entity_ids = entity_shares.mapped('entity_id').sorted(
             key=lambda e: e.name or ''
@@ -859,7 +859,7 @@ class HAPortalController(CustomerPortal):
             ('user_id', '=', user.id),
             ('group_id', '!=', False),
             ('group_id.ha_instance_id', '=', instance_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ])
         all_group_ids = group_shares.mapped('group_id').sorted(
             key=lambda g: g.name or ''
@@ -971,7 +971,7 @@ class HAPortalController(CustomerPortal):
             ('user_id', '=', user.id),
             ('device_id', '!=', False),
             ('device_id.ha_instance_id', '=', instance_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ])
         all_device_ids = device_shares.mapped('device_id').sorted(
             key=lambda d: d.name or ''
@@ -1169,7 +1169,7 @@ class HAPortalController(CustomerPortal):
         share = request.env['ha.entity.share'].sudo().search([
             ('user_id', '=', user.id),
             ('group_id', '=', group_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ], limit=1)
         if share and share.group_id.ha_instance_id:
             return request.redirect(
@@ -1234,7 +1234,7 @@ class HAPortalController(CustomerPortal):
         share = request.env['ha.entity.share'].sudo().search([
             ('user_id', '=', user.id),
             ('device_id', '=', device_id),
-            ('is_expired', '=', False),
+            *request.env['ha.entity.share']._active_share_domain(),
         ], limit=1)
         if share and share.device_id.ha_instance_id:
             return request.redirect(
