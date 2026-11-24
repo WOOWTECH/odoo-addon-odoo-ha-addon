@@ -216,6 +216,67 @@
         </record>
 
         <!-- ========================================
+             記錄規則: Device / Device Tag / Label 訪問控制
+             ========================================
+             與 entity 相同的邊界：設備要含有授權 groups 的 entity，
+             標籤則跟 area 一樣限縮到授權 groups 所屬的實例
+        -->
+
+        <!-- 規則 17: HA User 只能看到含有授權 entities 的設備 -->
+        <record id="ha_device_user_rule" model="ir.rule">
+            <field name="name">HA Device: User Access (via Entities)</field>
+            <field name="model_id" ref="model_ha_device"/>
+            <field name="domain_force">[
+                ('entity_ids', 'in', user.ha_entity_group_ids.mapped('entity_ids').ids)
+            ]</field>
+            <field name="groups" eval="[(4, ref('group_ha_user'))]"/>
+        </record>
+
+        <!-- 規則 18: Manager 可以看到所有設備 -->
+        <record id="ha_device_manager_rule" model="ir.rule">
+            <field name="name">HA Device: Manager Full Access</field>
+            <field name="model_id" ref="model_ha_device"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_ha_manager'))]"/>
+        </record>
+
+        <!-- 規則 19: HA User 只能使用有權限實例的設備標籤 -->
+        <record id="ha_device_tag_user_rule" model="ir.rule">
+            <field name="name">HA Device Tag: User Access (via Groups)</field>
+            <field name="model_id" ref="model_ha_device_tag"/>
+            <field name="domain_force">[
+                ('ha_instance_id', 'in', user.ha_entity_group_ids.mapped('ha_instance_id').ids)
+            ]</field>
+            <field name="groups" eval="[(4, ref('group_ha_user'))]"/>
+        </record>
+
+        <!-- 規則 20: Manager 可以使用所有設備標籤 -->
+        <record id="ha_device_tag_manager_rule" model="ir.rule">
+            <field name="name">HA Device Tag: Manager Full Access</field>
+            <field name="model_id" ref="model_ha_device_tag"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_ha_manager'))]"/>
+        </record>
+
+        <!-- 規則 21: HA User 只能看到有權限實例的標籤 -->
+        <record id="ha_label_user_rule" model="ir.rule">
+            <field name="name">HA Label: User Access (via Groups)</field>
+            <field name="model_id" ref="model_ha_label"/>
+            <field name="domain_force">[
+                ('ha_instance_id', 'in', user.ha_entity_group_ids.mapped('ha_instance_id').ids)
+            ]</field>
+            <field name="groups" eval="[(4, ref('group_ha_user'))]"/>
+        </record>
+
+        <!-- 規則 22: Manager 可以看到所有標籤 -->
+        <record id="ha_label_manager_rule" model="ir.rule">
+            <field name="name">HA Label: Manager Full Access</field>
+            <field name="model_id" ref="model_ha_label"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_ha_manager'))]"/>
+        </record>
+
+        <!-- ========================================
              記錄規則: 分享紀錄 (ha.entity.share)
              ========================================
              Portal 與 HA User 只能讀自己的分享紀錄；Manager 可看全部。

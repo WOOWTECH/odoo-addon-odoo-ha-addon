@@ -112,7 +112,8 @@ class HassRestApi:
         if response.status_code == 200:
             # 成功取得資料
             data = response.json()
-            _logger.info(f'ha states response data: {data}')
+            # 只記錄筆數：狀態內容含攝影機權杖、座標等敏感屬性
+            _logger.info('ha states response: %s states', len(data))
             return data
         else:
             # 處理錯誤
@@ -224,7 +225,8 @@ class HassRestApi:
         if response.status_code == 200:
             # 成功取得資料
             data = response.json()
-            _logger.info(f'ha history response data: {data}')
+            # 只記錄筆數，不記錄狀態內容
+            _logger.info('ha history response: %s series', len(data))
             return data
         else:
             # 處理錯誤

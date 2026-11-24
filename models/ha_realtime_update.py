@@ -59,6 +59,9 @@ class HaRealtimeUpdate(models.Model):
         users = self.env['res.users'].sudo().browse()
         if not entity_groups:
             return users, users
+        # Archived members still make the group private: without this, reading
+        # user_ids drops them and an offboarded group would turn public.
+        entity_groups = entity_groups.with_context(active_test=False)
         ha_users = self._ha_users_in_groups('odoo_ha_addon.group_ha_user')
         members = entity_groups.mapped('user_ids') & ha_users
         public_users = users
@@ -69,7 +72,7 @@ class HaRealtimeUpdate(models.Model):
     @api.model
     def _ha_users_from_shares(self, share_domain):
         shares = self.env['ha.entity.share'].sudo().search(
-            [('is_expired', '=', False)] + share_domain
+            self.env['ha.entity.share']._active_share_domain() + share_domain
         )
         return shares.mapped('user_id')
 

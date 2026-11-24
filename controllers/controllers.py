@@ -1010,6 +1010,15 @@ class AwesomeDashboard(http.Controller):
                         'error': _('No active HA instance available')
                     })
 
+            # 實例必須是目前用戶看得到的（search 會套用 ir.rule）
+            instance = self._search_visible_instance(ha_instance_id)
+            if not instance:
+                return self._standardize_response({
+                    'success': False,
+                    'error': f'HA instance with ID {ha_instance_id} not found or access denied'
+                })
+            ha_instance_id = instance.id
+
             # 檢查是否為「未分區」查詢
             is_unassigned = area_id in (0, '0', 'unassigned', None, False)
 

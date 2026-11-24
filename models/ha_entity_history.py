@@ -39,6 +39,12 @@ class HAEntityHistory(models.Model):
     entity_id_string = fields.Char(string='Entity ID', related='entity_id.entity_id', readonly=True)
     entity_name = fields.Char(string='Entity Name', related='entity_id.name', readonly=True)
 
+    def onchange(self, values, field_names, fields_spec):
+        # The web onchange() has no access check of its own, while related
+        # fields (entity name, instance) are evaluated in sudo.
+        self.check_access('write' if self else 'create')
+        return super().onchange(values, field_names, fields_spec)
+
     @api.depends('entity_state')
     def _compute_num_state(self):
         for record in self:
@@ -212,7 +218,7 @@ class HAEntityHistory(models.Model):
         :param history_data: List of history data dictionaries.
         """
         for record in history_data:
-            _logger.info(f"Creating history record: {record}")
+            _logger.debug("Creating history record for %s", record['entity_id'])
             self.create({
                 'domain': parse_domain_from_entitiy_id(record['entity_id']),
                 'entity_id': record['entity_id'],
