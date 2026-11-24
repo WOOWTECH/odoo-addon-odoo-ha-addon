@@ -7,6 +7,16 @@
 
 ## [Unreleased]
 
+## [18.0.7.3] - 2026-11-24
+
+### 安全性
+
+- `ha.device`、`ha.device.tag`、`ha.label` 補上記錄規則：HA User 只能看到含有自己群組實體的設備，以及自己群組所屬實例的標籤；`/odoo_ha_addon/area_dashboard_data` 要求實例必須看得到
+- 不再把 Home Assistant 的完整狀態與歷史寫進日誌（含攝影機權杖與座標），只記錄筆數
+- 成員全部封存的實體群組，在即時 bus 上維持私有（先前會變成對所有 HA User 公開）
+- HA 實例或分享的群組封存後，入口網站分享不再有任何權限（頁面、控制、即時 bus）
+- `ha.entity.share`、`ha.entity.history` 與 `res.config.settings` 的 HA 欄位，`onchange` 需要建立／寫入權限（先前入口網站帳號可用編號讀到實例網址、名稱與實體名稱）
+
 ## [18.0.7.2] - 2026-11-07
 
 ### 安全性
