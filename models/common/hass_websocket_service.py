@@ -97,6 +97,19 @@ def is_valid_entity_id(entity_id: str) -> bool:
     return bool(_ENTITY_ID_PATTERN.match(entity_id))
 
 
+class HassCommandError(Exception):
+    """Home Assistant answered a command with success=false.
+
+    ``code`` is HA's error code (e.g. ``unknown_command`` when the command
+    does not exist on that installation, such as ``supervisor/api`` on a
+    Home Assistant without Supervisor).
+    """
+
+    def __init__(self, message, code=None):
+        super().__init__(message)
+        self.code = code
+
+
 class HassWebSocketService:
     """
     Home Assistant WebSocket 服務
@@ -616,7 +629,7 @@ class HassWebSocketService:
                 else:
                     error_info = data.get('error', {})
                     error_msg = error_info.get('message', 'Unknown error')
-                    future.set_exception(Exception(error_msg))
+                    future.set_exception(HassCommandError(error_msg, error_info.get('code')))
                     self._logger.error(f"Request {message_id} failed: {error_msg}")
             else:
                 # 非 result 類型但有 ID，記錄但不處理
@@ -2891,14 +2904,30 @@ class HassWebSocketService:
                             )
                             self._logger.error(f"Request {request_data['request_id']} timed out")
 
-                        except Exception as e:
-                            error_msg = f"{str(e)}\n{traceback.format_exc()}"
+                        except HassCommandError as e:
+                            # HA rejected the command: an answer, not a crash.
                             await self._run_sync(
                                 self._mark_request_failed,
                                 request_data['id'],
-                                error_msg
+                                str(e),
+                                e.code
                             )
-                            self._logger.error(f"Request {request_data['request_id']} failed: {error_msg}")
+                            self._logger.warning(
+                                f"Request {request_data['request_id']} ({request_data['message_type']}) "
+                                f"rejected by Home Assistant: {e.code}: {e}"
+                            )
+
+                        except Exception as e:
+                            # The error text is returned to the browser: never put the
+                            # traceback (server paths, code) in it, only in the log.
+                            await self._run_sync(
+                                self._mark_request_failed,
+                                request_data['id'],
+                                str(e)
+                            )
+                            self._logger.error(
+                                f"Request {request_data['request_id']} failed: {e}\n{traceback.format_exc()}"
+                            )
 
                 # 定期清理過期訂閱（每 30 秒）
                 current_time = time.time()
@@ -3205,10 +3234,10 @@ class HassWebSocketService:
             'mark_as_timeout'
         )
 
-    def _mark_request_failed(self, record_id, error):
-        """同步方法：標記請求失敗"""
+    def _mark_request_failed(self, record_id, error, error_code=None):
+        """同步方法：標記請求失敗（error_code：HA 回的錯誤代碼，若有）"""
         self._update_request_with_retry(
             record_id,
-            {'state': 'failed', 'error': error},
+            {'state': 'failed', 'error': error, 'error_code': error_code or False},
             'mark_as_failed'
         )

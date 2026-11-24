@@ -1,6 +1,6 @@
 {
     'name': 'WOOW Dashboard',
-    'version': '18.0.7.3',
+    'version': '18.0.7.4',
     'category': 'WOOW/Extra Tools',
     'summary': 'Dashboard with Home Assistant integration',
     'depends': ['base', 'web', 'mail', 'portal'],

@@ -64,6 +64,16 @@ def _manager_required_response():
     }
 
 
+def _supervisor_unavailable_response():
+    """`supervisor/api` is unknown on Home Assistant without Supervisor (Container / Core installs)."""
+    return {
+        'success': False,
+        'error': _('This Home Assistant has no Supervisor (for example a Docker or Kubernetes installation), '
+                   'so it does not provide this information.'),
+        'error_type': 'supervisor_unavailable',
+    }
+
+
 class AwesomeDashboard(http.Controller):
 
     def _get_current_instance(self):
@@ -368,6 +378,8 @@ class AwesomeDashboard(http.Controller):
             },
             instance_id=ha_instance_id
         )
+        if result.get('error_code') == 'unknown_command':
+            return _supervisor_unavailable_response()
         return self._standardize_response(result)
 
     @http.route('/odoo_ha_addon/network_info', type='json', auth='user')
@@ -413,6 +425,8 @@ class AwesomeDashboard(http.Controller):
             },
             instance_id=ha_instance_id
         )
+        if result.get('error_code') == 'unknown_command':
+            return _supervisor_unavailable_response()
         return self._standardize_response(result)
 
     @http.route('/odoo_ha_addon/ha_urls', type='json', auth='user')

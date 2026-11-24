@@ -74,6 +74,10 @@
                     <i class="fa fa-spinner fa-spin"/>
                     載入中...
                   </div>
+                  <div t-elif="state.hardware.notice" class="text-muted">
+                    <i class="fa fa-info-circle"/>
+                    <span t-esc="state.hardware.notice"/>
+                  </div>
                   <div t-elif="state.hardware.error" class="text-danger">
                     <strong>錯誤:</strong>
                     <span t-esc="state.hardware.error"/>
@@ -203,6 +207,10 @@
                   <div t-if="state.network.loading" class="text-muted">
                     <i class="fa fa-spinner fa-spin"/>
                     載入中...
+                  </div>
+                  <div t-elif="state.network.notice" class="text-muted">
+                    <i class="fa fa-info-circle"/>
+                    <span t-esc="state.network.notice"/>
                   </div>
                   <div t-elif="state.network.error" class="text-danger">
                     <strong>錯誤:</strong>

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [18.0.7.4] - 2026-11-24
+
+### Fixed
+
+- Dashboard: on a Home Assistant without Supervisor (Container / Core installs, e.g. Docker or Kubernetes) the hardware and network cards show a short grey note instead of a red "Unknown command." error followed by a Python traceback (`/odoo_ha_addon/hardware_info` and `/network_info` return `error_type: supervisor_unavailable`)
+
+### Security
+
+- A failed WebSocket request no longer sends the Python traceback (server file paths and code) back to the browser; it is only written to the server log. Home Assistant's error code is kept in the new `ha.ws.request.queue.error_code` field
+
 ## [18.0.7.3] - 2026-11-24
 
 ### Security
